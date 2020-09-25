@@ -93,21 +93,19 @@ How to write an own modules?
 The simplest way of writing own modules is to make use of the template.py. Nevertheless, you normally have to perform the following steps:
 
 1. Decide whether your module is a Transformer or Estimator. Accordingly, your module has to inherit from BaseTransformer or BaseEstimator.
-   The difference between both is that the Transformer has no fit method in contrast to the Estimator.
+   The difference between both is that the Estimator has a fit method in contrast to the Transformer.
 2. Implement the following methods:
 
-   * __init__: TODO describe the methods
-   * transform: TODO describe here the requirements on datavariables. I.e.
-     * Naming convention of datavariables, [We have to develop a convention]
-     * The first dimension of the datavariable has to be a time dimension, since we work with time series.
-   * get_params:
-   * set_params:
-   * fit: if you module is an estimator
-   * save and load: if your module has to save and load more than the parameters that are returned by get_params.
+   * __init__: method to create the module and its specific parameters
+   * transform: executes the transformation defined in the module. Note that the first dimension of the datavariable has to be a time dimension since we work with time series.
+   * get_params: method to get the module specific parameters
+   * set_params: method set the module specific parameters
+   * fit: method to fit the model if you module is an estimator
+   * save and load: method to save and load if your module has to save and load more than the parameters that are returned by get_params.
      Moreover, if you save your module, you have to use the file_manager to get a path where you can save your module.
      The pipeline will pass a filemanager to the save function.
 
-   Please note that some util methods exist in pywatts.utils. These methods are often used by modules for handling
+   Please note that some util methods exist in pywatts.utils. These methods are often used by modules to handle
    xarray datasets.
 
 After completing these two steps, you can use your created module in your pipeline.

@@ -12,8 +12,8 @@ If you aim to develop code for pyWATTS, you should use:  ``pip install -e .[dev]
 ---
 **NOTE**
    If you want to use torch, you have to install it by yourself, since it is not possible to install
-   torch via pypi on windows. For installing torch take a look at
-   [install Pytorch](https://pytorch.org/get-started/locally/)
+   torch via pypi on windows. To install torch take a look at
+   [install Pytorch](https://pytorch.org/get-started/locally/).
 
 ---
 

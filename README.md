@@ -1,3 +1,6 @@
+![Pipeline status](https://github.com/KIT-IAI/pyWATTS/workflows/Python%20application/badge.svg?branch=master)
+
+
 # pyWATTS
 
 ## Installation

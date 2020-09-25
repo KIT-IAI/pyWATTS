@@ -1,0 +1,11 @@
+*.png
+*.pickle
+*.json
+results
+.coverage
+.eggs/
+*.egg-info
+.idea
+*.log
+__pycache__/
+docs/build

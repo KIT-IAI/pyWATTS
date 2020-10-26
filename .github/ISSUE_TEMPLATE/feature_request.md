@@ -8,8 +8,8 @@ assignees: ''
 ---
 
 **What is your feature request related to?**
-* [ ] Module request
-* [ ] Problem related
+* Module request, or
+* Problem related
 
 **Please describe the module/problem**
 
@@ -29,5 +29,5 @@ A clear and concise description of any alternative solutions or features you've 
 Add any other context or screenshots about the feature request here.
 
 **What type of Feature Request**
-* [ ] Module request
-* [ ] Core enhancement
+* Module request, or
+* Core enhancement

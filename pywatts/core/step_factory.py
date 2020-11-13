@@ -1,8 +1,7 @@
-from typing import Tuple, List, Generator, Union
+from typing import Tuple, Union, Dict
 
-from pywatts.core.collect_step import CollectStep
+from pywatts.core.base import Base
 from pywatts.core.either_or_step import EitherOrStep
-from pywatts.core.exceptions.step_creation_exception import StepCreationException
 from pywatts.core.inverse_step import InverseStep
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.pipeline_step import PipelineStep
@@ -17,13 +16,10 @@ class StepFactory:
     """
 
     def create_step(self,
-                    module,
-                    inputs: Union[
-                        List[Union[StepInformation, Tuple[StepInformation]]], Pipeline, List[Pipeline], StepInformation,
-                        Tuple[StepInformation]],
-                    targets: Union[
-                        List[Union[StepInformation, Tuple[StepInformation]]], StepInformation, Tuple[StepInformation]],
-                    use_inverse_transform: bool, use_predict_proba: bool, plot: bool, to_csv: bool, summary:bool,
+                    module: Base,
+                    kwargs: Dict[Union[StepInformation, Tuple[StepInformation, ...], Pipeline]],
+                    targets: Union[StepInformation, Tuple[StepInformation, ...], Pipeline],
+                    use_inverse_transform: bool, use_predict_proba: bool, plot: bool, to_csv: bool, summary: bool,
                     condition,
                     batch_size,
                     computation_mode,
@@ -32,7 +28,7 @@ class StepFactory:
         Creates a appropriate step for the current situation.
 
         :param module: The module which should be added to the pipeline
-        :param inputs: The input steps for the current step
+        :param kwargs: The input steps for the current step
         :param targets: The target steps for the currrent step
         :param use_inverse_transform: Should inverse_transform be called instead of transform
         :param use_predict_proba: Should probabilistic_transform be called instead of transform
@@ -44,60 +40,53 @@ class StepFactory:
         :param train_if: A method for determining if the step should be fitted at a specific timestamp.
         :return: StepInformation
         """
-        if targets is None:
-            targets = []
+        arguments = module.transform.__code__.co_varnames
 
-        pipeline = self._check_ins(inputs, targets)
-        if isinstance(inputs, Pipeline):
-            input_step = pipeline.start_step
-        elif isinstance(inputs, StepInformation):
-            input_step = inputs.step
-        elif isinstance(inputs, list):
-            if len(inputs) == 0:
-                raise StepCreationException(f"There has to be at least one input for a module"
-                                            f"Check if the input list while adding the module {module.name} is empty",
-                                            module.name)
-            elif len(inputs) > 1:
-                input_step = self._createCollectStep(inputs).step
-            elif isinstance(inputs[0], tuple):
-                input_step = self._createEitherOrStep(inputs[0]).step
-            elif isinstance(inputs[0], Pipeline):
-                input_step = pipeline.start_step
-            else:
-                input_step = inputs[0].step
-        else:
-            raise StepCreationException(
-                f"The inputs of {module.name} is not a pipeline, list of StepInformation or a list of tuples of "
-                f"stepinformation. Try to provide the stepinformations of the previous modules",
-                module.name)
+        if not "kwargs" in arguments and not isinstance(kwargs, Pipeline):
+            for arg in arguments:
+                assert arg in kwargs.keys()
+        # TODO CHeck that arguemtns are in inputs
 
-        if len(targets) > 1:
-            target = self._createCollectStep(targets).step
-        elif targets and isinstance(targets[0], tuple):
-            target = self._createEitherOrStep(targets[0]).step
+        pipeline = self._check_ins(kwargs, targets)
+
+        input_steps = dict()
+
+        # TODO Check if kwargs contains the pipeline as item
+        for key, element in kwargs.items():
+            if isinstance(element, Pipeline):
+                input_steps[key] = element.start_step
+            elif isinstance(element, StepInformation):
+                input_steps[key] = element.step
+            elif isinstance(element, tuple):
+                input_steps[key] = self._createEitherOrStep(element).step
+
+        if targets and isinstance(targets, tuple):
+            target = self._createEitherOrStep(targets).step
+        elif isinstance(targets, Pipeline):
+            target = targets.start_step
         elif targets:
-            target = targets[0].step
-        else:
-            target = None
+            target = targets.step
 
-        if input_step is not None:
+        for input_step in input_steps.values:
             input_step.last = False
-        if target is not None:
+
+        if target:
             target.last = False
+
         if isinstance(module, Pipeline):
-            step = PipelineStep(module, input_step, pipeline.file_manager, target=target, plot=plot, summary=summary,
+            step = PipelineStep(module, input_steps, pipeline.file_manager, target=target, plot=plot, summary=summary,
                                 computation_mode=computation_mode,
                                 to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
         elif use_inverse_transform:
-            step = InverseStep(module, input_step, pipeline.file_manager, target, computation_mode=computation_mode,
-                               plot=plot,  summary=summary,
+            step = InverseStep(module, input_steps, pipeline.file_manager, target, computation_mode=computation_mode,
+                               plot=plot, summary=summary,
                                to_csv=to_csv, condition=condition)
         elif use_predict_proba:
-            step = ProbablisticStep(module, input_step, pipeline.file_manager, target,
+            step = ProbablisticStep(module, input_steps, pipeline.file_manager, target,
                                     computation_mode=computation_mode, plot=plot, summary=summary,
                                     to_csv=to_csv, condition=condition)
         else:
-            step = Step(module, input_step, pipeline.file_manager, target=target, plot=plot,  summary=summary,
+            step = Step(module, input_steps, pipeline.file_manager, target=target, plot=plot, summary=summary,
                         computation_mode=computation_mode,
                         to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
 
@@ -112,23 +101,7 @@ class StepFactory:
 
         return StepInformation(step, pipeline)
 
-    def _createCollectStep(self, inputs: List[Union[StepInformation, Tuple[StepInformation]]]):
-        pipeline = self._check_ins(list(inputs), [])
-        final_inputs = []
-        for input_step in inputs:
-            if isinstance(input_step, Tuple):
-                input_step = self._createEitherOrStep(input_step)
-            input_step.step.last = False
-            final_inputs.append(input_step.step)
-
-        step = CollectStep(final_inputs)
-        step_id = pipeline.add(module=step,
-                               input_ids=list(map(lambda x: x.id, final_inputs)))
-        step.id = step_id
-        return StepInformation(step, pipeline)
-
-    def _createEitherOrStep(self, inputs: Tuple[StepInformation]):
-        pipeline = self._check_ins(list(inputs), [])
+    def _createEitherOrStep(self, inputs: Tuple[StepInformation], pipeline):
         for input_step in inputs:
             input_step.step.last = False
         step = EitherOrStep(list(map(lambda x: x.step, inputs)))
@@ -137,50 +110,73 @@ class StepFactory:
         step.id = step_id
         return StepInformation(step, pipeline)
 
-    def _check_ins(self, inputs, targets):
-        if isinstance(inputs, StepInformation):
-            return inputs.pipeline
-        if isinstance(inputs, Pipeline):
-            return inputs
-        elif isinstance(inputs, StepInformation):
-            inputs = [inputs]
-        elif isinstance(inputs, Tuple):
-            inputs = [inputs]
-        elif len(inputs) == 1 and isinstance(inputs[0], Pipeline):
-            return inputs[0]
+    # def _createCollectStep(self, inputs: List[Union[StepInformation, Tuple[StepInformation]]]):
+    #     pipeline = self._check_ins(list(inputs), [])
+    #     final_inputs = []
+    #     for input_step in inputs:
+    #         if isinstance(input_step, Tuple):
+    #             input_step = self._createEitherOrStep(input_step)
+    #         input_step.step.last = False
+    #         final_inputs.append(input_step.step)
+    #
+    #     step = CollectStep(final_inputs)
+    #     step_id = pipeline.add(module=step,
+    #                            input_ids=list(map(lambda x: x.id, final_inputs)))
+    #     step.id = step_id
+    #     return StepInformation(step, pipeline)
 
-        if isinstance(inputs, StepInformation):
-            targets = [targets]
-        elif isinstance(inputs, Tuple):
-            targets = [targets]
+    def _check_ins(self, kwargs, target):
+        pipeline = None
+        for key, input_step in kwargs.items():
+            if isinstance(input_step, StepInformation):
+                pipeline_temp = input_step.pipeline
+            elif isinstance(input_step, Pipeline):
+                pipeline_temp = input_step
+            elif isinstance(input_step, tuple):
+                # We assume that a tuple consists only of step informations and do not contain a pipeline.
+                pipeline_temp = input_step[0].pipeline
+                for step_information in input_step[1:]:
+                    if not pipeline_temp == step_information.pipeline:
+                        raise Exception()
 
-        flatten_input = list(self._flatten_input(inputs))
-        flatten_target = list(self._flatten_input(targets))
-        pipeline = flatten_input[0].pipeline
-        for input_step in flatten_input:
-            if not pipeline is input_step.pipeline:
-                raise StepCreationException(f"A step information can only be part of one pipeline. "
-                                            f"Assert that you added {input_step.step.name} to the correct pipeline. "
-                                            f"However, if you want to use the module {input_step.step.name} in"
-                                            f"distinct pipeine. Assert that you add the module multiple times and not "
-                                            f"the step_information.",
-                                            )
-        for target in flatten_target:
-            if not pipeline is target.pipeline:
-                raise StepCreationException(f"A step information can only be part of one pipeline"
-                                            f"Assert that you added {target.step.name} to the correct pipeline. "
-                                            f"However,"
-                                            f"if you want to use the module {target.step.name} in distinct pipeine. "
-                                            f"Assert that you add the module multiple times and not the "
-                                            f"step_information.",
-                                            )
+            if pipeline_temp is None:
+                raise Exception()
+
+            if pipeline is None:
+                pipeline = pipeline_temp
+
+            if not pipeline_temp == pipeline:
+                raise Exception()
+
+
+        if isinstance(target, StepInformation):
+            pipeline_temp = target.step
+        elif isinstance(target, Tuple):
+            # We assume that a tuple consists only of step informations and do not contain a pipeline.
+            pipeline_temp = target[0].pipeline
+            for step_information in target[1:]:
+                if not pipeline_temp == step_information.pipeline:
+                    raise Exception()
+        elif isinstance(target, Pipeline):
+            pipeline_temp = target
+
+        if not pipeline_temp == pipeline:
+            raise Exception()
+
+
+
+                # raise StepCreationException(f"A step information can only be part of one pipeline. "
+                #                             f"Assert that you added {input_step.step.name} to the correct pipeline. "
+                #                             f"However, if you want to use the module {input_step.step.name} in"
+                #                             f"distinct pipeine. Assert that you add the module multiple times and not "
+                #                             f"the step_information.",
+                #                             )
+                #
+                # raise StepCreationException(f"A step information can only be part of one pipeline"
+                #                             f"Assert that you added {target.step.name} to the correct pipeline. "
+                #                             f"However,"
+                #                             f"if you want to use the module {target.step.name} in distinct pipeine. "
+                #                             f"Assert that you add the module multiple times and not the "
+                #                             f"step_information.",
+                #                             )
         return pipeline
-
-    def _flatten_input(self, container) -> Generator[StepInformation, None, None]:
-        # https://stackoverflow.com/questions/10823877/what-is-the-fastest-way-to-flatten-arbitrarily-nested-lists-in-python
-        for i in container:
-            if isinstance(i, (list, tuple)):
-                for j in self._flatten_input(i):
-                    yield j
-            else:
-                yield i

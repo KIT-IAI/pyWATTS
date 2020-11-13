@@ -125,10 +125,6 @@ class Base(ABC):
         return cls(name=name, **params)
 
     def __call__(self,
-                 inputs: Union[List[Union[StepInformation, Tuple[StepInformation, ...]]], Tuple[
-                     StepInformation, ...], StepInformation, Pipeline],
-                 targets: Union[List[Union[Tuple[StepInformation, ...], StepInformation]], Tuple[
-                     StepInformation, ...], StepInformation] = None,
                  use_inverse_transform: bool = False,
                  use_prob_transform: bool = False,
                  plot: bool = False,
@@ -137,7 +133,11 @@ class Base(ABC):
                  condition: Optional[Callable] = None,
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
-                 train_if: Optional[Union[Callable, bool]] = None) -> StepInformation:
+                 train_if: Optional[Union[Callable, bool]] = None,
+                 targets: Union[List[Union[Tuple[StepInformation, ...], StepInformation]], Tuple[
+                     StepInformation, ...], StepInformation] = None,
+                 **kwargs: Dict[Union[StepInformation, Pipeline]]
+                 ) -> StepInformation:
         """
         Adds this module to pipeline by creating step and step information
 
@@ -174,9 +174,10 @@ class Base(ABC):
 
         from pywatts.core.step_factory import StepFactory
 
-        return StepFactory().create_step(self, inputs, targets,
+        return StepFactory().create_step(self, kwargs=kwargs, targets=targets,
                                          use_inverse_transform=use_inverse_transform,
-                                         use_predict_proba=use_prob_transform, plot=plot, to_csv=to_csv,summary=summary,
+                                         use_predict_proba=use_prob_transform, plot=plot, to_csv=to_csv,
+                                         summary=summary,
                                          condition=condition,
                                          computation_mode=computation_mode, batch_size=batch_size,
                                          train_if=train_if

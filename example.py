@@ -27,47 +27,78 @@ if __name__ == "__main__":
     pipeline = Pipeline(path="results")
 
     # Extract dummy calender features, using holidays from Germany
-    calendar_features = CalendarExtraction(encoding="numerical", continent="Europe", country="Germany")(pipeline)
+    # NOTE: Will it also work without x=pipeline["time"]? So, pipeline["time"]?
+    # NOTE: CalendarExtraction can't return multiple features.
+    calendar_month = CalendarExtraction(
+        feature='month', encoding="numerical", continent="Europe", country="Germany"
+    )(x=pipeline["time"])
+    calendar_weekday = CalendarExtraction(
+        feature='weekday', encoding="numerical", continent="Europe", country="Germany"
+    )(x=pipeline["time"])
+    calendar_weekend = CalendarExtraction(
+        feature='weekend', encoding="numerical", continent="Europe", country="Germany"
+    )(x=pipeline["time"])
 
     # Select individual time-series (columns) and generate plots in the results folder
-    white_lister_power_statistics = WhiteLister(target="load_power_statistics", name="filter_power")(pipeline,
-                                                                                                     plot=True)
-    white_lister_transparency = WhiteLister(target="load_transparency", name="filter_transparency")(pipeline, plot=True)
-    white_lister_price = WhiteLister(target="price_day_ahead", name="filter_price")(pipeline, plot=True)
-    calendar_month = WhiteLister(target="month", name="filter_month")([calendar_features])
-    calendar_weekday = WhiteLister(target="weekday", name="filter_weekday")([calendar_features])
-    calendar_weekend = WhiteLister(target="weekend", name="filter_weekend")([calendar_features])
+    # NOTE: WhiteLister not needed after refactoring
+    #white_lister_power_statistics = WhiteLister(
+    #    target="load_power_statistics", name="filter_power"
+    #)(pipeline, plot=True)
+    #white_lister_transparency = WhiteLister(
+    #    target="load_transparency", name="filter_transparency"
+    #)(pipeline, plot=True)
+    #white_lister_price = WhiteLister(
+    #    target="price_day_ahead", name="filter_price"
+    #)(pipeline, plot=True)
+    #calendar_month = WhiteLister(
+    #    target="month", name="filter_month"
+    #)([calendar_features])
+    #calendar_weekday = WhiteLister(
+    #    target="weekday", name="filter_weekday"
+    #)([calendar_features])
+    #calendar_weekend = WhiteLister(
+    #    target="weekend", name="filter_weekend"
+    #)([calendar_features])
 
     # Deal with missing values through linear interpolation
-    imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
-                                                  name="imputer_power")([white_lister_power_statistics])
+    imputer_power_statistics = LinearInterpolater(
+        method="nearest", dim="time", name="imputer_power"
+    )(x=pipeline["load_power_statistics"])
 
     # Scale the data using a standard SKLearn scaler
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
-    scale_power_statistics = power_scaler([imputer_power_statistics])
+    scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1")([scale_power_statistics])
-    shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2")([scale_power_statistics])
+    shift_power_statistics = ClockShift(
+        lag=1, name="ClockShift_Lag1"
+    )(x=scale_power_statistics)
+    shift_power_statistics2 = ClockShift(
+        lag=2, name="ClockShift_Lag2"
+    )(x=scale_power_statistics)
 
     # Create a linear regression that uses the lagged values to predict the current value
-    regressor_power_statistics = SKLearnWrapper(module=LinearRegression(fit_intercept=True))([shift_power_statistics,
-                                                                                              shift_power_statistics2,
-                                                                                              calendar_month,
-                                                                                              calendar_weekday,
-                                                                                              calendar_weekend],
-                                                                                             targets=[
-                                                                                                 scale_power_statistics]
-                                                                                             )
+    # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
+    #       It is also possible to implement a join/collect class
+    regressor_power_statistics = SKLearnWrapper(
+        module=LinearRegression(fit_intercept=True)
+    )(
+        power_lag1=shift_power_statistics,
+        power_lag2=shift_power_statistics2,
+        cal_month=calendar_month,
+        cal_weekday=calendar_weekday,
+        call_weekend=calendar_weekend,
+        target=scale_power_statistics
+    )
 
     # Rescale the predictions to be on the original time scale
-    inverse_power_scale = power_scaler([regressor_power_statistics],
-                                       computation_mode=ComputationMode.Transform, use_inverse_transform=True,
-                                       plot=True)
+    inverse_power_scale = power_scaler(
+        x=regressor_power_statistics, computation_mode=ComputationMode.Transform,
+        use_inverse_transform=True, plot=True
+    )
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-    rmse = RmseCalculator(target="load_power_statistics", predictions=["scaler_power"])(
-        [inverse_power_scale, white_lister_power_statistics], to_csv=True)
+    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], to_csv=True)
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

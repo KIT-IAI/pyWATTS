@@ -28,7 +28,7 @@ def is_daytime(x, _):
 
 # This function creates and returns the preprocessing pipeline
 def create_preprocessing_pipeline(power_scaler):
-    pipeline = Pipeline("preprocessing")
+    pipeline = Pipeline(path="../results/preprocessing")
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
@@ -74,7 +74,7 @@ def create_test_pipeline(modules):
 
 if __name__ == "__main__":
     # Read the data via pandas.
-    data = pd.read_csv("data/getting_started_data.csv", parse_dates=["time"], infer_datetime_format=True,
+    data = pd.read_csv("../data/getting_started_data.csv", parse_dates=["time"], infer_datetime_format=True,
                        index_col="time")
 
     # Split the data into train and test data.
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
 
     # Build a train pipeline. In this pipeline, each step processes all data at once.
-    train_pipeline = Pipeline(path="train")
+    train_pipeline = Pipeline(path="../results/train")
 
     # Create preprocessing pipeline for the preprocessing steps
     preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     print("Training finished")
 
     # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
-    pipeline = Pipeline(path="results")
+    pipeline = Pipeline(path="../results")
 
     # Get preprocessing pipeline
     preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)

@@ -19,7 +19,7 @@ def custom_multiplication(x: xr.Dataset):
 # The main function is where the pipeline is created and run
 if __name__ == "__main__":
     # Create a pipeline
-    pipeline = Pipeline(path="results")
+    pipeline = Pipeline(path="../results")
 
     # Add a custom function to the FunctionModule and add the module to the pipeline
     function_module = FunctionModule(custom_multiplication, name="Multiplication")(x=pipeline["load_power_statistics"],
@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
-    df = pd.read_csv("data/getting_started_data.csv", parse_dates=["time"], infer_datetime_format=True,
+    df = pd.read_csv("../data/getting_started_data.csv", parse_dates=["time"], infer_datetime_format=True,
                      index_col="time")
 
     pipeline.train(df)

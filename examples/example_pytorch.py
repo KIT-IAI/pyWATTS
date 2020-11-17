@@ -40,7 +40,7 @@ def get_sequential_model():
 if __name__ == "__main__":
     pytorch_model = get_sequential_model()
 
-    pipeline = Pipeline(path="results")
+    pipeline = Pipeline(path="../results")
 
     # Extract dummy calender features, using holidays from Germany
     calendar_features = CalendarExtraction(encoding="numerical", continent="Europe", country="Germany")\
@@ -78,8 +78,11 @@ if __name__ == "__main__":
 
     # Now, the pipeline is complete
     # so we can load data and train the model
-    data = pd.read_csv("data/getting_started_data.csv", parse_dates=["time"], infer_datetime_format=True,
-                       index_col="time")
+    data = pd.read_csv("data/getting_started_data.csv",
+                       index_col="time",
+                       parse_dates=["time"],
+                       infer_datetime_format=True,
+                       sep=",")
 
     pipeline.train(data)
     pipeline.to_folder("./pipe_pytorch")

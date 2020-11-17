@@ -23,7 +23,7 @@ from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 # The main function is where the pipeline is created and run
 if __name__ == "__main__":
     # Create a pipeline
-    pipeline = Pipeline(path="results")
+    pipeline = Pipeline(path="../results")
 
     # Extract dummy calender features, using holidays from Germany
     # NOTE: CalendarExtraction can't return multiple features.

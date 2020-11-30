@@ -1,6 +1,8 @@
+import inspect
 from typing import Tuple, Union, Dict
 
 from pywatts.core.base import Base
+from pywatts.core.base_step import BaseStep
 from pywatts.core.either_or_step import EitherOrStep
 from pywatts.core.inverse_step import InverseStep
 from pywatts.core.pipeline import Pipeline
@@ -17,7 +19,7 @@ class StepFactory:
 
     def create_step(self,
                     module: Base,
-                    kwargs: Dict[Union[StepInformation, Tuple[StepInformation, ...], Pipeline]],
+                    kwargs: Dict[str, Union[StepInformation, Tuple[StepInformation, ...]]],
                     targets: Union[StepInformation, Tuple[StepInformation, ...], Pipeline],
                     use_inverse_transform: bool, use_predict_proba: bool, plot: bool, to_csv: bool, summary: bool,
                     condition,
@@ -40,34 +42,33 @@ class StepFactory:
         :param train_if: A method for determining if the step should be fitted at a specific timestamp.
         :return: StepInformation
         """
-        arguments = module.transform.__code__.co_varnames
 
-        if not "kwargs" in arguments and not isinstance(kwargs, Pipeline):
-            for arg in arguments:
-                assert arg in kwargs.keys()
+        arguments = inspect.signature(module.transform).parameters.keys()
+
+        if not "kwargs" in arguments:
+
+            for kwarg in arguments:
+                assert kwarg in kwargs.keys()
         # TODO CHeck that arguemtns are in inputs
 
         pipeline = self._check_ins(kwargs, targets)
 
-        input_steps = dict()
+        input_steps: Dict[str, BaseStep] = dict()
 
-        # TODO Check if kwargs contains the pipeline as item
         for key, element in kwargs.items():
-            if isinstance(element, Pipeline):
-                input_steps[key] = element.start_step
-            elif isinstance(element, StepInformation):
+            if isinstance(element, StepInformation):
                 input_steps[key] = element.step
             elif isinstance(element, tuple):
                 input_steps[key] = self._createEitherOrStep(element).step
 
         if targets and isinstance(targets, tuple):
             target = self._createEitherOrStep(targets).step
-        elif isinstance(targets, Pipeline):
-            target = targets.start_step
         elif targets:
             target = targets.step
+        else:
+            target = None
 
-        for input_step in input_steps.values:
+        for input_step in input_steps.values():
             input_step.last = False
 
         if target:
@@ -92,11 +93,11 @@ class StepFactory:
 
         if target:
             step_id = pipeline.add(module=step,
-                                   input_ids=[step.inputs[0].id],
-                                   target_ids=[step.targets[0].id])
+                                   input_ids=[],
+                                   target_ids=[])
         else:
             step_id = pipeline.add(module=step,
-                                   input_ids=[step.inputs[0].id])
+                                   input_ids=[])
         step.id = step_id
 
         return StepInformation(step, pipeline)
@@ -148,9 +149,8 @@ class StepFactory:
             if not pipeline_temp == pipeline:
                 raise Exception()
 
-
         if isinstance(target, StepInformation):
-            pipeline_temp = target.step
+            pipeline_temp = target.pipeline
         elif isinstance(target, Tuple):
             # We assume that a tuple consists only of step informations and do not contain a pipeline.
             pipeline_temp = target[0].pipeline
@@ -163,20 +163,18 @@ class StepFactory:
         if not pipeline_temp == pipeline:
             raise Exception()
 
-
-
-                # raise StepCreationException(f"A step information can only be part of one pipeline. "
-                #                             f"Assert that you added {input_step.step.name} to the correct pipeline. "
-                #                             f"However, if you want to use the module {input_step.step.name} in"
-                #                             f"distinct pipeine. Assert that you add the module multiple times and not "
-                #                             f"the step_information.",
-                #                             )
-                #
-                # raise StepCreationException(f"A step information can only be part of one pipeline"
-                #                             f"Assert that you added {target.step.name} to the correct pipeline. "
-                #                             f"However,"
-                #                             f"if you want to use the module {target.step.name} in distinct pipeine. "
-                #                             f"Assert that you add the module multiple times and not the "
-                #                             f"step_information.",
-                #                             )
+            # raise StepCreationException(f"A step information can only be part of one pipeline. "
+            #                             f"Assert that you added {input_step.step.name} to the correct pipeline. "
+            #                             f"However, if you want to use the module {input_step.step.name} in"
+            #                             f"distinct pipeine. Assert that you add the module multiple times and not "
+            #                             f"the step_information.",
+            #                             )
+            #
+            # raise StepCreationException(f"A step information can only be part of one pipeline"
+            #                             f"Assert that you added {target.step.name} to the correct pipeline. "
+            #                             f"However,"
+            #                             f"if you want to use the module {target.step.name} in distinct pipeine. "
+            #                             f"Assert that you add the module multiple times and not the "
+            #                             f"step_information.",
+            #                             )
         return pipeline

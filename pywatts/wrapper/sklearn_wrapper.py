@@ -47,15 +47,16 @@ class SKLearnWrapper(BaseWrapper):
         """
         return self.module.set_params(**kwargs)
 
-    def fit(self, x: xr.Dataset, y: xr.Dataset = None):
+    def fit(self, target = None, **kwargs):
         """
         Fit the sklearn module
         :param x: input data
         :param y: target data
         """
-        x = self._dataset_to_sklearn_input(x)
-        y = self._dataset_to_sklearn_input(y)
-        self.module.fit(x, y)
+        x = self._dataset_to_sklearn_input(kwargs)
+        if target is not None:
+            target = self._dataset_to_sklearn_input({"target": target})
+        self.module.fit(x, target)
         self.is_fitted = True
 
     @staticmethod
@@ -63,8 +64,8 @@ class SKLearnWrapper(BaseWrapper):
         if x is None:
             return None
         result = None
-        for data_var in x.data_vars:
-            data_array = x[data_var]
+        for data_var in x.values():
+            data_array = data_var
             if result is not None:
                 result = np.concatenate([result, data_array.values.reshape((len(data_array.values), -1))], axis=1)
             else:
@@ -72,24 +73,26 @@ class SKLearnWrapper(BaseWrapper):
         return result
 
     @staticmethod
-    def _sklearn_output_to_dataset(x: xr.Dataset, prediction, name: str) -> xr.Dataset:
+    def _sklearn_output_to_dataset(kwargs: xr.Dataset, prediction, name: str) -> xr.Dataset:
+        reference = kwargs[list(kwargs)[0]]
 
         coords = (
             # first dimension is number of batches. We assume that this is the time.
-            ("time", list(x.coords.values())[0].to_dataframe().index.array),
+            ("time", list(reference.coords.values())[0].to_dataframe().index.array),
             *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
 
-        data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
-                "time": list(x.coords.values())[0].to_dataframe().index.array}
-        return xr.Dataset(data)
+        # TODO how to handle multiple return values?
+        #data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
+        #        "time": list(reference.coords.values())[0].to_dataframe().index.array}
+        return xr.DataArray(prediction, coords=coords)
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, **kwargs: xr.Dataset) -> xr.Dataset:
         """
         Transforms a dataset or predicts the result with the wrapped sklearn module
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(x)
+        x_np = self._dataset_to_sklearn_input(kwargs)
 
         if isinstance(self.module, TransformerMixin):
             prediction = self.module.transform(x_np)
@@ -100,7 +103,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(x, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
 
     def inverse_transform(self, x: xr.Dataset) -> xr.Dataset:
         """

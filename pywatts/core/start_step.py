@@ -8,9 +8,10 @@ class StartStep(BaseStep):
     Start Step of the pipeline.
     """
 
-    def __init__(self):
+    def __init__(self, index:str):
         super().__init__()
         self.name = "StartStep"
+        self.index = index
 
     @classmethod
     def load(cls, stored_step: dict, inputs, targets, module, file_manager):

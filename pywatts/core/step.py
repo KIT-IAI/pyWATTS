@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
 import cloudpickle
 
@@ -39,13 +39,13 @@ class Step(BaseStep):
     :type train_if: Callable[xr.Dataset, xr.Dataset, bool]
     """
 
-    def __init__(self, module: Base, input_step: BaseStep, file_manager, *, target=None,
+    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *, target=None,
                  computation_mode=ComputationMode.Default,
                  plot=False, to_csv=False, summary: bool = True, condition=None,
                  batch_size: Optional[None] = None,
                  train_if=None):
 
-        super().__init__([input_step], [target] if target is not None else None, condition=condition,
+        super().__init__(input_steps, [target] if target is not None else None, condition=condition,
                          computation_mode=computation_mode)
         self.name = module.name
         self.file_manager = file_manager
@@ -56,9 +56,9 @@ class Step(BaseStep):
         self.summary = summary
         self.train_if = train_if
 
-    def _fit(self, input_step, target_step):
+    def _fit(self, inputs: Dict[str, BaseStep], target_step):
         # Fit the encapsulate module, if the input and the target is not stopped.
-        self.module.fit(input_step, target_step)
+        self.module.fit(**inputs, target=target_step)
 
     def _outputs(self):
         # plots and writs the data if the step is finished.
@@ -74,20 +74,20 @@ class Step(BaseStep):
             message = f"Try to call transform in {self.name} on not fitted module {self.module.name}"
             logger.error(message)
             raise NotFittedException(message, self.name, self.module.name)
-        result = self.module.transform(input_step)
+        result = self.module.transform(**input_step)
         self._post_transform(result)
         return result
 
     def _plot(self, result):
-        for dv in result.data_vars:
-            name = f"{str(dv)}_{self.module.name}"
-            title = self.module.name
-            _recursive_plot(result[dv], filemanager=self.file_manager, name=name, title=title)
+        name = f"{self.module.name}"
+        title = self.module.name
+        _recursive_plot(result, filemanager=self.file_manager, name=name, title=title)
 
     def _to_csv(self, dataset):
-        dataset.to_dataframe().to_csv(
+        dataset.to_dataframe(self.name).to_csv(
             self.file_manager.get_path(f"{self.name}.csv"), sep=";"
         )
+
     def _summary(self, dataset):
         """
         Print out some basic information of the dataset
@@ -113,7 +113,7 @@ class Step(BaseStep):
         :return: Step
         """
         step = cls(module, inputs, targets)
-        step.inputs = inputs
+        step.input_steps = inputs
         step.targets = targets if targets else []
         step.id = stored_step["id"]
         step.name = stored_step["name"]
@@ -131,7 +131,9 @@ class Step(BaseStep):
         return step
 
     def _get_input(self, start, batch):
-        return self.inputs[0].get_result(start, batch)
+        return {
+            key: input_step.get_result(start, batch) for key, input_step in self.input_steps.items()
+        }
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)

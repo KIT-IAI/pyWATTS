@@ -25,7 +25,7 @@ class CalendarExtraction(BaseTransformer):
     """
 
     def __init__(self, name: str = "CalendarExtraction", time_index: str = None,
-                 encoding: str = "numerical", prefix: str = "",
+                 encoding: str = "numerical", prefix: str = "", feature=None,
                  continent: str = "Europe", country: str = "Germany", one_data_var: bool = False):
         """ Initialize the calendar extration step.
             For correct holidays please set valid continent and country.
@@ -210,8 +210,9 @@ class CalendarExtraction(BaseTransformer):
         time_index = self.time_index
         if time_index is None:
             time_index = _get_time_indeces(x)[0]
+        data = dict()
         for feature in features:
-            x[f"{self.prefix}{feature}"] = getattr(self, f"_encode_{self.encoding}")(
+            data[f"{self.prefix}{feature}"] = getattr(self, f"_encode_{self.encoding}")(
                 feature, getattr(x, time_index).to_series()
             )
-        return x
+        return xr.DataArray(np.stack(data.values(), axis=-1), coords=(x[time_index], features))

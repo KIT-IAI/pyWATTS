@@ -20,6 +20,7 @@ from pywatts.core.base_step import BaseStep
 from pywatts.core.filemanager import FileManager
 from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
+from pywatts.core.step_information import StepInformation
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 from pywatts.core.exceptions.io_exceptions import IOException
@@ -50,12 +51,11 @@ class Pipeline(BaseTransformer):
         super().__init__("Pipeline")
         self.batch = batch
         self.counter = None
-        self.start_step = StartStep()
+        self.start_steps = dict()
         self.id_to_step: Dict[int, BaseStep] = {}
         self.computational_graph = nx.DiGraph()
         self.target_graph = nx.DiGraph()
         self.file_manager = FileManager(path)
-        self.start_step.id = self.add(module=self.start_step, input_ids=[], target_ids=[])
 
     def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
         """
@@ -70,8 +70,9 @@ class Pipeline(BaseTransformer):
         :rtype: xr.Dataset
         """
         queue = nx.dag.topological_sort(nx.compose(self.computational_graph, self.target_graph))
-        self.start_step.buffer = x.copy()
-        self.start_step.finished = True
+        for key, (start_step, _) in self.start_steps.items():
+            start_step.buffer = x[key].copy()
+            start_step.finished = True
 
         time_index = _get_time_indeces(x)
         self.counter = x.indexes[time_index[0]][0]  # The start date of the input time series.
@@ -185,6 +186,7 @@ class Pipeline(BaseTransformer):
         return self._run(data, ComputationMode.FitTransform)
 
     def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode):
+
         for step in self.id_to_step.values():
             step.reset()
             step.set_computation_mode(mode)
@@ -268,6 +270,7 @@ class Pipeline(BaseTransformer):
 
     def to_folder(self, path: Union[str, Path]):
         """
+        TODO Update this for handling multiple start steps...
         Saves the pipeline in pipeline.json in the specified folder.
 
         :param path: path of the folder
@@ -313,6 +316,7 @@ class Pipeline(BaseTransformer):
 
     def from_folder(self, load_path, file_manager_path=None):
         """
+        TODO Update this for handling multiple start steps...
         Loads the pipeline from the pipeline.json in the specified folder
         .. warning::
             Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
@@ -363,8 +367,18 @@ class Pipeline(BaseTransformer):
                               targets=list(map(lambda x: self.id_to_step[x], step["target_ids"])),
                               module=module, file_manager=self.file_manager)
             self.id_to_step[step.id] = step
-            self._add_to_graph(input_ids=list(map(lambda x: x.id, step.inputs), ),
+            self._add_to_graph(input_ids=list(map(lambda x: x.id, step.input_steps), ),
                                module_id=step.id,
                                target_ids=list(map(lambda x: x.id, step.targets)))
         self.start_step = self.id_to_step[1]
         return self
+
+    def __getitem__(self, item: str):
+        """
+        Returns the step_information for the start step corresponding to the item
+        """
+        if not item in self.start_steps.keys():
+            start_step = StartStep(item)
+            self.start_steps[item] = start_step, StepInformation(step=start_step, pipeline=self)
+            start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
+        return self.start_steps[item][-1]

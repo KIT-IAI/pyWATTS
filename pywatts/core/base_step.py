@@ -21,8 +21,8 @@ class BaseStep(ABC):
         finished -- Flag which indicates that all data are processed.
         buffer -- contains the results of this step.
 
-    :param inputs: The input steps
-    :type inputs: Step
+    :param input_steps: The input steps
+    :type input_steps: Step
     :param targets: The target steps
     :type targets: step
     :param condition: A function which evaluates to False or True for detecting if the module should be executed.
@@ -32,10 +32,11 @@ class BaseStep(ABC):
     finished = False
     buffer: xr.Dataset = xr.Dataset()
 
-    def __init__(self, inputs=None, targets=None, condition=None, computation_mode=ComputationMode.Default):
+    def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None, targets=None, condition=None,
+                 computation_mode=ComputationMode.Default):
         self._original_compuation_mode = computation_mode
         self.computation_mode = computation_mode
-        self.inputs = [] if inputs is None else inputs
+        self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets = [] if targets is None else targets
         self.condition = condition
 
@@ -94,7 +95,7 @@ class BaseStep(ABC):
         """
         if len(self.buffer.data_vars) > 0 and counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
             return True
-        for input_step in self.inputs:
+        for input_step in self.input_steps:
             if not input_step.further_elements(counter):
                 return False
         for target_step in self.targets:
@@ -142,7 +143,7 @@ class BaseStep(ABC):
         """
         return {
             "target_ids": list(map(lambda x: x.id, self.targets)),
-            "input_ids": list(map(lambda x: x.id, self.inputs)),
+            "input_ids": list(map(lambda x: x.id, self.input_steps.values())),
             "id": self.id,
             "module": self.__module__,
             "class": self.__class__.__name__,
@@ -177,7 +178,7 @@ class BaseStep(ABC):
         target_step = self._get_target(start, end)
 
         return (self.condition is not None and not self.condition(input_step, target_step)) or \
-               (self.inputs and any(map(lambda x: x.stop, self.inputs))) \
+               (self.input_steps and any(map(lambda x: x.stop, self.input_steps.values()))) \
                or (self.targets and any(map(lambda x: x.stop, self.targets)))
 
     def reset(self):

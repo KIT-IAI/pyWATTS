@@ -49,7 +49,7 @@ class RmseCalculator(BaseTransformer):
         if prediction is not None:
             self.predictions = prediction
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, y_hat: xr.DataArray, y: xr.DataArray) -> xr.DataArray:
         """
         Calculates the RMSE based on the predefined target and predictions variables
 
@@ -58,13 +58,13 @@ class RmseCalculator(BaseTransformer):
 
         :return: The calculated RMSE
         :rtype: xr.Dataset[str, xr.DataArray]
+        # TODO how to handle multiple predictions?
         """
-        t = x.get(self.target).values
+        t = y.values
         rmse = list()
-        for pr in self.predictions:
-            p = x.get(pr).values
-            rmse.append(np.sqrt(np.mean((p - t) ** 2)))
+        p = y_hat.values
+        rmse.append(np.sqrt(np.mean((p - t) ** 2)))
 
         dimension = self.predictions
-        time = x.indexes[_get_time_indeces(x)[0]][-1]
-        return xr.Dataset({"RMSE": (["time", "Result"], xr.DataArray([rmse]))},coords={"Result": dimension, "time":[time]})
+        time = y_hat.indexes[_get_time_indeces(y_hat)[0]][-1]
+        return xr.DataArray(np.array([rmse]), coords=[[time], dimension], dims={"time": [time], "Result": dimension, })

@@ -13,13 +13,13 @@ class CollectStep(BaseStep):
     """
     This step collects the inputs of all previous steps.
 
-    :param inputs: The inputs of this step.
-    :type inputs: List[Union[BaseStep, Tuple[BaseStep]]]
+    :param input_steps: The inputs of this step.
+    :type input_steps: List[Union[BaseStep, Tuple[BaseStep]]]
     """
 
-    def __init__(self, inputs: List[Union[BaseStep, Tuple[BaseStep]]]):
-        super().__init__(inputs, [])
-        self.inputs = inputs
+    def __init__(self, input_steps: List[Union[BaseStep, Tuple[BaseStep]]]):
+        super().__init__(input_steps, [])
+        self.inputs = input_steps
         self.name = "Collect"
 
     def _get_input(self, start, batch):

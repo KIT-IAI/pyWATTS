@@ -69,9 +69,7 @@ class ClockShift(BaseTransformer):
         if not indices:
             indices = _get_time_indeces(x)
         try:
-            return x.shift({index: self.lag for index in indices}, fill_value=0).rename({
-                old_name: self.name for old_name in list(x.data_vars)
-            })
+            return x.shift({index: self.lag for index in indices}, fill_value=0)
         except ValueError:
             raise WrongParameterException(
                 f"Not all indices ({indices}) are in the indices of x ({list(x.indexes.keys())}).",

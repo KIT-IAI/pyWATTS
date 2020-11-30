@@ -88,7 +88,8 @@ if __name__ == "__main__":
         cal_month=calendar_month,
         cal_weekday=calendar_weekday,
         call_weekend=calendar_weekend,
-        target=scale_power_statistics
+        target=scale_power_statistics,
+        plot=True,
     )
 
     # Rescale the predictions to be on the original time scale
@@ -118,19 +119,19 @@ if __name__ == "__main__":
     plt.show()
 
     # Save the pipeline to a folder
-    pipeline.to_folder("./pipe_getting_started")
+#    pipeline.to_folder("./pipe_getting_started")
 
     # Load the pipeline as a new instance
-    pipeline2 = Pipeline("pipeline2_results")
-    pipeline2.from_folder("./pipe_getting_started")
+ #   pipeline2 = Pipeline("pipeline2_results")
+  #  pipeline2.from_folder("./pipe_getting_started")
     #       WARNING
     #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
     #       Consequently, load only pipelines you trust with from_folder.
     #       For more details about pickling see https://docs.python.org/3/library/pickle.html
 
     # Set a new folder for the second pipeline
-    pipeline2.to_folder("./pipe_gs_copy")
+   # pipeline2.to_folder("./pipe_gs_copy")
 
     # Generate a plot of the new pipeline
-    pipeline2.draw()
-    plt.show()
+    #pipeline2.draw()
+    #plt.show()

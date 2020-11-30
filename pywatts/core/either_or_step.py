@@ -22,7 +22,7 @@ class EitherOrStep(BaseStep):
 
     def _get_input(self, start, batch):
         inputs = []
-        for step in self.inputs:
+        for step in self.input_steps:
             inp = step.get_result(start, batch)
             inputs.append(inp)
         return inputs

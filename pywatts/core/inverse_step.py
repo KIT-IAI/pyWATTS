@@ -1,7 +1,8 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict
 
 import xarray as xr
 
+from pywatts.core.base_step import BaseStep
 from pywatts.core.filemanager import FileManager
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import \
@@ -16,8 +17,8 @@ class InverseStep(Step):
 
     :param module: The module which is wrapped by the step-
     :type module: Base
-    :param input_step: The input_step of the module.
-    :type input_step: Step
+    :param input_steps: The input_step of the module.
+    :type input_steps: Step
     :param file_manager: The file_manager which is used for storing data.
     :type file_manager: FileManager
     :param target: The step against which's output the module of the current step should be fitted. (Default: None)
@@ -32,11 +33,12 @@ class InverseStep(Step):
     :type condition: Callable[xr.Dataset, xr.Dataset, bool]
     """
 
-    def __init__(self, module: Base, input_step: Step, file_manager: FileManager, target: Optional[Base] = None,
+    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager: FileManager,
+                 target: Optional[Base] = None,
                  computation_mode=ComputationMode.Default, plot: bool = False, to_csv: bool = False,
                  summary: bool = False,
                  condition: Callable[[xr.Dataset, xr.Dataset], bool] = None):
-        super().__init__(module=module, input_step=input_step, file_manager=file_manager,
+        super().__init__(module=module, input_steps=input_steps, file_manager=file_manager,
                          computation_mode=computation_mode,
                          target=target, plot=plot, to_csv=to_csv, summary=summary, condition=condition)
 

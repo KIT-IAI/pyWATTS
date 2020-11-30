@@ -98,7 +98,7 @@ if __name__ == "__main__":
     preprocessing_pipeline = preprocessing_pipeline(white_lister_power_statistics)
 
     # Addd the regressors to the train pipeline
-    regressor_lin_reg(preprocessing_pipeline,
+    regressor_lin_reg(x = preprocessing_pipeline[""],
                       targets=[white_lister_power_statistics],
                       plot=True)
     regressor_svr(preprocessing_pipeline,

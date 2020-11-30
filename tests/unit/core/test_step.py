@@ -61,7 +61,7 @@ class TestStep(unittest.TestCase):
             'condition': os.path.join("folder", "test_condition.pickle")}, json)
 
         self.assertEqual(reloaded_step.module, self.module_mock)
-        self.assertEqual(reloaded_step.inputs, [self.step_mock])
+        self.assertEqual(reloaded_step.input_steps, [self.step_mock])
         cloudpickle_mock.load.assert_called_once_with(open_mock().__enter__.return_value)
         cloudpickle_mock.dump.assert_called_once_with(condition_mock, open_mock().__enter__.return_value)
 
@@ -96,7 +96,7 @@ class TestStep(unittest.TestCase):
             'condition': None}, json),
 
         self.assertEqual(reloaded_step.module, self.module_mock)
-        self.assertEqual(reloaded_step.inputs, [self.step_mock])
+        self.assertEqual(reloaded_step.input_steps, [self.step_mock])
         cloudpickle_mock.load.assert_called_once_with(open_mock().__enter__.return_value)
         cloudpickle_mock.dump.assert_called_once_with(train_if_mock, open_mock().__enter__.return_value)
 

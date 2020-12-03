@@ -1,6 +1,25 @@
+from typing import Optional, List
+
+from pywatts.core.base_step import BaseStep
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
+import pandas as pd
+
+
+class ResultStep(BaseStep):
+    @classmethod
+    def load(cls, stored_step: dict, inputs, targets, module, file_manager):
+        pass
+
+    input_steps: List["PipelineStep"]
+
+    def __init__(self, input_steps, buffer_element: str):
+        super().__init__(input_steps=input_steps)
+        self.buffer_element = buffer_element
+
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp]):
+        return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
 
 
 class PipelineStep(Step):
@@ -52,3 +71,12 @@ class PipelineStep(Step):
         super().reset()
         for step in self.module.id_to_step.values():
             step.reset()
+
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element:str=None):
+        result = super().get_result(start, end)
+        return result[buffer_element]
+
+
+    def get_result_step(self, item: str):
+        # TODO Do we need to add this step to the pipeline? Yes or?
+        return ResultStep(input_steps={"result": self}, buffer_element=item)

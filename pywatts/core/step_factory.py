@@ -44,8 +44,9 @@ class StepFactory:
         """
 
         arguments = inspect.signature(module.transform).parameters.keys()
+        # TODO Raise an exception if no kwargs are provided
 
-        if not "kwargs" in arguments:
+        if not "kwargs" in arguments and not isinstance(module, Pipeline):
 
             for kwarg in arguments:
                 assert kwarg in kwargs.keys()
@@ -58,8 +59,12 @@ class StepFactory:
         for key, element in kwargs.items():
             if isinstance(element, StepInformation):
                 input_steps[key] = element.step
+                if isinstance(element.step, PipelineStep):
+                    raise Exception(
+                        f"Please specify which result of {element.step.name} should be used, since this steps"
+                        f"may provide multiple results.")
             elif isinstance(element, tuple):
-                input_steps[key] = self._createEitherOrStep(element).step
+                input_steps[key] = self._createEitherOrStep(element, pipeline).step
 
         if targets and isinstance(targets, tuple):
             target = self._createEitherOrStep(targets).step
@@ -78,6 +83,10 @@ class StepFactory:
             step = PipelineStep(module, input_steps, pipeline.file_manager, target=target, plot=plot, summary=summary,
                                 computation_mode=computation_mode,
                                 to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
+            # TODO run over all last steps of the module[Pipeline] and
+            #   Create for each of them a result_step which is inserted in this pipeline
+            #   and added to the step_information_collect [New kind of step_information]
+            #   so that the user now has to specify which result he wants to use.
         elif use_inverse_transform:
             step = InverseStep(module, input_steps, pipeline.file_manager, target, computation_mode=computation_mode,
                                plot=plot, summary=summary,
@@ -147,6 +156,7 @@ class StepFactory:
                 pipeline = pipeline_temp
 
             if not pipeline_temp == pipeline:
+                # TODO
                 raise Exception()
 
         if isinstance(target, StepInformation):
@@ -160,7 +170,7 @@ class StepFactory:
         elif isinstance(target, Pipeline):
             pipeline_temp = target
 
-        if not pipeline_temp == pipeline:
+        if target and not pipeline_temp == pipeline:
             raise Exception()
 
             # raise StepCreationException(f"A step information can only be part of one pipeline. "

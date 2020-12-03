@@ -57,7 +57,7 @@ class Pipeline(BaseTransformer):
         self.target_graph = nx.DiGraph()
         self.file_manager = FileManager(path)
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, **x: xr.DataArray) -> xr.Dataset:
         """
         Transform the input into output, by performing all the step in this pipeline.
         Moreover, this method collects the results of the last steps in this pipeline.
@@ -75,7 +75,7 @@ class Pipeline(BaseTransformer):
             start_step.finished = True
 
         time_index = _get_time_indeces(x)
-        self.counter = x.indexes[time_index[0]][0]  # The start date of the input time series.
+        self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
 
         last_steps = list(map(lambda x: self.id_to_step[x], filter(lambda x: self.id_to_step[x].last, queue)))
 
@@ -92,7 +92,8 @@ class Pipeline(BaseTransformer):
             else:
                 input_results = self._collect_results(last_steps)
                 if input_results is not None:
-                    result = xr.concat([result, input_results], dim=time_index[0])
+                    for key in input_results.keys():
+                        result[key] = xr.concat([result[key], input_results[key]], dim=time_index[0])
                 else:
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)
@@ -103,23 +104,13 @@ class Pipeline(BaseTransformer):
     def _collect_results(self, inputs):
         # Note the return value is None if none of the inputs provide a result for this step...
         end = None if not self.batch else self.counter + self.batch
-        results = [step.get_result(self.counter, end) for step in inputs]
-
-        result = results[0]
-        for i, step_result in enumerate(results[1:]):
-            if step_result is not None and result is None:
-                # Possible if the first ds is None
-                result = step_result
-            elif step_result is not None:
-                try:
-                    result = result.merge(step_result)
-                except MergeError:
-                    step_result = step_result.rename({key: key + f"_{i}" for key in step_result.data_vars})
-                    message = f'There was a naming conflict. Therefore, we renamed:' + str(
-                        {key: f"{key}_{i}" for key in step_result.data_vars})
-                    logger.info(message)
-                    warnings.warn(message)
-                    result = result.merge(step_result)
+        result = dict()
+        for i, step in enumerate(inputs):
+            if step.name in result.keys():
+                # TODO log and print warning that there is a renaming..
+                result[f"{step.name}_{i}"] = step.get_result(self.counter, end)
+            else:
+                result[step.name] = step.get_result(self.counter, end)
         return result
 
     def get_params(self) -> Dict[str, object]:
@@ -194,7 +185,7 @@ class Pipeline(BaseTransformer):
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
 
-        return self.transform(data)
+        return self.transform(**{key: data[key] for key in data.data_vars})
 
     def add(self, *,
             module: Union[BaseStep],
@@ -382,3 +373,6 @@ class Pipeline(BaseTransformer):
             self.start_steps[item] = start_step, StepInformation(step=start_step, pipeline=self)
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
         return self.start_steps[item][-1]
+
+    # TODO override __call__ since x can be a list (multiple inputs) with the same name
+    # TODO alternative: transform gets kwargs -> The given data are split up to the correct start_step

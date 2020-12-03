@@ -1,6 +1,9 @@
 from typing import List
 
 from pywatts.core.base_step import BaseStep
+import pandas as pd
+
+from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 
 class EitherOrStep(BaseStep):
@@ -26,6 +29,25 @@ class EitherOrStep(BaseStep):
             inp = step.get_result(start, batch)
             inputs.append(inp)
         return inputs
+
+    def further_elements(self, counter: pd.Timestamp) -> bool:
+        """
+        Checks if there exist at least one data for the time after counter.
+
+        :param counter: The timestampe for which it should be tested if there exist further data after it.
+        :type counter: pd.Timestamp
+        :return: True if there exist further data
+        :rtype: bool
+        """
+        if self.buffer is None or counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
+            return True
+        for input_step in self.input_steps:
+            if not input_step.further_elements(counter):
+                return False
+        for target_step in self.targets:
+            if not target_step.further_elements(counter):
+                return False
+        return True
 
     def _transform(self, input_step):
         # Chooses the first input_step which calculation is not stopped.

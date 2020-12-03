@@ -1,13 +1,19 @@
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 
-def _get_time_indeces(x: xr.Dataset) -> List[str]:
+def _get_time_indeces(x: Dict[str, xr.DataArray]) -> List[str]:
     indexes = []
-    for k, v in x.indexes.items():
+    if isinstance(x, xr.DataArray):
+        for k, v in x.indexes.items():
+            if isinstance(v, pd.DatetimeIndex):
+                indexes.append(k)
+        return indexes
+    # TODO check that all inputs have the same dimension?
+    for k, v in list(x.values())[0].indexes.items():
         if isinstance(v, pd.DatetimeIndex):
             indexes.append(k)
     return indexes

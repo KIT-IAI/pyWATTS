@@ -67,10 +67,10 @@ class BaseStep(ABC):
 
         # Trigger fit and transform if necessary
         if not self.finished:
-            if len(_get_time_indeces(self.buffer)) == 0:
+            if self.buffer is None:
                 self._compute(start, end)
                 self._current_end = end
-            elif not self.buffer or not self._current_end or end > self._current_end:
+            elif self.buffer is None or not self._current_end or end > self._current_end:
                 self._compute(start, end)
                 self._current_end = end
             if not end:
@@ -93,9 +93,9 @@ class BaseStep(ABC):
         :return: True if there exist further data
         :rtype: bool
         """
-        if len(self.buffer.data_vars) > 0 and counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
+        if self.buffer is None or counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
             return True
-        for input_step in self.input_steps:
+        for input_step in self.input_steps.values():
             if not input_step.further_elements(counter):
                 return False
         for target_step in self.targets:
@@ -125,12 +125,16 @@ class BaseStep(ABC):
         pass
 
     def _post_transform(self, result):
-        if not self.buffer:
+        if self.buffer is not None:
             self.buffer = result
         else:
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indeces(result)[0]
-            self.buffer = xr.concat([self.buffer, result], dim=dim)
+            if self.buffer is None:
+                self.buffer = result
+            else:
+                for key in result.keys():
+                    self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
 
     def get_json(self, fm: FileManager) -> Dict:
         """
@@ -185,7 +189,7 @@ class BaseStep(ABC):
         """
         Resets all information of the step concerning a specific run.
         """
-        self.buffer = xr.Dataset()
+        self.buffer = None
         self.finished = False
         self.stop = False
         self.computation_mode = self._original_compuation_mode
@@ -201,3 +205,11 @@ class BaseStep(ABC):
         """
         if self._original_compuation_mode == computation_mode.Default:
             self.computation_mode = computation_mode
+
+    # TODO implement __getitem__ which maps to the correct buffer
+    #  It has to return a new step, which just maps to one part of the buffer
+    #       In that case: How do we distinguish if we have to call __getitem__ or not?
+    #       Possible default behaviour would be that all data of the buffer is passed to the next step.
+    #       But User has specified the desired keyword in previous -> Not possible to pass all by kwargs. Because which datarrray should be used for the specified kwarg?
+    #  Or we implement a new indirection, which handles the results
+    #  Or we say in the documentation that modules which can return multiple datarray, there the user has to specify which output should be used

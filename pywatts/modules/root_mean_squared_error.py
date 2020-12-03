@@ -58,7 +58,7 @@ class RmseCalculator(BaseTransformer):
 
         :return: The calculated RMSE
         :rtype: xr.Dataset[str, xr.DataArray]
-        # TODO how to handle multiple predictions?
+        # TODO how to handle multiple predictions? -> kwargs argument: y has to be given, and at least one other..
         """
         t = y.values
         rmse = list()

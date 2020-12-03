@@ -41,24 +41,24 @@ if __name__ == "__main__":
 
     # Select individual time-series (columns) and generate plots in the results folder
     # NOTE: WhiteLister not needed after refactoring
-    #white_lister_power_statistics = WhiteLister(
+    # white_lister_power_statistics = WhiteLister(
     #    target="load_power_statistics", name="filter_power"
-    #)(pipeline, plot=True)
-    #white_lister_transparency = WhiteLister(
+    # )(pipeline, plot=True)
+    # white_lister_transparency = WhiteLister(
     #    target="load_transparency", name="filter_transparency"
-    #)(pipeline, plot=True)
-    #white_lister_price = WhiteLister(
+    # )(pipeline, plot=True)
+    # white_lister_price = WhiteLister(
     #    target="price_day_ahead", name="filter_price"
-    #)(pipeline, plot=True)
-    #calendar_month = WhiteLister(
+    # )(pipeline, plot=True)
+    # calendar_month = WhiteLister(
     #    target="month", name="filter_month"
-    #)([calendar_features])
-    #calendar_weekday = WhiteLister(
+    # )([calendar_features])
+    # calendar_weekday = WhiteLister(
     #    target="weekday", name="filter_weekday"
-    #)([calendar_features])
-    #calendar_weekend = WhiteLister(
+    # )([calendar_features])
+    # calendar_weekend = WhiteLister(
     #    target="weekend", name="filter_weekend"
-    #)([calendar_features])
+    # )([calendar_features])
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(
@@ -70,12 +70,10 @@ if __name__ == "__main__":
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    shift_power_statistics = ClockShift(
-        lag=1, name="ClockShift_Lag1"
-    )(x=scale_power_statistics)
-    shift_power_statistics2 = ClockShift(
-        lag=2, name="ClockShift_Lag2"
-    )(x=scale_power_statistics)
+    shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1"
+                                        )(x=scale_power_statistics)
+    shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
+                                         )(x=scale_power_statistics)
 
     # Create a linear regression that uses the lagged values to predict the current value
     # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
@@ -104,10 +102,10 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     data = pd.read_csv("data/getting_started_data.csv",
-                index_col="time",
-                parse_dates=["time"],
-                infer_datetime_format=True,
-                sep=",")
+                       index_col="time",
+                       parse_dates=["time"],
+                       infer_datetime_format=True,
+                       sep=",")
     train = data.iloc[:6000, :]
     pipeline.train(data=train)
 
@@ -121,17 +119,17 @@ if __name__ == "__main__":
     # Save the pipeline to a folder
 #    pipeline.to_folder("./pipe_getting_started")
 
-    # Load the pipeline as a new instance
- #   pipeline2 = Pipeline("pipeline2_results")
-  #  pipeline2.from_folder("./pipe_getting_started")
-    #       WARNING
-    #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
-    #       Consequently, load only pipelines you trust with from_folder.
-    #       For more details about pickling see https://docs.python.org/3/library/pickle.html
+# Load the pipeline as a new instance
+#   pipeline2 = Pipeline("pipeline2_results")
+#  pipeline2.from_folder("./pipe_getting_started")
+#       WARNING
+#       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
+#       Consequently, load only pipelines you trust with from_folder.
+#       For more details about pickling see https://docs.python.org/3/library/pickle.html
 
-    # Set a new folder for the second pipeline
-   # pipeline2.to_folder("./pipe_gs_copy")
+# Set a new folder for the second pipeline
+# pipeline2.to_folder("./pipe_gs_copy")
 
-    # Generate a plot of the new pipeline
-    #pipeline2.draw()
-    #plt.show()
+# Generate a plot of the new pipeline
+# pipeline2.draw()
+# plt.show()

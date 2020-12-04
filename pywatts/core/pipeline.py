@@ -362,15 +362,18 @@ class Pipeline(BaseTransformer):
             module = None
             if isinstance(klass, Step) or issubclass(klass, Step):
                 module = modules[step["module_id"]]
+
             step = klass.load(step,
-                              inputs=list(map(lambda x: self.id_to_step[x], step["input_ids"])),
+                              inputs={key : self.id_to_step[x] for x, key in step["input_ids"]}, # TODO has to be dict
                               targets=list(map(lambda x: self.id_to_step[x], step["target_ids"])),
                               module=module, file_manager=self.file_manager)
             self.id_to_step[step.id] = step
-            self._add_to_graph(input_ids=list(map(lambda x: x.id, step.input_steps), ),
+            self._add_to_graph(input_ids=list(map(lambda x: x.id, step.input_steps.values()), ),
                                module_id=step.id,
                                target_ids=list(map(lambda x: x.id, step.targets)))
-        self.start_step = self.id_to_step[1]
+        self.start_steps = {element.index: (element, StepInformation(step=element, pipeline=self))
+                            for element in filter(lambda x: isinstance(x, StartStep), self.id_to_step.values())}
+
         return self
 
     def __getitem__(self, item: str):

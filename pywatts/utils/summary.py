@@ -5,4 +5,5 @@ def _xarray_summary(x: xr.DataArray):
     """
     Print out basic information of the xarray dataset.
     """
-    print(x.to_dataframe().describe())
+    # TODO change test
+    print(x.to_dataframe("test").describe())

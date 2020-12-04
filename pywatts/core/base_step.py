@@ -147,7 +147,7 @@ class BaseStep(ABC):
         """
         return {
             "target_ids": list(map(lambda x: x.id, self.targets)),
-            "input_ids": list(map(lambda x: x.id, self.input_steps.values())),
+            "input_ids": list(map(lambda x: (x[1].id, x[0]), self.input_steps.items())), # TODO transform this into a dict
             "id": self.id,
             "module": self.__module__,
             "class": self.__class__.__name__,

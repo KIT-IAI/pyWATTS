@@ -1,4 +1,7 @@
+from typing import Dict
+
 from pywatts.core.base_step import BaseStep
+from pywatts.core.filemanager import FileManager
 
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
@@ -8,7 +11,7 @@ class StartStep(BaseStep):
     Start Step of the pipeline.
     """
 
-    def __init__(self, index:str):
+    def __init__(self, index: str):
         super().__init__()
         self.name = "StartStep"
         self.index = index
@@ -24,7 +27,7 @@ class StartStep(BaseStep):
         :param module:
         :return:
         """
-        step = cls()
+        step = cls(stored_step["index"])
         step.id = stored_step["id"]
         step.name = stored_step["name"]
         step.last = stored_step["last"]
@@ -44,3 +47,8 @@ class StartStep(BaseStep):
             return False
         else:
             return True
+
+    def get_json(self, fm: FileManager) -> Dict:
+        json = super().get_json(fm)
+        json["index"] = self.index
+        return json

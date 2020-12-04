@@ -27,15 +27,16 @@ if __name__ == "__main__":
     # Extract dummy calender features, using holidays from Germany
     # NOTE: Will it also work without x=pipeline["time"]? So, pipeline["time"]?
     # NOTE: CalendarExtraction can't return multiple features.
+    # TODO how to handle this stuff with time? Since the load is not interessting only the name is of interest for this module..
     calendar_month = CalendarExtraction(
         feature='month', encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["time"])
+    )(x=pipeline["load_power_statistics"])
     calendar_weekday = CalendarExtraction(
         feature='weekday', encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["time"])
+    )(x=pipeline["load_transparency"])
     calendar_weekend = CalendarExtraction(
         feature='weekend', encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["time"])
+    )(x=pipeline["load_power_statistics"])
 
     # Select individual time-series (columns) and generate plots in the results folder
     # NOTE: WhiteLister not needed after refactoring
@@ -115,16 +116,17 @@ if __name__ == "__main__":
     plt.show()
 
     # Save the pipeline to a folder
-#    pipeline.to_folder("./pipe_getting_started")
+    pipeline.to_folder("./pipe_getting_started")
 
-# Load the pipeline as a new instance
-#   pipeline2 = Pipeline("pipeline2_results")
-#  pipeline2.from_folder("./pipe_getting_started")
+    # Load the pipeline as a new instance
+    pipeline2 = Pipeline("pipeline2_results")
+    # TODO summary seems not to be correctly stored and loaded
+    pipeline2.from_folder("./pipe_getting_started")
 #       WARNING
 #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
 #       Consequently, load only pipelines you trust with from_folder.
 #       For more details about pickling see https://docs.python.org/3/library/pickle.html
-
+    pipeline2.test(test)
 # Set a new folder for the second pipeline
 # pipeline2.to_folder("./pipe_gs_copy")
 

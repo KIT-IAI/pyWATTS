@@ -74,6 +74,8 @@ class PipelineStep(Step):
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element:str=None):
         result = super().get_result(start, end)
+        if buffer_element is None:
+            return result
         return result[buffer_element]
 
 

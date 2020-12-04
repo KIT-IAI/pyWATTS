@@ -106,11 +106,20 @@ class Pipeline(BaseTransformer):
         end = None if not self.batch else self.counter + self.batch
         result = dict()
         for i, step in enumerate(inputs):
-            if step.name in result.keys():
-                # TODO log and print warning that there is a renaming..
-                result[f"{step.name}_{i}"] = step.get_result(self.counter, end)
+            res = step.get_result(self.counter, end)
+            if isinstance(res, dict):
+                for j, (key, value) in enumerate(res.items()):
+                    if step.name in result.keys():
+                        # TODO log and print warning that there is a renaming..
+                        result[f"{key}_{i}"] = res
+                    else:
+                        result[key] = res
             else:
-                result[step.name] = step.get_result(self.counter, end)
+                if step.name in result.keys():
+                    # TODO log and print warning that there is a renaming..
+                    result[f"{step.name}_{i}"] = res
+                else:
+                    result[step.name] = res
         return result
 
     def get_params(self) -> Dict[str, object]:

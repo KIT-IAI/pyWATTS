@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     # Split the data into train and test data.
     train = data[:6000]
-    test = data[6000:]
+    test = data[8700:]
 
     # Create all modules which are used multiple times.
     regressor_lin_reg = SKLearnWrapper(module=LinearRegression(fit_intercept=True), name="Regression")
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    pipeline.test(test)
+    result = pipeline.test(test)
     print("Testing finished")
 
     print("FINISHED")

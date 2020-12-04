@@ -4,18 +4,16 @@
 # -----------------------------------------------------------
 
 import pandas as pd
-
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
+from pywatts.core.computation_mode import ComputationMode
 # Import the pyWATTS pipeline and the required modules
 from pywatts.core.pipeline import Pipeline
-from pywatts.core.computation_mode import ComputationMode
 from pywatts.modules.clock_shift import ClockShift
 from pywatts.modules.linear_interpolation import LinearInterpolater
 from pywatts.modules.root_mean_squared_error import RmseCalculator
-from pywatts.modules.whitelister import WhiteLister
 from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 
@@ -31,7 +29,7 @@ def create_preprocessing_pipeline(power_scaler):
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
-                                                  name="imputer_power")(x=pipeline["scaler_power"]) # ToDO currently it is impossible to x = pipeline[scaler_power]
+                                                  name="imputer_power")(x=pipeline["scaler_power"])
     # Scale the data using a standard SKLearn scaler
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
@@ -50,20 +48,23 @@ def create_test_pipeline(modules):
     pipeline = Pipeline("test_pipeline", batch=pd.Timedelta("1h"))
 
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-    regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["ClockShift"], ClockShift_1=pipeline["ClockShift_1"],
+    regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["ClockShift"],
+                                                   ClockShift_1=pipeline["ClockShift_1"],
                                                    condition=lambda x, y: not is_daytime(x, y),
                                                    computation_mode=ComputationMode.Transform,
                                                    plot=True)
 
     # Add the linear regressor to the pipeline. This regressor should be called if it is daytime
-    regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["ClockShift"], ClockShift_1=pipeline["ClockShift_1"],
+    regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["ClockShift"],
+                                                           ClockShift_1=pipeline["ClockShift_1"],
                                                            condition=lambda x, y: is_daytime(x, y),
                                                            computation_mode=ComputationMode.Transform,
                                                            plot=True)
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
     RmseCalculator(target="load_power_statistics", predictions=["Regression"])(
-        y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"], plot=True, to_csv=True)
+        y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"],
+        plot=True, to_csv=True)
 
     return pipeline
 
@@ -81,8 +82,6 @@ if __name__ == "__main__":
     regressor_lin_reg = SKLearnWrapper(module=LinearRegression(fit_intercept=True), name="Regression")
     regressor_svr = SKLearnWrapper(module=SVR(), name="Regression")
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
-    white_lister = WhiteLister(target="load_power_statistics",
-                               name="filter_power")
 
     # Build a train pipeline. In this pipeline, each step processes all data at once.
     train_pipeline = Pipeline(path="train")
@@ -119,7 +118,8 @@ if __name__ == "__main__":
 
     test_pipeline(ClockShift=preprocessing_pipeline["ClockShift"],
                   ClockShift_1=preprocessing_pipeline["ClockShift_1"],
-                  load_power_statistics=pipeline["load_power_statistics"])
+                  load_power_statistics=pipeline["load_power_statistics"],
+                  plot=True, to_csv=True)
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

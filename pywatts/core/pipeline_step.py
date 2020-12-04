@@ -80,5 +80,4 @@ class PipelineStep(Step):
 
 
     def get_result_step(self, item: str):
-        # TODO Do we need to add this step to the pipeline? Yes or?
         return ResultStep(input_steps={"result": self}, buffer_element=item)

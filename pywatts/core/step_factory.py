@@ -83,10 +83,6 @@ class StepFactory:
             step = PipelineStep(module, input_steps, pipeline.file_manager, target=target, plot=plot, summary=summary,
                                 computation_mode=computation_mode,
                                 to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
-            # TODO run over all last steps of the module[Pipeline] and
-            #   Create for each of them a result_step which is inserted in this pipeline
-            #   and added to the step_information_collect [New kind of step_information]
-            #   so that the user now has to specify which result he wants to use.
         elif use_inverse_transform:
             step = InverseStep(module, input_steps, pipeline.file_manager, target, computation_mode=computation_mode,
                                plot=plot, summary=summary,

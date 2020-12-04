@@ -13,9 +13,6 @@ class StepInformation:
         self.step = step
         self.pipeline = pipeline
 
-    # TODO has to implement __get__item, which returns a step information that unambigiously maps to the
-    #  desired dataarray in some way...
-
     def __getitem__(self, item: str):
         from pywatts.core.pipeline_step import PipelineStep
         if isinstance(self.step, PipelineStep):

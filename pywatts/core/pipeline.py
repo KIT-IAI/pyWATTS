@@ -382,6 +382,3 @@ class Pipeline(BaseTransformer):
             self.start_steps[item] = start_step, StepInformation(step=start_step, pipeline=self)
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
         return self.start_steps[item][-1]
-
-    # TODO override __call__ since x can be a list (multiple inputs) with the same name
-    # TODO alternative: transform gets kwargs -> The given data are split up to the correct start_step

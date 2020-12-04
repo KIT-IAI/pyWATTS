@@ -12,7 +12,7 @@ def _get_time_indeces(x: Dict[str, xr.DataArray]) -> List[str]:
             if isinstance(v, pd.DatetimeIndex):
                 indexes.append(k)
         return indexes
-    # TODO check that all inputs have the same dimension?
+    # TODO check that all inputs have the same time dimension?
     for k, v in list(x.values())[0].indexes.items():
         if isinstance(v, pd.DatetimeIndex):
             indexes.append(k)

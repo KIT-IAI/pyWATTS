@@ -79,14 +79,26 @@ class Step(BaseStep):
         return result
 
     def _plot(self, result):
-        name = f"{self.module.name}"
-        title = self.module.name
-        _recursive_plot(result, filemanager=self.file_manager, name=name, title=title)
+        if isinstance(result, dict):
+            for key, value in result.items():
+                name = f"{self.module.name}" + "_" + key
+                title = self.module.name + "_" + key
+                _recursive_plot(result[key], filemanager=self.file_manager, name=name, title=title)
+        else:
+            name = f"{self.module.name}"
+            title = self.module.name
+            _recursive_plot(result, filemanager=self.file_manager, name=name, title=title)
 
     def _to_csv(self, dataset):
-        dataset.to_dataframe(self.name).to_csv(
-            self.file_manager.get_path(f"{self.name}.csv"), sep=";"
-        )
+        if isinstance(dataset, dict):
+            for key, value in dataset.items():
+                dataset[key].to_dataframe(self.name+ "_" + key).to_csv(
+                    self.file_manager.get_path(f"{self.name}_{key}.csv"), sep=";"
+                )
+        else:
+            dataset.to_dataframe(self.name).to_csv(
+                self.file_manager.get_path(f"{self.name}.csv"), sep=";"
+            )
 
     def _summary(self, dataset):
         """

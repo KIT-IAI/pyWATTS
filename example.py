@@ -3,23 +3,21 @@
 # guide in the pyWATTS documentation.
 # -----------------------------------------------------------
 
+import matplotlib.pyplot as plt
+# Other modules required for the pipeline are imported
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-
 # All modules required for the pipeline are imported
 from pywatts.modules.calendar_extraction import CalendarExtraction
-from pywatts.modules.whitelister import WhiteLister
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 from pywatts.modules.clock_shift import ClockShift
 from pywatts.modules.linear_interpolation import LinearInterpolater
 from pywatts.modules.root_mean_squared_error import RmseCalculator
-
-# Other modules required for the pipeline are imported
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
+from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 # The main function is where the pipeline is created and run
 if __name__ == "__main__":

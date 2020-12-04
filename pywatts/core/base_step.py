@@ -67,10 +67,7 @@ class BaseStep(ABC):
 
         # Trigger fit and transform if necessary
         if not self.finished:
-            if self.buffer is None:
-                self._compute(start, end)
-                self._current_end = end
-            elif self.buffer is None or not self._current_end or end > self._current_end:
+            if self.buffer is None or not self._current_end or end > self._current_end:
                 self._compute(start, end)
                 self._current_end = end
             if not end:
@@ -147,7 +144,7 @@ class BaseStep(ABC):
         """
         return {
             "target_ids": list(map(lambda x: x.id, self.targets)),
-            "input_ids": list(map(lambda x: (x[1].id, x[0]), self.input_steps.items())), # TODO transform this into a dict
+            "input_ids": {step.id: key for key, step in self.input_steps.items()},
             "id": self.id,
             "module": self.__module__,
             "class": self.__class__.__name__,
@@ -206,10 +203,4 @@ class BaseStep(ABC):
         if self._original_compuation_mode == computation_mode.Default:
             self.computation_mode = computation_mode
 
-    # TODO implement __getitem__ which maps to the correct buffer
-    #  It has to return a new step, which just maps to one part of the buffer
-    #       In that case: How do we distinguish if we have to call __getitem__ or not?
-    #       Possible default behaviour would be that all data of the buffer is passed to the next step.
-    #       But User has specified the desired keyword in previous -> Not possible to pass all by kwargs. Because which datarrray should be used for the specified kwarg?
-    #  Or we implement a new indirection, which handles the results
-    #  Or we say in the documentation that modules which can return multiple datarray, there the user has to specify which output should be used
+    # TODO how to handle if there a multiple return value of a module...

@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import MagicMock
 
 from pywatts.core.either_or_step import EitherOrStep
-
+import xarray as xr
+import pandas as pd
 
 class TestEitherOrStep(unittest.TestCase):
     def setUp(self) -> None:
@@ -13,8 +14,14 @@ class TestEitherOrStep(unittest.TestCase):
         self.result_mock_step_2 = MagicMock()
         self.result_mock_step_1 = MagicMock()
         self.step_two.stop = False
-        self.step_two.get_result.return_value = self.result_mock_step_2
-        self.step_one.get_result.return_value = self.result_mock_step_1
+        time = pd.date_range('2000-01-01', freq='24H', periods=7)
+
+        self.da2 = xr.DataArray([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]],
+                     dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
+        self.da1 = xr.DataArray([[5, 5], [5, 5], [4, 5], [5, 4], [6, 5], [7, 6], [8, 7]],
+                     dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
+        self.step_two.get_result.return_value = self.da2
+        self.step_one.get_result.return_value = self.da1
         self.step_two.id = 1
 
     def tearDown(self) -> None:
@@ -25,7 +32,8 @@ class TestEitherOrStep(unittest.TestCase):
         self.step_one.get_result.return_value = None
         step = EitherOrStep([self.step_one, self.step_two])
         step.get_result(None, None)
-        self.assertEqual(step.buffer, self.result_mock_step_2)
+        xr.testing.assert_equal(step.buffer, self.da2)
+
 
     def test_load(self):
         params = {
@@ -41,3 +49,6 @@ class TestEitherOrStep(unittest.TestCase):
         step = EitherOrStep.load(params, [self.step_one, self.step_two], None, None, None)
         json = step.get_json("file")
         self.assertEqual(params, json)
+
+    def test_further_elements(self):
+        self.fail()

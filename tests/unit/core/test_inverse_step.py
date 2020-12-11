@@ -13,7 +13,7 @@ class TestInverseTransform(unittest.TestCase):
         self.inverse_module = MagicMock()
         self.input_step = MagicMock()
         self.input_step.stop = False
-        self.inverse_step = InverseStep(self.inverse_module, self.input_step, file_manager=MagicMock())
+        self.inverse_step = InverseStep(self.inverse_module, {"input" : self.input_step}, file_manager=MagicMock())
         self.inverse_step_result = MagicMock()
         self.input_step.get_result.return_value = self.inverse_step_result
 
@@ -25,7 +25,7 @@ class TestInverseTransform(unittest.TestCase):
     def test_get_result(self):
         self.inverse_step.get_result(None, None)
 
-        self.inverse_module.inverse_transform.assert_called_once_with(self.input_step.get_result())
+        self.inverse_module.inverse_transform.assert_called_once_with(input=self.input_step.get_result())
 
     def test_get_result_stop(self):
         self.input_step.stop = True

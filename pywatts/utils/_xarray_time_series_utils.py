@@ -13,9 +13,6 @@ def _get_time_indeces(x: Dict[str, xr.DataArray]) -> List[str]:
                 indexes.append(k)
         return indexes
     # TODO check that all inputs have the same time dimension?
-    for k, v in list(x.values())[0].indexes.items():
-        if isinstance(v, pd.DatetimeIndex):
-            indexes.append(k)
     return indexes
 
 def xarray_to_numpy(x: xr.Dataset):

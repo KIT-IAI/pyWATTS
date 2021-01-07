@@ -20,7 +20,7 @@ class StatsmodelsWrapper(BaseWrapper):
         """
 
     # Alternative: sm.base.Model?
-    def __init__(self, module: sm.tsa.base.TimeSeriesModel, name: str = None):
+    def __init__(self, module: sm.tsa.base.tsa_model.TimeSeriesModel, name: str = None):
         if name is None:
             name = module.__class__.__name__
         super().__init__(name)

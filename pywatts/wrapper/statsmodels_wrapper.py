@@ -12,7 +12,7 @@ from pywatts.wrapper.base_wrapper import BaseWrapper
 
 class StatsmodelsWrapper(BaseWrapper):
     """
-        A wrapper class for statsmodels modules. Should only be used internally by the pipeline itself
+        A wrapper class for statsmodels modules. 
         :param module: The statsmodels module to wrap
         :type module: statsmodels.base.BaseEstimator
         :param name: The name of the module

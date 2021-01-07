@@ -63,7 +63,10 @@ class StatsmodelsWrapper(BaseWrapper):
         return xr.Dataset(data)
 
     def transform(self, x: xr.Dataset) -> xr.Dataset:
-        """
+        def transform(self, x:xr.Dataset) -> xr.Dataset:
+               x_np = self._dataset_to_statsmodels_input(x)
+               prediction = self.module.transform(x_np)
+               return self._statsmodels_output_to_dataset(x, prediction, self.name)
         Transforms a dataset or predicts the result with the wrapped statsmodels module
         :param x: the input dataset
         :return: the transformed output

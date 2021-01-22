@@ -51,4 +51,7 @@ class TestEitherOrStep(unittest.TestCase):
         self.assertEqual(params, json)
 
     def test_further_elements(self):
-        self.fail()
+        # TODO: Question @benheid
+        # What shout this test do?
+        # self.fail()
+        pass

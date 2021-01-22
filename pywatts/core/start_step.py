@@ -27,7 +27,7 @@ class StartStep(BaseStep):
         :param module:
         :return:
         """
-        step = cls(stored_step["index"])
+        step = cls(index=stored_step["index"])
         step.id = stored_step["id"]
         step.name = stored_step["name"]
         step.last = stored_step["last"]

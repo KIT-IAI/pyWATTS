@@ -17,52 +17,57 @@ from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 class CalendarExtraction(BaseTransformer):
     """
-    This pipeline stepp will extract date features based on a timeseries defined by 'time_index'.
-    It will calculate the year, month, weekday, day, weekend, workday, and holiday based
+    This pipeline stepp will extract date features based on a timeseries defined by a DataArray input.
+    It can calculate the year, month, weekday, day, weekend, workday, and holiday based
     on the timeseries given a variable encoding ('numerical' or 'sine' currently).
     For the holidays it is importent to set the correct continent and country/region.
     E.g. 'Europe' and 'BadenWurttemberg' or 'Germany'
     """
 
-    def __init__(self, name: str = "CalendarExtraction", time_index: str = None,
-                 encoding: str = "numerical", prefix: str = "", feature=None,
-                 continent: str = "Europe", country: str = "Germany", one_data_var: bool = False):
+    def __init__(self, name: str = "CalendarExtraction", calendar_feature: str = "month",
+                 encoding: str = "numerical", continent: str = "Europe", country: str = "Germany"):
         """ Initialize the calendar extration step.
             For correct holidays please set valid continent and country.
 
         :param name: Name of this processing step.
         :type name: str
-        :param time_index: Index of the timeseries of the xarray dataset.
-        :type time_index: str
+        :param calendar_feature: Feature to extract from the input time series.
+        :type calendar_feature: str
         :param encoding: Selected encoding for the features (e.g. numerical [0, 1, 2] or sine)
         :type encoding: str
-        :param prefix: Prefix for the features that will be added to the xarray dataset (default "").
-        :type prefix: str
         :param continent: Continent where the country or region is located
                           (important for importing calendar module).
         :type continent: str
         :param country: Country or region to use for holiday calendar (default 'Germany')
         :type country: str
-        :param one_data_var: Flag indicate if there should be one datavar for each feature or if all features should be
-                             only in one data variable
-        :type one_data_var: bool
+        :raises WrongParameterException: If 'calendar_features' is invalid.
+        :raises WrongParameterException: If 'encoding' is not in ['numerical', 'sine'].
         :raises WrongParameterException: If 'continent' and/or 'country' is invalid.
         """
         super().__init__(name)
-        self.time_index = time_index
+        self.calendar_feature = calendar_feature
         self.encoding = encoding
-        self.prefix = prefix
         self.continent = continent
         self.country = country
         self.calendar = self._init_calendar(continent, country)
+
+        calendar_features = ["year", "month", "day", "weekday", "hour", "weekend", "workday", "holiday"]
+        if self.calendar_feature not in calendar_features:
+            raise WrongParameterException(
+                "Invalid calendar feature selected.",
+                "Please select a valid calendar feature within [" + ", ".join(calendar_features),
+                module=self.name
+            )
 
         # check if correct encoding is selected
         # each encoding is implemented in a different method
         # named after the encoding strategy
         if not hasattr(self, f"_encode_{self.encoding}"):
-            raise WrongParameterException("Please set a valid encoding strategy.",
-                                          f"Change to the allowed strategies numerical or sine",
-                                          module=self.name)
+            raise WrongParameterException(
+                "Please set a valid encoding strategy.",
+                f"Change to the allowed strategies numerical or sine",
+                module=self.name
+            )
 
     def _init_calendar(self, continent: str, country: str):
         """ Check if continent and country are correct and return calendar object.
@@ -80,13 +85,17 @@ class CalendarExtraction(BaseTransformer):
             if hasattr(module, country):
                 return getattr(module, country)()
             else:
-                raise WrongParameterException("Please set a valid country for the CalendarExtraction step.",
-                                              f"See the documentation of workkalendar for valid countries",
-                                              module=self.name)
+                raise WrongParameterException(
+                    "Please set a valid country for the CalendarExtraction step.",
+                    f"See the documentation of workkalendar for valid countries",
+                    module=self.name
+                )
         else:
-            raise WrongParameterException("Please set a valid continent for the CalendarExtraction step.",
-                                          "See the documentation of workkalendar for valid continents",
-                                          module=self.name)
+            raise WrongParameterException(
+                "Please set a valid continent for the CalendarExtraction step.",
+                "See the documentation of workkalendar for valid continents",
+                module=self.name
+            )
 
     def _encode_numerical(self, feature: str, timeseries: pd.Series):
         """ Encode a specific feature numerical given a pandas series timeseries.
@@ -157,62 +166,58 @@ class CalendarExtraction(BaseTransformer):
         :return: Json dict containing the parameters.
         """
         return {
-            "time_index": self.time_index,
+            "calendar_feature": self.calendar_feature,
             "encoding": self.encoding,
-            "prefix": self.prefix,
             "continent": self.continent,
             "country": self.country
         }
 
-    def set_params(self, time_index: Optional[str] = None,
-                   encoding: Optional[str] = None, prefix: Optional[str] = None,
+    def set_params(self, calendar_feature: Optional[str] = None, encoding: Optional[str] = None,
                    continent: Optional[str] = None, country: Optional[str] = None):
         """ Set parameters of the calendar extraction processing step.
 
-        :param time_index: Index of the timeseries of the xarray dataset.
-        :type time_index: str
+        :param calendar_feature: Feature to extract from the input time series.
+        :type calendar_feature: str
         :param encoding: Selected encoding for the features (e.g. numerical [0, 1, 2] or sine)
         :type encoding: str
-        :param prefix: Prefix for the features that will be added to the xarray dataset (default "").
-        :type prefix: str
         :param continent: Continent where the country or region is located
                           (important for importing calendar module).
         :type continent: str
         :param country: Country or region to use for holiday calendar (default 'Germany')
         :type country: str
+        :raises WrongParameterException: If 'calendar_features' is invalid.
+        :raises WrongParameterException: If 'encoding' is not in ['numerical', 'sine'].
         :raises WrongParameterException: If 'continent' and/or 'country' is invalid.
         """
-        if time_index is not None:
-            self.time_index = time_index
+        if calendar_feature is not None:
+            calendar_features = ["year", "month", "day", "weekday", "hour", "weekend", "workday", "holiday"]
+            if calendar_feature in calendar_features:
+                self.calendar_feature = calendar_feature
+            else:
+                raise WrongParameterException(
+                    "Invalid calendar feature selected.",
+                    "Please select a valid calendar feature within [" + ", ".join(calendar_features),
+                    module=self.name
+                )
         if encoding is not None:
             self.encoding = encoding
-        if prefix is not None:
-            self.prefix = prefix
         if continent is not None:
             self.continent = continent
         if country is not None:
             self.country = country
+
         self.calendar = self._init_calendar(self.continent, self.country)
         if not hasattr(self, f"_encode_{self.encoding}"):
-            raise WrongParameterException("Please set a valid encoding strategy.",
-                                          f"Change to the allowed strategies numerical or sine",
-                                          module=self.name)
+            raise WrongParameterException(
+                "Please set a valid encoding strategy.",
+                f"Change to the allowed strategies numerical or sine",
+                module=self.name
+            )
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Add date features to xarray dataset as configured.
 
-        :param x: Xarray dataset containing a timeseries specified by the object's 'time_index'
+        :param x: xarray DataArray containing a timeseries.
         :return: The xarray dataset with date features added.
         """
-        features = [
-            "year", "month", "day", "weekday", "hour", "weekend", "workday", "holiday"
-        ]
-        time_index = self.time_index
-        if time_index is None:
-            time_index = _get_time_indeces(x)[0]
-        data = dict()
-        for feature in features:
-            data[f"{self.prefix}{feature}"] = getattr(self, f"_encode_{self.encoding}")(
-                feature, getattr(x, time_index).to_series()
-            )
-        return xr.DataArray(np.stack(data.values(), axis=-1), coords=(x[time_index], features))
+        return getattr(self, f"_encode_{self.encoding}")(self.calendar_feature, x.to_series())

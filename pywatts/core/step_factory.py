@@ -45,7 +45,7 @@ class StepFactory:
 
         arguments = inspect.signature(module.transform).parameters.keys()
         # TODO Raise an exception if no kwargs are provided
-
+        # TODO Check if kwargs is Dict and not a pipeline (e.g. when passing SKLearnWrapper(..)(x=self.pipeline))
         if not "kwargs" in arguments and not isinstance(module, Pipeline):
 
             for kwarg in arguments:

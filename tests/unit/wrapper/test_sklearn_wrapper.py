@@ -33,7 +33,7 @@ class TestSklearnWrapper(unittest.TestCase):
         wrapper = SKLearnWrapper(module=scaler)
         self.assertFalse("mean_" in scaler.__dir__())
 
-        wrapper.fit(xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])}))
+        wrapper.fit(test = xr.DataArray([1, 2, 3, 4, 5]))
 
         self.assertTrue("mean_" in scaler.__dir__())
         self.assertIsNotNone(scaler.mean_)
@@ -43,8 +43,8 @@ class TestSklearnWrapper(unittest.TestCase):
         wrapper = SKLearnWrapper(module=lin_reg)
         self.assertFalse("coef_" in lin_reg.__dir__())
 
-        wrapper.fit(xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])}),
-                    xr.Dataset({"test": xr.DataArray([2, 2, 2, 2, 2])}))
+        wrapper.fit(test = xr.DataArray([1, 2, 3, 4, 5]),
+                    target= xr.DataArray([2, 2, 2, 2, 2]))
 
         self.assertTrue("coef_" in lin_reg.__dir__())
         self.assertIsNotNone(lin_reg.coef_)
@@ -52,15 +52,16 @@ class TestSklearnWrapper(unittest.TestCase):
     def test_transform_RegressorMixin(self):
         svr = SVR()
         wrapper = SKLearnWrapper(module=svr)
-
-        wrapper.fit(xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])}),
-                    xr.Dataset({"test": xr.DataArray([2, 2, 2, 2, 2])}))
-
         time = pd.date_range('2000-01-08', freq='24H', periods=1)
+        bar = xr.DataArray([1], dims=["time"], coords={'time': time})
 
-        result = wrapper.transform(xr.Dataset({"test": ("time", xr.DataArray([1])), "time": time}))
-        assert result.to_array().values[0, 0] == 2.0
-        self.assertEqual(result.to_array().shape, (1, 1))
+        wrapper.fit(test = xr.DataArray([1, 2, 3, 4, 5]),
+                    target= xr.DataArray([2, 2, 2, 2, 2]))
+
+
+        result = wrapper.transform(bar=bar)
+        assert result.values[0] == 2.0
+        self.assertEqual(result.shape, (1,))
 
     def test_DensityMixin(self):
         gauss_density = GaussianMixture(n_components=2)
@@ -68,50 +69,38 @@ class TestSklearnWrapper(unittest.TestCase):
 
         time = pd.date_range('2000-01-01', freq='24H', periods=10)
         time2 = pd.date_range('2000-01-08', freq='24H', periods=1)
-        ds = xr.Dataset(
-            {'BAR': (['time'], [2, 4, 5, 4, 3, 2, 1, 5, 5, 5]),
-             'time': time})
 
-        ds_predict_label1 = xr.Dataset(
-            {'BAR': (['time'], [5]),
-             'time': time2})
-        wrapper.fit(ds)
-        ds_predict_label0 = xr.Dataset(
-            {'BAR': (['time'], [2]),
-             'time': time2})
+        bar = xr.DataArray([2, 4, 5, 4, 3, 2, 1, 5, 5, 5], dims=["time"], coords={'time': time})
+        wrapper.fit(bar=bar)
 
-        result1 = wrapper.transform(ds_predict_label1)
-        result0 = wrapper.transform(ds_predict_label0)
+        bar1 = xr.DataArray([5], dims=["time"], coords={'time': time2})
+        bar2 = xr.DataArray([2], dims=["time"], coords={'time': time2})
 
-        assert result1.to_array().values[0, 0] != result0.to_array().values[0, 0]
+        result1 = wrapper.transform(bar=bar1)
+        result0 = wrapper.transform(bar=bar2)
 
-        self.assertEqual(result1.to_array().shape, (1, 1))
-        self.assertEqual(result0.to_array().shape, (1, 1))
+        assert result1.values[0] != result0.values[0]
+
+        self.assertEqual(result1.shape, (1,))
+        self.assertEqual(result0.shape, (1,))
 
     def test_fit_regression_multiple_datavariables(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         time2 = pd.date_range('2000-01-08', freq='24H', periods=1)
 
-        ds = xr.Dataset(
-            {'BAR': (['time'], [2, 2, 2, 2, 3, 3, 3]),
-             'BAR2': (['time'], [4, 4, 4, 4, 6, 6, 6]),
-             'time': time})
-
-        target = xr.Dataset(
-            {'FOO': (['time'], [6, 6, 6, 6, 9, 9, 9]),
-             'time': time})
+        bar = xr.DataArray([2, 2, 2, 2, 3, 3, 3], dims=["time"], coords={'time': time})
+        foo = xr.DataArray([4, 4, 4, 4, 6, 6, 6], dims=["time"], coords={'time': time})
+        target = xr.DataArray([6, 6, 6, 6, 9, 9, 9], dims=["time"], coords={'time': time})
 
         lin_reg = LinearRegression()
         wrapper = SKLearnWrapper(module=lin_reg)
         self.assertFalse("coef_" in lin_reg.__dir__())
 
-        wrapper.fit(ds, target)
-
-        result = wrapper.transform(xr.Dataset({"BAR": (["time"], xr.DataArray([2])),
-                                               "BAR2": (["time"], xr.DataArray([4])),
-                                               "time": time2}))
-        self.assertAlmostEqual(result.to_array().values[0, 0, 0], 6.0)
-        self.assertEqual(result.to_array().shape, (1, 1, 1))
+        wrapper.fit(bar=bar, foo=foo, target=target)
+        result = wrapper.transform(bar=xr.DataArray([2], dims=["time"], coords={'time': time2}),
+                                   foo=xr.DataArray([4], dims=["time"], coords={'time': time2}))
+        self.assertAlmostEqual(result.values[0, 0], 6.0)
+        self.assertEqual(result.shape, (1, 1))
 
     def test_fit_ClusterMixin(self):
         kmeans = KMeans(n_clusters=2)
@@ -120,42 +109,36 @@ class TestSklearnWrapper(unittest.TestCase):
 
         time = pd.date_range('2000-01-01', freq='24H', periods=10)
         time2 = pd.date_range('2000-01-08', freq='24H', periods=1)
-        ds = xr.Dataset(
-            {'BAR': (['time'], [2, 4, 5, 4, 2, 2, 1, 5, 5, 5]),
-             'time': time})
 
-        ds_predict_label1 = xr.Dataset(
-            {'BAR': (['time'], [5]),
-             'time': time2})
-        wrapper.fit(ds)
-        ds_predict_label0 = xr.Dataset(
-            {'BAR': (['time'], [2]),
-             'time': time2})
+        bar = xr.DataArray([2, 4, 5, 4, 2, 2, 1, 5, 5, 5], dims=["time"], coords={'time': time})
+        foo1 = xr.DataArray([5], dims=["time"], coords={'time': time2})
+        foo2 = xr.DataArray([2], dims=["time"], coords={'time': time2})
 
-        result1 = wrapper.transform(ds_predict_label1)
-        result0 = wrapper.transform(ds_predict_label0)
+        wrapper.fit(bar=bar)
+
+        result1 = wrapper.transform(foo=foo1)
+        result0 = wrapper.transform(foo=foo2)
 
         # Assert that both tested datapoints are in different clusters
-        assert result1.to_array().values[0, 0].argmax() != result0.to_array().values[0, 0].argmax()
+        assert result1.values[0].argmax() != result0.values[0].argmax()
 
-        self.assertEqual(result1.to_array().shape, (1, 1, 2))
-        self.assertEqual(result0.to_array().shape, (1, 1, 2))
+        self.assertEqual(result1.shape, (1, 2))
+        self.assertEqual(result0.shape, (1, 2))
 
     def test_fit_ClassifierMixin(self):
         svc = SVC()
         wrapper = SKLearnWrapper(module=svc)
         time = pd.date_range('2000-01-01', freq='24H', periods=5)
         time2 = pd.date_range('2000-01-08', freq='24H', periods=1)
+        bar = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
+        foo = xr.DataArray([1], dims=["time"], coords={'time': time2})
+        target = xr.DataArray([0, 0, 1, 1, 1], dims=["time"], coords={'time': time})
 
-        wrapper.fit(xr.Dataset({"test": ("time", xr.DataArray([1, 2, 3, 4, 5])),
-                                "time": time}),
-                    xr.Dataset({"test": ("time", xr.DataArray([0, 0, 1, 1, 1])),
-                                "time": time}))
+        wrapper.fit(bar=bar, target=target)
 
-        result = wrapper.transform(xr.Dataset({"test": ("time", xr.DataArray([1])),
-                                               "time": time2}))
-        assert result.to_array().values[0, 0] == 0
-        self.assertEqual(result.to_array().shape, (1, 1))
+        result = wrapper.transform(bar=foo)
+        assert result.values[0] == 0
+        self.assertEqual(result.shape, (1,))
 
     @pytest.mark.xfail
     def test_fit_BiClusterMixin(self):
@@ -166,30 +149,18 @@ class TestSklearnWrapper(unittest.TestCase):
         lin_reg = LinearRegression()
         multi_regressor = MultiOutputRegressor(lin_reg)
         wrapper = SKLearnWrapper(module=multi_regressor)
+        time = pd.date_range('2000-01-01', freq='24H', periods=5)
+        time2 = pd.date_range('2000-01-08', freq='24H', periods=1)
 
-        wrapper.fit(xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])}),
-                    xr.Dataset({"target1": xr.DataArray([2, 2, 2, 2, 2]),
-                                "target2": xr.DataArray([3, 3, 3, 3, 3])}))
+        bar = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
+        foo = xr.DataArray([1], dims=["time"], coords={'time': time2})
+        target = xr.DataArray([2, 2, 2, 2, 2], dims=["time"], coords={'time': time})
+        target2 = xr.DataArray([3, 3, 3, 3, 3], dims=["time"], coords={'time': time})
 
-        time = pd.date_range('2000-01-08', freq='24H', periods=1)
+        wrapper.fit(bar=bar, target=[target, target2])
 
-        result = wrapper.transform(xr.Dataset({"test": ("time", xr.DataArray([1])), "time": time}))
-        self.assertAlmostEqual(result.to_array().values[0, 0, 0], 2.0)
-        self.assertAlmostEqual(result.to_array().values[0, 0, 1], 3.0)
-        self.assertEqual(result.to_array().shape, (1, 1, 2))
 
-    def test_meta_estimator_mixin(self):
-        svr = SVR()
-        multi_regressor = MultiOutputRegressor(svr)
-        wrapper = SKLearnWrapper(module=multi_regressor)
-
-        wrapper.fit(xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])}),
-                    xr.Dataset({"target1": xr.DataArray([2, 2, 2, 2, 2]),
-                                "target2": xr.DataArray([3, 3, 3, 3, 3])}))
-
-        time = pd.date_range('2000-01-08', freq='24H', periods=1)
-
-        result = wrapper.transform(xr.Dataset({"test": ("time", xr.DataArray([1])), "time": time}))
-        self.assertAlmostEqual(result.to_array().values[0, 0, 0], 2.0)
-        self.assertAlmostEqual(result.to_array().values[0, 0, 1], 3.0)
-        self.assertEqual(result.to_array().shape, (1, 1, 2))
+        result = wrapper.transform(bar=foo)
+        self.assertAlmostEqual(result.values[0, 0], 2.0)
+        self.assertAlmostEqual(result.values[0, 1], 3.0)
+        self.assertEqual(result.shape, (1, 2))

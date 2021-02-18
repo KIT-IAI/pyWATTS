@@ -1,4 +1,5 @@
 import pickle
+from typing import Optional
 
 import numpy as np
 import sklearn
@@ -47,7 +48,7 @@ class SKLearnWrapper(BaseWrapper):
         """
         return self.module.set_params(**kwargs)
 
-    def fit(self, target = None, **kwargs):
+    def fit(self,*, target:Optional[xr.DataArray] = None , **kwargs):
         """
         Fit the sklearn module
         :param x: input data
@@ -55,7 +56,10 @@ class SKLearnWrapper(BaseWrapper):
         """
         x = self._dataset_to_sklearn_input(kwargs)
         if target is not None:
-            target = self._dataset_to_sklearn_input({"target": target})
+            if isinstance(target, list):
+                target = self._dataset_to_sklearn_input({f"target_{i}": t for i, t in enumerate(target)})
+            else:
+                target = self._dataset_to_sklearn_input({"target": target})
         self.module.fit(x, target)
         self.is_fitted = True
 
@@ -86,7 +90,7 @@ class SKLearnWrapper(BaseWrapper):
         #        "time": list(reference.coords.values())[0].to_dataframe().index.array}
         return xr.DataArray(prediction, coords=coords)
 
-    def transform(self, **kwargs: xr.Dataset) -> xr.Dataset:
+    def transform(self, **kwargs: xr.DataArray) -> xr.Dataset:
         """
         Transforms a dataset or predicts the result with the wrapped sklearn module
         :param x: the input dataset

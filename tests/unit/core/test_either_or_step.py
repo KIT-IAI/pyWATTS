@@ -51,7 +51,5 @@ class TestEitherOrStep(unittest.TestCase):
         self.assertEqual(params, json)
 
     def test_further_elements(self):
-        # TODO: Question @benheid
-        # What shout this test do?
-        # self.fail()
-        pass
+        # This test should test if there are values which are not processed yet. This functionality is needed for batch learning
+        self.fail()

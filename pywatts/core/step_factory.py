@@ -137,7 +137,8 @@ class StepFactory:
             if isinstance(input_step, StepInformation):
                 pipeline_temp = input_step.pipeline
             elif isinstance(input_step, Pipeline):
-                pipeline_temp = input_step
+                # TODO custom exception needded here...
+                raise Exception("This might be ambigious if you input data. Specifiy the desired column of your dataset by using pipeinling[<column_name>]")
             elif isinstance(input_step, tuple):
                 # We assume that a tuple consists only of step informations and do not contain a pipeline.
                 pipeline_temp = input_step[0].pipeline

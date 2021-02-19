@@ -29,13 +29,13 @@ if __name__ == "__main__":
     # NOTE: CalendarExtraction can't return multiple features.
     # TODO how to handle this stuff with time? Since the load is not interessting only the name is of interest for this module..
     calendar_month = CalendarExtraction(
-        feature='month', encoding="numerical", continent="Europe", country="Germany"
+        encoding="numerical", continent="Europe", country="Germany"
     )(x=pipeline["load_power_statistics"])
     calendar_weekday = CalendarExtraction(
-        feature='weekday', encoding="numerical", continent="Europe", country="Germany"
+        encoding="numerical", continent="Europe", country="Germany"
     )(x=pipeline["load_transparency"])
     calendar_weekend = CalendarExtraction(
-        feature='weekend', encoding="numerical", continent="Europe", country="Germany"
+        encoding="numerical", continent="Europe", country="Germany"
     )(x=pipeline["load_power_statistics"])
 
     # Select individual time-series (columns) and generate plots in the results folder

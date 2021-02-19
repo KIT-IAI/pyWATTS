@@ -112,13 +112,13 @@ class SKLearnWrapper(BaseWrapper):
 
         return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
 
-    def inverse_transform(self, x: xr.Dataset) -> xr.Dataset:
+    def inverse_transform(self, **kwargs: xr.DataArray) -> xr.Dataset:
         """
         Performs the inverse transform of a dataset with the wrapped sklearn module
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(x)
+        x_np = self._dataset_to_sklearn_input(kwargs)
         if self.has_inverse_transform:
             prediction = self.module.inverse_transform(x_np)
         else:
@@ -126,15 +126,15 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a inverse transform method",
                 KindOfTransform.INVERSE_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(x, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
 
-    def predict_proba(self, x: xr.Dataset) -> xr.Dataset:
+    def predict_proba(self, **kwargs) -> xr.Dataset:
         """
         Performs the probabilistic transform of a dataset with the wrapped sklearn module
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(x)
+        x_np = self._dataset_to_sklearn_input(kwargs)
         if self.has_predict_proba:
             prediction = self.module.predict_proba(x_np)
         else:
@@ -142,7 +142,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict_proba method",
                 KindOfTransform.PROBABILISTIC_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(x, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
 
     def save(self, fm: FileManager):
         json = super().save(fm)

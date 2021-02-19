@@ -220,4 +220,6 @@ class CalendarExtraction(BaseTransformer):
         :param x: xarray DataArray containing a timeseries.
         :return: The xarray dataset with date features added.
         """
-        return getattr(self, f"_encode_{self.encoding}")(self.calendar_feature, x.to_series())
+        series= getattr(self, f"_encode_{self.encoding}")(self.calendar_feature, x.to_series().index)
+
+        return xr.DataArray(series, dims=x.dims, coords=x.coords)

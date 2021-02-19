@@ -39,13 +39,14 @@ class Step(BaseStep):
     :type train_if: Callable[xr.Dataset, xr.Dataset, bool]
     """
 
-    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *, target=None,
+    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *,
+                 targets: Optional[Dict[str, "BaseStep"]] = None,
                  computation_mode=ComputationMode.Default,
                  plot=False, to_csv=False, summary: bool = True, condition=None,
                  batch_size: Optional[None] = None,
                  train_if=None):
 
-        super().__init__(input_steps, [target] if target is not None else None, condition=condition,
+        super().__init__(input_steps, targets, condition=condition,
                          computation_mode=computation_mode)
         self.name = module.name
         self.file_manager = file_manager
@@ -58,7 +59,7 @@ class Step(BaseStep):
 
     def _fit(self, inputs: Dict[str, BaseStep], target_step):
         # Fit the encapsulate module, if the input and the target is not stopped.
-        self.module.fit(**inputs, target=target_step)
+        self.module.fit(**inputs, **target_step)
 
     def _outputs(self):
         # plots and writs the data if the step is finished.
@@ -92,7 +93,7 @@ class Step(BaseStep):
     def _to_csv(self, dataset):
         if isinstance(dataset, dict):
             for key, value in dataset.items():
-                dataset[key].to_dataframe(self.name+ "_" + key).to_csv(
+                dataset[key].to_dataframe(self.name + "_" + key).to_csv(
                     self.file_manager.get_path(f"{self.name}_{key}.csv"), sep=";"
                 )
         else:
@@ -126,7 +127,7 @@ class Step(BaseStep):
         """
         step = cls(module, inputs, targets)
         step.input_steps = inputs
-        step.targets = targets if targets else []
+        step.targets = targets if targets else {}
         step.id = stored_step["id"]
         step.name = stored_step["name"]
         step.to_csv = stored_step["to_csv"]
@@ -141,11 +142,6 @@ class Step(BaseStep):
             with open(stored_step["train_if"], 'rb') as pickle_file:
                 step.train_if = cloudpickle.load(pickle_file)
         return step
-
-    def _get_input(self, start, batch):
-        return {
-            key: input_step.get_result(start, batch) for key, input_step in self.input_steps.items()
-        }
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)
@@ -165,9 +161,14 @@ class Step(BaseStep):
         self._transform(input_data)
 
     def _get_target(self, start, batch):
-        if not self.targets:
-            return None
-        return self.targets[0].get_result(start, batch)
+        return {
+            key: target.get_result(start, batch) for key, target in self.targets.items()
+        }
+
+    def _get_input(self, start, batch):
+        return {
+            key: input_step.get_result(start, batch) for key, input_step in self.input_steps.items()
+        }
 
     def get_json(self, fm: FileManager):
         json = super().get_json(fm)

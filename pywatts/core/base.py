@@ -48,7 +48,7 @@ class Base(ABC):
         """
 
     @abstractmethod
-    def fit(self, target: xr.Dataset, **kwargs):
+    def fit(self, **kwargs):
         """
         Fit the model, e.g. optimize parameters such that model(x) = y
 
@@ -134,8 +134,6 @@ class Base(ABC):
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
                  train_if: Optional[Union[Callable, bool]] = None,
-                 target: Union[List[Union[Tuple[StepInformation, ...], StepInformation]], Tuple[
-                     StepInformation, ...], StepInformation] = None,
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
                  ) -> StepInformation:
         """
@@ -174,7 +172,7 @@ class Base(ABC):
 
         from pywatts.core.step_factory import StepFactory
 
-        return StepFactory().create_step(self, kwargs=kwargs, targets=target,
+        return StepFactory().create_step(self, kwargs=kwargs,
                                          use_inverse_transform=use_inverse_transform,
                                          use_predict_proba=use_prob_transform, plot=plot, to_csv=to_csv,
                                          summary=summary,
@@ -189,7 +187,7 @@ class BaseTransformer(Base, ABC):
     The base class for all transformer modules. It provides a dummy fit method.
     """
 
-    def fit(self, target, **kwargs):
+    def fit(self, **kwargs):
         """
         Dummy method of fit, which does nothing
         :return:

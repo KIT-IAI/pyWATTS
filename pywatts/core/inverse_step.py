@@ -34,13 +34,13 @@ class InverseStep(Step):
     """
 
     def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager: FileManager,
-                 target: Optional[Base] = None,
+                 targets: Dict[str, BaseStep] = None,
                  computation_mode=ComputationMode.Default, plot: bool = False, to_csv: bool = False,
                  summary: bool = False,
                  condition: Callable[[xr.Dataset, xr.Dataset], bool] = None):
         super().__init__(module=module, input_steps=input_steps, file_manager=file_manager,
                          computation_mode=computation_mode,
-                         target=target, plot=plot, to_csv=to_csv, summary=summary, condition=condition)
+                         targets=targets, plot=plot, to_csv=to_csv, summary=summary, condition=condition)
 
     def _transform(self, input_step):
         # Calls the inverse_transform of the encapsulated module, if the input is not stopped.

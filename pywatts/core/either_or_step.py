@@ -42,10 +42,10 @@ class EitherOrStep(BaseStep):
         """
         if self.buffer is None or counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
             return True
-        for input_step in self.input_steps:
+        for input_step in self.input_steps.values():
             if not input_step.further_elements(counter):
                 return False
-        for target_step in self.targets:
+        for target_step in self.targets.values():
             if not target_step.further_elements(counter):
                 return False
         return True
@@ -90,7 +90,7 @@ class EitherOrStep(BaseStep):
         :rtype: Dict
         """
         return {
-            "target_ids": list(map(lambda x: x.id, self.targets)),
+            "target_ids": list(map(lambda x: x.id, self.targets.values())),
             "input_ids": [step.id for step in self.input_steps],
             "id": self.id,
             "module": self.__module__,

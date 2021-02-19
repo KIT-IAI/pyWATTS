@@ -214,7 +214,7 @@ class Pipeline(BaseTransformer):
         if target_ids is None:
             target_ids = []
 
-        # register modules not in the pipeline and get ids
+        # register modules in the pipeline and get ids
         step_id = self._register_step(module)
 
         logger.info("Add %s to the pipeline. Inputs are %s%s",
@@ -360,7 +360,7 @@ class Pipeline(BaseTransformer):
             module = modules[step["module_id"]]
         return klass.load(step,
                           inputs={key: self.id_to_step[int(step_id)] for step_id, key in step["input_ids"].items()},
-                          targets=list(map(lambda x: self.id_to_step[x], step["target_ids"])),
+                          targets={key: self.id_to_step[int(step_id)] for step_id, key in step["target_ids"].items()},
                           module=module,
                           file_manager=self.file_manager)
 

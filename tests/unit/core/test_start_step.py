@@ -11,7 +11,7 @@ class TestStartStep(unittest.TestCase):
             # The index is passed to the load method as cls(params['index']).
             # What does it do and is that correct? Assume id for Dataframe/Dataset?
             "index": "SomeIndex",
-            "target_ids": [],
+            "target_ids": {},
             # TODO: Review @benheid:
             # Test fails because input_ids expected to by list type but is dict.
             # Also, target_ids is still list. Correct?

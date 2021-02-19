@@ -20,7 +20,6 @@ class StepFactory:
     def create_step(self,
                     module: Base,
                     kwargs: Dict[str, Union[StepInformation, Tuple[StepInformation, ...]]],
-                    targets: Union[StepInformation, Tuple[StepInformation, ...], Pipeline],
                     use_inverse_transform: bool, use_predict_proba: bool, plot: bool, to_csv: bool, summary: bool,
                     condition,
                     batch_size,
@@ -52,57 +51,53 @@ class StepFactory:
                 assert kwarg in kwargs.keys()
         # TODO CHeck that arguemtns are in inputs
 
-        pipeline = self._check_ins(kwargs, targets)
+        pipeline = self._check_ins(kwargs)
 
         input_steps: Dict[str, BaseStep] = dict()
+        target_steps: Dict[str, BaseStep] = dict()
 
         for key, element in kwargs.items():
             if isinstance(element, StepInformation):
-                input_steps[key] = element.step
+                if key.startswith("target"):
+                    target_steps[key] = element.step
+                else:
+                    input_steps[key] = element.step
                 if isinstance(element.step, PipelineStep):
                     raise Exception(
                         f"Please specify which result of {element.step.name} should be used, since this steps"
                         f"may provide multiple results.")
             elif isinstance(element, tuple):
-                input_steps[key] = self._createEitherOrStep(element, pipeline).step
-
-        if targets and isinstance(targets, tuple):
-            target = self._createEitherOrStep(targets).step
-        elif targets:
-            target = targets.step
-        else:
-            target = None
+                if key.startswith("target"):
+                    target_steps[key] = self._createEitherOrStep(element, pipeline).step
+                else:
+                    input_steps[key] = self._createEitherOrStep(element, pipeline).step
 
         for input_step in input_steps.values():
             input_step.last = False
 
-        if target:
-            target.last = False
-
         if isinstance(module, Pipeline):
-            step = PipelineStep(module, input_steps, pipeline.file_manager, target=target, plot=plot, summary=summary,
+            step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot,
+                                summary=summary,
                                 computation_mode=computation_mode,
                                 to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
         elif use_inverse_transform:
-            step = InverseStep(module, input_steps, pipeline.file_manager, target, computation_mode=computation_mode,
+            step = InverseStep(module, input_steps, pipeline.file_manager, target_steps,
+                               computation_mode=computation_mode,
                                plot=plot, summary=summary,
                                to_csv=to_csv, condition=condition)
         elif use_predict_proba:
-            step = ProbablisticStep(module, input_steps, pipeline.file_manager, target,
+            step = ProbablisticStep(module, input_steps, pipeline.file_manager, target_steps,
                                     computation_mode=computation_mode, plot=plot, summary=summary,
                                     to_csv=to_csv, condition=condition)
         else:
-            step = Step(module, input_steps, pipeline.file_manager, target=target, plot=plot, summary=summary,
+            step = Step(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot, summary=summary,
                         computation_mode=computation_mode,
                         to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
 
-        if target:
-            step_id = pipeline.add(module=step,
-                                   input_ids=[],
-                                   target_ids=[])
-        else:
-            step_id = pipeline.add(module=step,
-                                   input_ids=[])
+        step_id = pipeline.add(module=step,
+                               input_ids=[step.id for step in input_steps.values()],
+                               target_ids=[step.id for step in target_steps.values()])
+
         step.id = step_id
 
         return StepInformation(step, pipeline)
@@ -131,14 +126,15 @@ class StepFactory:
     #     step.id = step_id
     #     return StepInformation(step, pipeline)
 
-    def _check_ins(self, kwargs, target):
+    def _check_ins(self, kwargs):
         pipeline = None
         for key, input_step in kwargs.items():
             if isinstance(input_step, StepInformation):
                 pipeline_temp = input_step.pipeline
             elif isinstance(input_step, Pipeline):
                 # TODO custom exception needded here...
-                raise Exception("This might be ambigious if you input data. Specifiy the desired column of your dataset by using pipeinling[<column_name>]")
+                raise Exception(
+                    "This might be ambigious if you input data. Specifiy the desired column of your dataset by using pipeinling[<column_name>]")
             elif isinstance(input_step, tuple):
                 # We assume that a tuple consists only of step informations and do not contain a pipeline.
                 pipeline_temp = input_step[0].pipeline
@@ -155,33 +151,4 @@ class StepFactory:
             if not pipeline_temp == pipeline:
                 # TODO
                 raise Exception()
-
-        if isinstance(target, StepInformation):
-            pipeline_temp = target.pipeline
-        elif isinstance(target, Tuple):
-            # We assume that a tuple consists only of step informations and do not contain a pipeline.
-            pipeline_temp = target[0].pipeline
-            for step_information in target[1:]:
-                if not pipeline_temp == step_information.pipeline:
-                    raise Exception()
-        elif isinstance(target, Pipeline):
-            pipeline_temp = target
-
-        if target and not pipeline_temp == pipeline:
-            raise Exception()
-
-            # raise StepCreationException(f"A step information can only be part of one pipeline. "
-            #                             f"Assert that you added {input_step.step.name} to the correct pipeline. "
-            #                             f"However, if you want to use the module {input_step.step.name} in"
-            #                             f"distinct pipeine. Assert that you add the module multiple times and not "
-            #                             f"the step_information.",
-            #                             )
-            #
-            # raise StepCreationException(f"A step information can only be part of one pipeline"
-            #                             f"Assert that you added {target.step.name} to the correct pipeline. "
-            #                             f"However,"
-            #                             f"if you want to use the module {target.step.name} in distinct pipeine. "
-            #                             f"Assert that you add the module multiple times and not the "
-            #                             f"step_information.",
-            #                             )
         return pipeline

@@ -157,7 +157,7 @@ class TestSklearnWrapper(unittest.TestCase):
         target = xr.DataArray([2, 2, 2, 2, 2], dims=["time"], coords={'time': time})
         target2 = xr.DataArray([3, 3, 3, 3, 3], dims=["time"], coords={'time': time})
 
-        wrapper.fit(bar=bar, target=[target, target2])
+        wrapper.fit(bar=bar, target1=target, target2=target2)
 
 
         result = wrapper.transform(bar=foo)

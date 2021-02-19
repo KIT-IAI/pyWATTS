@@ -48,18 +48,21 @@ class SKLearnWrapper(BaseWrapper):
         """
         return self.module.set_params(**kwargs)
 
-    def fit(self,*, target:Optional[xr.DataArray] = None , **kwargs):
+    def fit(self, **kwargs):
         """
         Fit the sklearn module
         :param x: input data
         :param y: target data
         """
-        x = self._dataset_to_sklearn_input(kwargs)
-        if target is not None:
-            if isinstance(target, list):
-                target = self._dataset_to_sklearn_input({f"target_{i}": t for i, t in enumerate(target)})
+        inputs = dict()
+        targets = dict()
+        for key, value in kwargs.items():
+            if key.startswith("target"):
+                targets[key] = value
             else:
-                target = self._dataset_to_sklearn_input({"target": target})
+                inputs[key] = value
+        x = self._dataset_to_sklearn_input(inputs)
+        target = self._dataset_to_sklearn_input(targets)
         self.module.fit(x, target)
         self.is_fitted = True
 
@@ -86,7 +89,7 @@ class SKLearnWrapper(BaseWrapper):
             *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
 
         # TODO how to handle multiple return values?
-        #data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
+        # data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
         #        "time": list(reference.coords.values())[0].to_dataframe().index.array}
         return xr.DataArray(prediction, coords=coords)
 

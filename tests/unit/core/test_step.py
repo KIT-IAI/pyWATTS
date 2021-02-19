@@ -25,8 +25,8 @@ class TestStep(unittest.TestCase):
     def test_fit(self):
         input_dict = {'input_data': None}
         step = Step(self.module_mock, self.step_mock, file_manager=MagicMock())
-        step._fit(input_dict, None)
-        self.module_mock.fit.assert_called_once_with(**input_dict, target=None)
+        step._fit(input_dict, {})
+        self.module_mock.fit.assert_called_once_with(**input_dict)
 
     @patch("builtins.open")
     @patch("pywatts.core.step.cloudpickle")
@@ -45,7 +45,7 @@ class TestStep(unittest.TestCase):
              call(os.path.join("folder", "test_condition.pickle"), "rb")],
             any_order=True)
         self.assertEqual(json, {
-            "target_ids": [],
+            "target_ids": {},
             # BUG: input_ids should not be empty?
             # Same as for test_load.
             "input_ids": {},
@@ -82,7 +82,7 @@ class TestStep(unittest.TestCase):
              call(os.path.join("folder", "test_train_if.pickle"), "rb")],
             any_order=True)
         self.assertEqual(json, {
-            "target_ids": [],
+            "target_ids": {},
             # BUG: input_ids should not be empty?
             # Same as for test_load.
             "input_ids": {},
@@ -176,29 +176,29 @@ class TestStep(unittest.TestCase):
     def test_input_finished(self):
         input_dict = {'input_data': None}
         step = Step(self.module_mock, self.step_mock, file_manager=MagicMock())
-        step._fit(input_dict, None)
+        step._fit(input_dict, {})
 
-        self.module_mock.fit.assert_called_once_with(**input_dict, target=None)
+        self.module_mock.fit.assert_called_once_with(**input_dict)
 
     def test_fit_with_targets(self):
         input_dict = {'input_data': None}
         target_mock = MagicMock()
 
-        step = Step(self.module_mock, self.step_mock, MagicMock(), target=MagicMock())
-        step._fit(input_dict, target_mock)
+        step = Step(self.module_mock, self.step_mock, MagicMock(), targets={"target": MagicMock()})
+        step._fit(input_dict, {"target": target_mock})
 
         self.module_mock.fit.assert_called_once_with(**input_dict, target=target_mock)
 
     def test_transform(self):
         input_dict = {'input_data': None}
         step = Step(self.module_mock, self.step_mock, None)
-        step._fit(input_dict, None)
+        step._fit(input_dict, {})
         step._transform(input_dict)
         self.module_mock.transform.assert_called_once_with(**input_dict)
 
     def test_load(self):
         step_config = {
-            "target_ids": [],
+            "target_ids": {},
             # BUG: input_ids should not be empty?
             # Question @benheid: What should the input_ids actually are
             # when step.id = 2? See self.step_mock.id = 2 in setUp method.
@@ -225,7 +225,7 @@ class TestStep(unittest.TestCase):
         step = Step(self.module_mock, self.step_mock, None)
         json = step.get_json("file")
         self.assertEqual({
-            "target_ids": [],
+            "target_ids": {},
             # BUG: input_ids should not be empty?
             # Same as for test_load.
             "input_ids": {},

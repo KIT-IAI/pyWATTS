@@ -26,6 +26,7 @@ class EitherOrStep(BaseStep):
 
     def _get_input(self, start, batch):
         inputs = []
+        # TODO why is input_steps here a list and not a dict?
         for step in self.input_steps:
             inp = step.get_result(start, batch)
             inputs.append(inp)
@@ -42,7 +43,7 @@ class EitherOrStep(BaseStep):
         """
         if self.buffer is None or counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
             return True
-        for input_step in self.input_steps.values():
+        for input_step in self.input_steps:
             if not input_step.further_elements(counter):
                 return False
         for target_step in self.targets.values():

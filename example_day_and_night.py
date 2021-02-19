@@ -103,21 +103,20 @@ if __name__ == "__main__":
     print("Start training")
     train_pipeline.train(data)
     print("Training finished")
+    del preprocessing_pipeline
 
     # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
     pipeline = Pipeline(path="results")
 
-    # Select individual time-series (columns) and generate plots in the results folder
-
     # Get preprocessing pipeline
-    preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
-    preprocessing_pipeline = preprocessing_pipeline(scaler_power=pipeline["load_power_statistics"])
+    prepro = create_preprocessing_pipeline(power_scaler)
+    prepro = prepro(scaler_power=pipeline["load_power_statistics"])
 
     # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
     test_pipeline = create_test_pipeline([regressor_lin_reg, regressor_svr])
 
-    test_pipeline(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    test_pipeline(ClockShift=prepro["ClockShift"],
+                  ClockShift_1=prepro["ClockShift_1"],
                   load_power_statistics=pipeline["load_power_statistics"],
                   plot=True, to_csv=True)
 

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import \
     KindOfTransformDoesNotExistException, KindOfTransform
 from pywatts.core.probabilistic_step import ProbablisticStep
+import pandas as pd
 
 
 class TestProbabilisticStep(unittest.TestCase):
@@ -13,7 +14,8 @@ class TestProbabilisticStep(unittest.TestCase):
         self.input_step = MagicMock()
         self.input_step.get_result.return_value = MagicMock(), False
         self.input_step.stop = False
-        self.probabilistic_step = ProbablisticStep(self.probabilistic_module, self.input_step, file_manager=MagicMock())
+        self.probabilistic_step = ProbablisticStep(self.probabilistic_module, {"x": self.input_step},
+                                                   file_manager=MagicMock())
 
     def tearDown(self) -> None:
         self.probabilistic_module = None
@@ -28,12 +30,11 @@ class TestProbabilisticStep(unittest.TestCase):
 
     def test_get_result_stop(self):
         self.input_step.stop = True
-        # TODO: Question @benheid
-        # What should get_result expect in the refactored version of pyWATTS?
-        #self.probabilistic_step.get_result(None, None)  # This fails
+
+        self.probabilistic_step.get_result(pd.Timestamp("2000.01.01"), pd.Timestamp("2000.01.02"))  # This fails
 
         self.probabilistic_module.predict_proba.assert_not_called()
-        # self.assertTrue(self.probabilistic_step.stop)  # This fails
+        self.assertTrue(self.probabilistic_step.stop)
 
     def test_transform_no_prob_method(self):
         self.probabilistic_module.has_predict_proba = False

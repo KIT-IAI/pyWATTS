@@ -97,7 +97,6 @@ class TestPipeline(unittest.TestCase):
 
     def test_add_pipeline_without_index(self):
         # This should raise an exception since pipeline might get multiple columns in the input dataframe
-        # BUG @benheid Missing check for passing pipeline
         with self.assertRaises(Exception) as context:
             SKLearnWrapper(StandardScaler())(x=self.pipeline)  # This should fail
         self.assertEqual("This might be ambigious if you input data. Specifiy the desired column of your dataset by using pipeinling[<column_name>]", str(context.exception))

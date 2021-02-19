@@ -123,16 +123,12 @@ class BaseStep(ABC):
         pass
 
     def _post_transform(self, result):
-        if self.buffer is not None:
+        if self.buffer is None or len(self.buffer) == 0:
             self.buffer = result
         else:
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indeces(result)[0]
-            if self.buffer is None:
-                self.buffer = result
-            else:
-                for key in result.keys():
-                    self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
+            self.buffer = xr.concat([self.buffer, result], dim=dim)
 
     def get_json(self, fm: FileManager) -> Dict:
         """

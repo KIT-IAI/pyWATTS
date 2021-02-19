@@ -83,7 +83,7 @@ class TestStep(unittest.TestCase):
             any_order=True)
         self.assertEqual(json, {
             "target_ids": {},
-            # BUG: input_ids should not be empty?
+            # TODO: input_ids should not be empty?
             # Same as for test_load.
             "input_ids": {},
             "id": -1,
@@ -105,73 +105,84 @@ class TestStep(unittest.TestCase):
     @patch("pywatts.core.base_step._get_time_indeces", return_value=["time"])
     @patch("pywatts.core.base_step.xr")
     def test_transform_batch_with_existing_buffer(self, xr_mock, *args):
-        # BUG: Question @benheid
-        # What should be tested here?
-        #input_step = MagicMock()
-        #input_step.stop = False
-        #transform_result = MagicMock()
-        #self.module_mock.transform.return_value = transform_result
-        #already_existing_buffer = MagicMock()
+        # Check that data in batch learning are concatenated
+        input_step = MagicMock()
+        input_step.stop = False
+        time = pd.date_range('2000-01-01', freq='1D', periods=7)
+        time2 = pd.date_range('2000-01-14', freq='1D', periods=7)
+        time3 = pd.date_range('2000-01-01', freq='1D', periods=14)
 
-        #step = Step(self.module_mock, input_step, file_manager=MagicMock())
-        #step.buffer = already_existing_buffer
+        self.module_mock.transform.return_value = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"],
+                                                               coords={'time': time2})
+        step = Step(self.module_mock, {"x": input_step}, file_manager=MagicMock())
+        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+        step.buffer = da
+        xr_mock.concat.return_value = xr.DataArray([2, 3, 4, 3, 3, 1, 2, 2, 3, 4, 3, 3, 1, 2], dims=["time"],
+                                                   coords={'time': time3})
 
-        #step.get_result(None, None)
+        step.get_result(pd.Timestamp("2000.01.07"), pd.Timestamp("2020.01.14"))
 
         # Two calls, once in should_stop and once in _transform
-        #xr_mock.concat.assert_called_once_with([already_existing_buffer, transform_result], dim="time")
-        #input_step.get_result.assert_has_calls([call(None, None), call(None, None)])
-        pass
+        input_step.get_result.assert_has_calls(
+            [call(pd.Timestamp('2000-01-07 00:00:00'), pd.Timestamp('2020-01-14 00:00:00')),
+             call(pd.Timestamp('2000-01-07 00:00:00'), pd.Timestamp('2020-01-14 00:00:00'))])
+        xr_mock.concat.assert_called_once()
+
+        xr.testing.assert_equal(da, list(xr_mock.concat.call_args_list[0])[0][0][0])
+        xr.testing.assert_equal(xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"],
+                                             coords={'time': time2}), list(xr_mock.concat.call_args_list[0])[0][0][1])
+        assert {'dim': 'time'} == list(xr_mock.concat.call_args_list[0])[1]
 
     def test_get_result(self):
-        # BUG: Question @benheid
-        # What should be tested here?
-        #input_step = MagicMock()
-        #input_step.stop = False
-        #input_step_result = MagicMock()
-        #input_step.get_result.return_value = input_step_result
+        # Tests if the get_result method calls correctly the previous step and the module
 
-        #step = Step(self.module_mock, input_step, file_manager=MagicMock())
-        #step.get_result(None, None)
+        input_step = MagicMock()
+        input_step.stop = False
+        input_step_result_mock = MagicMock()
+        input_step.get_result.return_value = input_step_result_mock
+
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
+        self.module_mock.transform.return_value = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"],
+                                                               coords={'time': time})
+        step = Step(self.module_mock, {"x": input_step}, file_manager=MagicMock())
+        step.get_result(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.12.12"))
 
         # Two calls, once in should_stop and once in _transform
-        #input_step.get_result.assert_has_calls([call(None, None), call(None, None)])
-        pass
+        input_step.get_result.assert_has_calls(
+            [call(pd.Timestamp('2000-01-01 '), pd.Timestamp('2020-12-12 ')),
+             call(pd.Timestamp('2000-01-01 '), pd.Timestamp('2020-12-12 '))])
+
+        self.module_mock.transform.assert_called_once_with(x=input_step_result_mock)
 
     def test_further_elements_input_false(self):
-        # TODO: Opinion @benheid
-        # I think there is a bug in the utils to check for further elements.
-        # However, is this test necessary or correct in the new structure?
-        #input_step = MagicMock()
-        #input_step.further_elements.return_value = False
-        #step = Step(self.module_mock, input_step, file_manager=MagicMock())
-        #result = step.further_elements("2000.12.12")
-        #input_step.further_elements.assert_called_once_with("2000.12.12")
-        #self.assertFalse(result)
-        pass
+        input_step = MagicMock()
+        input_step.further_elements.return_value = False
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
+        step = Step(self.module_mock, {"x": input_step}, file_manager=MagicMock())
+        step.buffer = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+
+        result = step.further_elements(pd.Timestamp("2000.12.12"))
+        input_step.further_elements.assert_called_once_with(pd.Timestamp("2000.12.12"))
+        self.assertFalse(result)
 
     def test_further_elements_target_false(self):
-        # TODO: Opinion @benheid
-        # Same as for 'test_further_elements_input_false' test.
-        #target_step = MagicMock()
-        #target_step.further_elements.return_value = False
-        #step = Step(self.module_mock, self.step_mock, target=target_step, file_manager=MagicMock())
-        #result = step.further_elements("2000.12.12")
-        #target_step.further_elements.assert_called_once_with("2000.12.12")
-        #self.assertFalse(result)
-        pass
+        target_step = MagicMock()
+        target_step.further_elements.return_value = False
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
+        step = Step(self.module_mock, {"x": self.step_mock}, targets={"target": target_step}, file_manager=MagicMock())
+        step.buffer = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+
+        result = step.further_elements(pd.Timestamp("2000.12.12"))
+        target_step.further_elements.assert_called_once_with(pd.Timestamp("2000.12.12"))
+        self.assertFalse(result)
 
     def test_further_elements_already_buffered(self):
-        # TODO: Opinion @benheid
-        # Same as for 'test_further_elements_input_false' test.
-        #time = pd.date_range('2000-01-01', freq='24H', periods=7)
-        #ds = xr.Dataset({'foo': ('time', [2, 3, 4, 5, 6, 7, 8]), 'time': time})
-        #step = Step(self.module_mock, self.step_mock, file_manager=MagicMock())
-        #step.buffer = ds
-        #result = step.further_elements(pd.Timestamp("2000-01-05"))
-        #self.step_mock.further_elements.assert_not_called()
-        #self.assertEqual(result, True)
-        pass
+        time = pd.date_range('2000-01-01', freq='24H', periods=7)
+        step = Step(self.module_mock, {"x": self.step_mock}, file_manager=MagicMock())
+        step.buffer = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+        result = step.further_elements(pd.Timestamp("2000-01-05"))
+        self.step_mock.further_elements.assert_not_called()
+        self.assertEqual(result, True)
 
     def test_input_finished(self):
         input_dict = {'input_data': None}
@@ -191,7 +202,7 @@ class TestStep(unittest.TestCase):
 
     def test_transform(self):
         input_dict = {'input_data': None}
-        step = Step(self.module_mock, self.step_mock, None)
+        step = Step(self.module_mock, {"x" :self.step_mock}, None)
         step._fit(input_dict, {})
         step._transform(input_dict)
         self.module_mock.transform.assert_called_once_with(**input_dict)
@@ -199,9 +210,6 @@ class TestStep(unittest.TestCase):
     def test_load(self):
         step_config = {
             "target_ids": {},
-            # BUG: input_ids should not be empty?
-            # Question @benheid: What should the input_ids actually are
-            # when step.id = 2? See self.step_mock.id = 2 in setUp method.
             "input_ids": {2: 'x'},
             'computation_mode': 3,
             "id": -1,
@@ -240,23 +248,6 @@ class TestStep(unittest.TestCase):
             'plot': False,
             'to_csv': False}, json)
 
-    @patch("pywatts.utils.lineplot.plt.close")
-    @patch("pywatts.utils.lineplot.plt.clf")
-    @patch("pywatts.utils.lineplot.plt.savefig")
-    @patch("pywatts.utils.lineplot.plt.Figure")
-    def test_plot(self, mock_figure, mock_save, mock_clf, mock_close):
-        # BUG: @benheid Something is wrong here... Do you know how to fix?
-        #fm_mock = MagicMock()
-        #step = Step(self.module_mock, self.step_mock, fm_mock)
-        #step._plot(xr.Dataset({"test": xr.DataArray(np.asarray([1, 2, 3, 4, 5]))}))
-        #mock_figure.assert_called_once()
-        #fm_mock.get_path.assert_called_with("test_test.png")
-        #mock_figure().suptitle.assert_called_with("test")
-        #mock_save.assert_called_once()
-        #mock_clf.assert_called_once()
-        #mock_close.assert_called_once()
-        pass
-
     def test_to_csv(self):
         fm_mock = MagicMock()
         fm_mock.get_path.return_value = "path/test.csv"
@@ -292,16 +283,13 @@ class TestStep(unittest.TestCase):
 
     def test_reset(self):
         step = Step(MagicMock(), MagicMock(), MagicMock())
-        buffer_mock = MagicMock()
         step.buffer = MagicMock()
         step.computation_mode = ComputationMode.Transform
         step.stop = True
         step.finished = True
         step.reset()
 
-        # TODO: Question @benheid
-        # Is it correct to set the buffer to None after reset?
-        # xr.testing.assert_equal(step.buffer, None)
+        self.assertIsNone(None)
         assert step.computation_mode == ComputationMode.Default
         assert step.stop == False
         assert step.finished == False

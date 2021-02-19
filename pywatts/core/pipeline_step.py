@@ -1,5 +1,6 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 
+from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
@@ -48,6 +49,17 @@ class PipelineStep(Step):
     """
     module: Pipeline
 
+    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, targets, plot,
+                                summary,
+                                computation_mode,
+                                to_csv, condition, batch_size, train_if):
+
+        super().__init__(module, input_steps, file_manager, targets=targets, plot=plot,
+                                summary=summary,
+                                computation_mode=computation_mode,
+                                to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
+        self.result_steps: Dict[str, ResultStep] = {}
+
     def set_computation_mode(self, computation_mode: ComputationMode):
         """
         Sets the computation mode of the step for the current run. Note that after reset the all mode is restored.
@@ -72,12 +84,14 @@ class PipelineStep(Step):
         for step in self.module.id_to_step.values():
             step.reset()
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element:str=None):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None):
         result = super().get_result(start, end)
         if buffer_element is None:
             return result
         return result[buffer_element]
 
-
     def get_result_step(self, item: str):
-        return ResultStep(input_steps={"result": self}, buffer_element=item)
+
+        if not item in self.result_steps:
+            self.result_steps[item] = ResultStep(input_steps={"result": self}, buffer_element=item)
+        return self.result_steps[item]

@@ -62,7 +62,7 @@ def create_test_pipeline(modules):
                                                            plot=True)
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-    RmseCalculator(target="load_power_statistics", predictions=["Regression"])(
+    RmseCalculator()(
         y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"],
         plot=True, to_csv=True)
 

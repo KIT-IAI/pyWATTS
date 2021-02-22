@@ -19,10 +19,8 @@ class RmseCalculator(BaseTransformer):
     :type predictions: list.
     """
 
-    def __init__(self, name: str = "RmseCalculator", target: str = "target", predictions: list = ["predictions"]):
+    def __init__(self, name: str = "RmseCalculator"):
         super().__init__(name)
-        self.target = target
-        self.predictions = predictions
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -31,23 +29,7 @@ class RmseCalculator(BaseTransformer):
         :return: Parameters set for the RMSE calculator
         :rtype: Dict[str, object]
         """
-        return {"target": self.target,
-                "predictions": self.predictions}
-
-    def set_params(self, target: str = None, prediction: list = None):
-        """
-        Sets the parameters for the linear interpolation
-
-        :param target: Variable to be used as the target (actual value)
-        :type target: str
-
-        :param prediction: Variable to be used as the predictions
-        :type prediction: list
-        """
-        if target is not None:
-            self.target = target
-        if prediction is not None:
-            self.predictions = prediction
+        return {}
 
     def transform(self, y_hat: xr.DataArray, y: xr.DataArray) -> xr.DataArray:
         """
@@ -65,6 +47,11 @@ class RmseCalculator(BaseTransformer):
         p = y_hat.values
         rmse.append(np.sqrt(np.mean((p - t) ** 2)))
 
-        dimension = self.predictions
         time = y_hat.indexes[_get_time_indeces(y_hat)[0]][-1]
-        return xr.DataArray(np.array([rmse]), coords=[[time], dimension], dims={"time": [time], "Result": dimension, })
+        return xr.DataArray(np.array(rmse), coords={"time": [time]}, dims=["time"])
+
+    def set_params(self, **kwargs):
+        """
+        No parameters can be set.
+        """
+        pass

@@ -27,7 +27,6 @@ if __name__ == "__main__":
     # Extract dummy calender features, using holidays from Germany
     # NOTE: Will it also work without x=pipeline["time"]? So, pipeline["time"]?
     # NOTE: CalendarExtraction can't return multiple features.
-    # TODO how to handle this stuff with time? Since the load is not interessting only the name is of interest for this module..
     calendar_month = CalendarExtraction(
         encoding="numerical", continent="Europe", country="Germany"
     )(x=pipeline["load_power_statistics"])

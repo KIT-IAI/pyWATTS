@@ -102,7 +102,7 @@ class TestPipeline(unittest.TestCase):
         # This should raise an exception since pipeline might get multiple columns in the input dataframe
         with self.assertRaises(Exception) as context:
             SKLearnWrapper(StandardScaler())(x=self.pipeline)  # This should fail
-        self.assertEqual("This might be ambigious if you input data. Specifiy the desired column of your dataset by using pipeinling[<column_name>]", str(context.exception))
+        self.assertEqual("Adding a pipeline as input might be ambigious. Specifiy the desired column of your dataset by using pipeline[<column_name>]", str(context.exception))
 
 
     def test_add_module_with_inputs(self):

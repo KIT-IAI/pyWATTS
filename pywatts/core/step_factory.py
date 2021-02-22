@@ -4,6 +4,8 @@ from typing import Tuple, Union, Dict
 from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
 from pywatts.core.either_or_step import EitherOrStep
+from pywatts.core.exceptions.step_creation_exception import StepCreationException
+from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.inverse_step import InverseStep
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.pipeline_step import PipelineStep
@@ -45,9 +47,14 @@ class StepFactory:
         arguments = inspect.signature(module.transform).parameters.keys()
 
         if "kwargs" not in arguments and not isinstance(module, Pipeline):
-            for kwarg in arguments:
-                assert kwarg in kwargs.keys()
-                # TODO custom exception here
+            for argument in arguments:
+                if argument not in kwargs.keys():
+                    raise StepCreationException(
+                        f"The module {module.name} miss {argument} as input. The module needs {arguments} as input. "
+                        f"{kwargs} are given as input."
+                        f"Add {argument}=<desired_input> when adding {module.name} to the pipeline.",
+                        module
+                    )
 
         pipeline = self._check_ins(kwargs)
 
@@ -116,10 +123,10 @@ class StepFactory:
             if isinstance(input_step, StepInformation):
                 pipeline_temp = input_step.pipeline
             elif isinstance(input_step, Pipeline):
-                # TODO custom exception needded here...
-                raise Exception(
-                    "This might be ambigious if you input data. Specifiy the desired column of your dataset by using "
-                    "pipeinling[<column_name>]")
+                raise StepCreationException(
+                    "Adding a pipeline as input might be ambigious. "
+                    "Specifiy the desired column of your dataset by using pipeline[<column_name>]",
+                    )
             elif isinstance(input_step, tuple):
                 # We assume that a tuple consists only of step informations and do not contain a pipeline.
                 pipeline_temp = input_step[0].pipeline
@@ -134,6 +141,6 @@ class StepFactory:
                 pipeline = pipeline_temp
 
             if not pipeline_temp == pipeline:
-                # TODO
-                raise Exception()
+                raise StepCreationException(f"A step can only be part of one pipeline. Assure that all inputs {kwargs}"
+                                            f"are part of the same pipeline.")
         return pipeline

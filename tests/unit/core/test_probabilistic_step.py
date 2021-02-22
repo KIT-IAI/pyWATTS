@@ -31,7 +31,7 @@ class TestProbabilisticStep(unittest.TestCase):
     def test_get_result_stop(self):
         self.input_step.stop = True
 
-        self.probabilistic_step.get_result(pd.Timestamp("2000.01.01"), pd.Timestamp("2000.01.02"))  # This fails
+        self.probabilistic_step.get_result(pd.Timestamp("2000.01.01"), pd.Timestamp("2000.01.02"))
 
         self.probabilistic_module.predict_proba.assert_not_called()
         self.assertTrue(self.probabilistic_step.stop)

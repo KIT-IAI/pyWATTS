@@ -129,6 +129,7 @@ class BaseStep(ABC):
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indeces(result)[0]
             self.buffer = xr.concat([self.buffer, result], dim=dim)
+        # TODO how to handle if there are multiple return value of a module...
 
     def get_json(self, fm: FileManager) -> Dict:
         """
@@ -200,4 +201,3 @@ class BaseStep(ABC):
         if self._original_compuation_mode == computation_mode.Default:
             self.computation_mode = computation_mode
 
-    # TODO how to handle if there a multiple return value of a module...

@@ -50,5 +50,5 @@ class ChangeDirection(BaseTransformer):
         except ValueError:
             raise WrongParameterException(
                 f"Not all indices ({indices}) are in the indices of x ({list(x.indices.keys())}).",
-                f"Either correct the indices which you passed to that module or assert that this index occurs in the "
-                f"data which are passed by the previous modules to the current one.", module=self.name)
+                "Either correct the indices which you passed to that module or assert that this index occurs in the "
+                "data which are passed by the previous modules to the current one.", module=self.name)

@@ -2,18 +2,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, List, Union, Tuple, Callable, TYPE_CHECKING
+from typing import Optional, Dict, Union, Tuple, Callable, TYPE_CHECKING
 
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.filemanager import FileManager
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
+from pywatts.core.filemanager import FileManager
 
 if TYPE_CHECKING:
-    from pywatts.core.pipeline import Pipeline
     from pywatts.core.step_factory import StepInformation
 
 

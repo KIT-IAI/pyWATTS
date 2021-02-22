@@ -176,8 +176,8 @@ class BaseStep(ABC):
         target_step = self._get_target(start, end)
 
         return (self.condition is not None and not self.condition(input_step, target_step)) or \
-               (self.input_steps and any(map(lambda x: x.stop, self.input_steps.values()))) \
-               or (self.targets and any(map(lambda x: x.stop, self.targets.values())))
+               (self.input_steps and any(map(lambda x: x.stop, self.input_steps.values()))) or \
+               (self.targets and any(map(lambda x: x.stop, self.targets.values())))
 
     def reset(self):
         """

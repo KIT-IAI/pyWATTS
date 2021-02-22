@@ -16,7 +16,7 @@ class StepInformation:
     def __getitem__(self, item: str):
         from pywatts.core.pipeline_step import PipelineStep
         if isinstance(self.step, PipelineStep):
-            self.step.last = False # TODO this should be a part of the step_factory
+            self.step.last = False  # TODO this should be a part of the step_factory
             result_step = self.step.get_result_step(item)
             id = self.pipeline.add(module=result_step, input_ids=[self.step.id])
             result_step.id = id

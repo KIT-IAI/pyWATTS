@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict
 
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import \
@@ -31,7 +31,8 @@ class ProbablisticStep(Step):
     :type condition: Callable[xr.Dataset, xr.Dataset, bool]
     """
 
-    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, targets: Dict[str, BaseStep]=None,
+    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager,
+                 targets: Dict[str, BaseStep] = None,
                  computation_mode=ComputationMode.Default, plot: bool = False,
                  to_csv: bool = False, summary: bool = False, condition=None):
         super().__init__(module=module, input_steps=input_steps, targets=targets, file_manager=file_manager,

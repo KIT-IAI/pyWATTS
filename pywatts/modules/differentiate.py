@@ -110,7 +110,7 @@ class Differentiate(BaseTransformer):
         for idx in idxs:
             if idx not in x:
                 raise WrongParameterException(f"Index {idx} not in dataset!",
-                                              f"Assert that the previous modules provide the correct index.",
+                                              "Assert that the previous modules provide the correct index.",
                                               module=self.name)
 
         # iterate over xarray indizes and n-th orders

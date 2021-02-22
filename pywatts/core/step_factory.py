@@ -43,37 +43,15 @@ class StepFactory:
         """
 
         arguments = inspect.signature(module.transform).parameters.keys()
-        # TODO Raise an exception if no kwargs are provided
-        # TODO Check if kwargs is Dict and not a pipeline (e.g. when passing SKLearnWrapper(..)(x=self.pipeline))
-        if not "kwargs" in arguments and not isinstance(module, Pipeline):
 
+        if "kwargs" not in arguments and not isinstance(module, Pipeline):
             for kwarg in arguments:
                 assert kwarg in kwargs.keys()
-        # TODO CHeck that arguemtns are in inputs
+                # TODO custom exception here
 
         pipeline = self._check_ins(kwargs)
 
-        input_steps: Dict[str, BaseStep] = dict()
-        target_steps: Dict[str, BaseStep] = dict()
-
-        for key, element in kwargs.items():
-            if isinstance(element, StepInformation):
-                if key.startswith("target"):
-                    target_steps[key] = element.step
-                else:
-                    input_steps[key] = element.step
-                if isinstance(element.step, PipelineStep):
-                    raise Exception(
-                        f"Please specify which result of {element.step.name} should be used, since this steps"
-                        f"may provide multiple results.")
-            elif isinstance(element, tuple):
-                if key.startswith("target"):
-                    target_steps[key] = self._createEitherOrStep(element, pipeline).step
-                else:
-                    input_steps[key] = self._createEitherOrStep(element, pipeline).step
-
-        for input_step in input_steps.values():
-            input_step.last = False
+        input_steps, target_steps = self.split_input_target_steps(kwargs, pipeline)
 
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot,
@@ -102,29 +80,35 @@ class StepFactory:
 
         return StepInformation(step, pipeline)
 
+    def split_input_target_steps(self, kwargs, pipeline):
+        input_steps: Dict[str, BaseStep] = dict()
+        target_steps: Dict[str, BaseStep] = dict()
+        for key, element in kwargs.items():
+            if isinstance(element, StepInformation):
+                element.step.last = False
+                if key.startswith("target"):
+                    target_steps[key] = element.step
+                else:
+                    input_steps[key] = element.step
+                if isinstance(element.step, PipelineStep):
+                    raise Exception(
+                        f"Please specify which result of {element.step.name} should be used, since this steps"
+                        f"may provide multiple results.")
+            elif isinstance(element, tuple):
+                if key.startswith("target"):
+                    target_steps[key] = self._createEitherOrStep(element, pipeline).step
+                else:
+                    input_steps[key] = self._createEitherOrStep(element, pipeline).step
+        return input_steps, target_steps
+
     def _createEitherOrStep(self, inputs: Tuple[StepInformation], pipeline):
         for input_step in inputs:
             input_step.step.last = False
-        step = EitherOrStep(list(map(lambda x: x.step, inputs)))
+        step = EitherOrStep({x.step.name + f"{i}": x.step for i, x in enumerate(inputs)})
         step_id = pipeline.add(module=step,
                                input_ids=list(map(lambda x: x.step.id, inputs)))
         step.id = step_id
         return StepInformation(step, pipeline)
-
-    # def _createCollectStep(self, inputs: List[Union[StepInformation, Tuple[StepInformation]]]):
-    #     pipeline = self._check_ins(list(inputs), [])
-    #     final_inputs = []
-    #     for input_step in inputs:
-    #         if isinstance(input_step, Tuple):
-    #             input_step = self._createEitherOrStep(input_step)
-    #         input_step.step.last = False
-    #         final_inputs.append(input_step.step)
-    #
-    #     step = CollectStep(final_inputs)
-    #     step_id = pipeline.add(module=step,
-    #                            input_ids=list(map(lambda x: x.id, final_inputs)))
-    #     step.id = step_id
-    #     return StepInformation(step, pipeline)
 
     def _check_ins(self, kwargs):
         pipeline = None
@@ -134,7 +118,8 @@ class StepFactory:
             elif isinstance(input_step, Pipeline):
                 # TODO custom exception needded here...
                 raise Exception(
-                    "This might be ambigious if you input data. Specifiy the desired column of your dataset by using pipeinling[<column_name>]")
+                    "This might be ambigious if you input data. Specifiy the desired column of your dataset by using "
+                    "pipeinling[<column_name>]")
             elif isinstance(input_step, tuple):
                 # We assume that a tuple consists only of step informations and do not contain a pipeline.
                 pipeline_temp = input_step[0].pipeline

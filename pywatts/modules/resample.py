@@ -3,7 +3,6 @@ from typing import Dict, Optional, Any
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 
 
 class Resampler(BaseTransformer):

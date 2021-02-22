@@ -73,5 +73,5 @@ class ClockShift(BaseTransformer):
         except ValueError:
             raise WrongParameterException(
                 f"Not all indices ({indices}) are in the indices of x ({list(x.indexes.keys())}).",
-                f"Perhaps you set the wrong indices with set_params or during the initialization of the ClockShift.",
+                "Perhaps you set the wrong indices with set_params or during the initialization of the ClockShift.",
                 module=self.name)

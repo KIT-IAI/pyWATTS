@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,6 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 
 class CalendarExtraction(BaseTransformer):
@@ -65,7 +64,7 @@ class CalendarExtraction(BaseTransformer):
         if not hasattr(self, f"_encode_{self.encoding}"):
             raise WrongParameterException(
                 "Please set a valid encoding strategy.",
-                f"Change to the allowed strategies numerical or sine",
+                "Change to the allowed strategies numerical or sine",
                 module=self.name
             )
 
@@ -80,22 +79,20 @@ class CalendarExtraction(BaseTransformer):
         :rtype: workalendar object
         :raises WrongParameterException: If the wrong country or continent are set
         """
-        if hasattr(workalendar, continent.lower()):
-            module = getattr(workalendar, continent.lower())
-            if hasattr(module, country):
-                return getattr(module, country)()
-            else:
-                raise WrongParameterException(
-                    "Please set a valid country for the CalendarExtraction step.",
-                    f"See the documentation of workkalendar for valid countries",
-                    module=self.name
-                )
-        else:
+        if not hasattr(workalendar, continent.lower()):
             raise WrongParameterException(
                 "Please set a valid continent for the CalendarExtraction step.",
                 "See the documentation of workkalendar for valid continents",
                 module=self.name
             )
+        module = getattr(workalendar, continent.lower())
+        if not hasattr(module, country):
+            raise WrongParameterException(
+                "Please set a valid country for the CalendarExtraction step.",
+                "See the documentation of workkalendar for valid countries",
+                module=self.name
+            )
+        return getattr(module, country)()
 
     def _encode_numerical(self, feature: str, timeseries: pd.Series):
         """ Encode a specific feature numerical given a pandas series timeseries.
@@ -210,7 +207,7 @@ class CalendarExtraction(BaseTransformer):
         if not hasattr(self, f"_encode_{self.encoding}"):
             raise WrongParameterException(
                 "Please set a valid encoding strategy.",
-                f"Change to the allowed strategies numerical or sine",
+                "Change to the allowed strategies numerical or sine",
                 module=self.name
             )
 
@@ -220,6 +217,5 @@ class CalendarExtraction(BaseTransformer):
         :param x: xarray DataArray containing a timeseries.
         :return: The xarray dataset with date features added.
         """
-        series= getattr(self, f"_encode_{self.encoding}")(self.calendar_feature, x.to_series().index)
-
+        series = getattr(self, f"_encode_{self.encoding}")(self.calendar_feature, x.to_series().index)
         return xr.DataArray(series, dims=x.dims, coords=x.coords)

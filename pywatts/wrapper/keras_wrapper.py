@@ -71,7 +71,7 @@ class KerasWrapper(DlWrapper):
             aux_model.save(filepath=fm.get_path(f"{self.name}_{name}.h5"))
             aux_models.append((name, fm.get_path(f"{self.name}_{name}.h5")))
         json.update({
-            f"aux_models": aux_models,
+            "aux_models": aux_models,
             "model": fm.get_path(f"{self.name}.h5")
         })
 

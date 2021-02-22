@@ -1,5 +1,4 @@
 import pickle
-from typing import Optional
 
 import numpy as np
 import sklearn

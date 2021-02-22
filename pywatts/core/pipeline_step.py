@@ -50,14 +50,14 @@ class PipelineStep(Step):
     module: Pipeline
 
     def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, targets, plot,
-                                summary,
-                                computation_mode,
-                                to_csv, condition, batch_size, train_if):
+                 summary,
+                 computation_mode,
+                 to_csv, condition, batch_size, train_if):
 
         super().__init__(module, input_steps, file_manager, targets=targets, plot=plot,
-                                summary=summary,
-                                computation_mode=computation_mode,
-                                to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
+                         summary=summary,
+                         computation_mode=computation_mode,
+                         to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
         self.result_steps: Dict[str, ResultStep] = {}
 
     def set_computation_mode(self, computation_mode: ComputationMode):
@@ -92,6 +92,6 @@ class PipelineStep(Step):
 
     def get_result_step(self, item: str):
 
-        if not item in self.result_steps:
+        if item not in self.result_steps:
             self.result_steps[item] = ResultStep(input_steps={"result": self}, buffer_element=item)
         return self.result_steps[item]

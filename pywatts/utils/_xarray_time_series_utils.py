@@ -18,6 +18,7 @@ def _get_time_indeces(x: Dict[str, xr.DataArray]) -> List[str]:
             indexes.append(k)
     return indexes
 
+
 def xarray_to_numpy(x: xr.Dataset):
     if x is None:
         return None
@@ -29,6 +30,7 @@ def xarray_to_numpy(x: xr.Dataset):
         else:
             result = data_array.values.reshape((len(data_array.values), -1))
     return result
+
 
 def numpy_to_xarray(x: np.ndarray, reference: xr.Dataset, name: str) -> xr.Dataset:
     coords = (

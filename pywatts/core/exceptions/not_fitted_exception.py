@@ -1,4 +1,3 @@
-
 class NotFittedException(Exception):
     """
     Exception which indicates an error caused by wrong parameters
@@ -9,7 +8,7 @@ class NotFittedException(Exception):
 
     """
 
-    def __init__(self, message, step: str, module:str):
+    def __init__(self, message, step: str, module: str):
         self.message = message
         self.module_name = module
         self.step_name = step

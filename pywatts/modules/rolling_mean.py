@@ -47,5 +47,5 @@ class RollingMean(BaseTransformer):
         except KeyError:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
-                f"Perhaps you set the wrong indexes with set_params or during the initialization of mean regressor.",
+                "Perhaps you set the wrong indexes with set_params or during the initialization of mean regressor.",
                 module=self.name)

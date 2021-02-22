@@ -142,7 +142,6 @@ class Pipeline(BaseTransformer):
         Draws the graph with the names of th modules
         :return:
         """
-        import networkx as nx
 
         # TODO built the graph which should be drawn by starting with the last steps...
 
@@ -368,7 +367,7 @@ class Pipeline(BaseTransformer):
         """
         Returns the step_information for the start step corresponding to the item
         """
-        if not item in self.start_steps.keys():
+        if item not in self.start_steps.keys():
             start_step = StartStep(item)
             self.start_steps[item] = start_step, StepInformation(step=start_step, pipeline=self)
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])

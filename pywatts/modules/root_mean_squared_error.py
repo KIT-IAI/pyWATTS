@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict
 
 import numpy as np
 import xarray as xr

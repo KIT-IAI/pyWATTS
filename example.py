@@ -90,25 +90,16 @@ if __name__ == "__main__":
     test = data.iloc[6000:, :]
     data = pipeline.test(data=test)
 
-    # Generate a plot of the pipeline showing the flow of data through different modules
-    figure = pipeline.draw()
-    plt.show()
-
     # Save the pipeline to a folder
     pipeline.to_folder("./pipe_getting_started")
 
     # Load the pipeline as a new instance
     pipeline2 = Pipeline("pipeline2_results")
-    # TODO summary seems not to be correctly stored and loaded
     pipeline2.from_folder("./pipe_getting_started")
 #       WARNING
 #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
 #       Consequently, load only pipelines you trust with from_folder.
 #       For more details about pickling see https://docs.python.org/3/library/pickle.html
     pipeline2.test(test)
-# Set a new folder for the second pipeline
-# pipeline2.to_folder("./pipe_gs_copy")
 
-# Generate a plot of the new pipeline
-# pipeline2.draw()
-# plt.show()
+

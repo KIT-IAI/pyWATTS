@@ -55,6 +55,7 @@ class TestStep(unittest.TestCase):
             "module": "pywatts.core.step",
             "class": "Step",
             "name": "test",
+            'summary': True,
             "last": True,
             'plot': False,
             'to_csv': False,
@@ -83,7 +84,6 @@ class TestStep(unittest.TestCase):
             any_order=True)
         self.assertEqual(json, {
             "target_ids": {},
-            # TODO: input_ids should not be empty?
             # Same as for test_load.
             "input_ids": {},
             "id": -1,
@@ -92,9 +92,11 @@ class TestStep(unittest.TestCase):
             "module": "pywatts.core.step",
             "class": "Step",
             "name": "test",
+            'summary': True,
             "last": True,
             'plot': False,
             'to_csv': False,
+
             'condition': None}, json),
 
         self.assertEqual(reloaded_step.module, self.module_mock)
@@ -217,6 +219,7 @@ class TestStep(unittest.TestCase):
             "class": "Step",
             "condition": None,
             "train_if": None,
+            'summary': False,
             "name": "test",
             "last": False,
             "to_csv": False,
@@ -240,6 +243,7 @@ class TestStep(unittest.TestCase):
             'condition': None,
             'train_if': None,
             "id": -1,
+            'summary': True,
             'computation_mode': 4,
             "module": "pywatts.core.step",
             "class": "Step",

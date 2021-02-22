@@ -1,9 +1,8 @@
 import xarray as xr
 
 
-def _xarray_summary(x: xr.DataArray):
+def _xarray_summary(x: xr.DataArray, name="summary"):
     """
     Print out basic information of the xarray dataset.
     """
-    # TODO change test
-    print(x.to_dataframe("test").describe())
+    print(x.to_dataframe(name).describe())

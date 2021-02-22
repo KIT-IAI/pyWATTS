@@ -132,6 +132,7 @@ class Step(BaseStep):
         step.name = stored_step["name"]
         step.to_csv = stored_step["to_csv"]
         step.plot = stored_step["plot"]
+        step.summary = stored_step["summary"]
         step.last = stored_step["last"]
         step.file_manager = file_manager
         step.computation_mode = ComputationMode(stored_step["computation_mode"])
@@ -184,6 +185,7 @@ class Step(BaseStep):
                 cloudpickle.dump(self.train_if, outfile)
         json.update({"plot": self.plot,
                      "to_csv": self.to_csv,
+                     "summary":self.summary,
                      "condition": condition_path,
                      "train_if": train_if_path})
         return json

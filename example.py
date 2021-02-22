@@ -38,27 +38,6 @@ if __name__ == "__main__":
         encoding="numerical", continent="Europe", country="Germany"
     )(x=pipeline["load_power_statistics"])
 
-    # Select individual time-series (columns) and generate plots in the results folder
-    # NOTE: WhiteLister not needed after refactoring
-    # white_lister_power_statistics = WhiteLister(
-    #    target="load_power_statistics", name="filter_power"
-    # )(pipeline, plot=True)
-    # white_lister_transparency = WhiteLister(
-    #    target="load_transparency", name="filter_transparency"
-    # )(pipeline, plot=True)
-    # white_lister_price = WhiteLister(
-    #    target="price_day_ahead", name="filter_price"
-    # )(pipeline, plot=True)
-    # calendar_month = WhiteLister(
-    #    target="month", name="filter_month"
-    # )([calendar_features])
-    # calendar_weekday = WhiteLister(
-    #    target="weekday", name="filter_weekday"
-    # )([calendar_features])
-    # calendar_weekend = WhiteLister(
-    #    target="weekend", name="filter_weekend"
-    # )([calendar_features])
-
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(
         method="nearest", dim="time", name="imputer_power"

@@ -7,9 +7,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 
 from pywatts.core.pipeline import Pipeline
-from pywatts.core.step import Step
 from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.missing_value_detection import MissingValueDetector
 from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 FIXTURE_DIR = os.path.join(
@@ -44,7 +42,6 @@ class TestSimplePipeline(unittest.TestCase):
     def test_run_reloaded_simple_pipeline(self):
         pipeline = Pipeline()
 
-
         imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
                                                       name="imputer_power")(x=pipeline["load_power_statistics"])
         imputer_price = LinearInterpolater(method="nearest", dim="time",
@@ -58,11 +55,9 @@ class TestSimplePipeline(unittest.TestCase):
         pipeline2 = Pipeline()
         pipeline2.from_folder("./pipe1")
 
-
-        data = pd.read_csv("../../data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
+        data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]
         test = data[:6000]
         pipeline2.train(train)
         pipeline2.test(test)
-

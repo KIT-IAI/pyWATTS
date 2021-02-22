@@ -49,7 +49,3 @@ class TestEitherOrStep(unittest.TestCase):
         step = EitherOrStep.load(params, [self.step_one, self.step_two], None, None, None)
         json = step.get_json("file")
         self.assertEqual(params, json)
-
-    def test_further_elements(self):
-        # This test should test if there are values which are not processed yet. This functionality is needed for batch learning
-        self.fail()

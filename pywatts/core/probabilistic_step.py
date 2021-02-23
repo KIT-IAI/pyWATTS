@@ -1,10 +1,8 @@
-from typing import Dict
-
+from pywatts.core.base import Base
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import \
     KindOfTransformDoesNotExistException, KindOfTransform
-from pywatts.core.base import Base
-from pywatts.core.step import BaseStep, Step
+from pywatts.core.step import Step
 
 
 class ProbablisticStep(Step):

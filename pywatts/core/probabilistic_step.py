@@ -31,14 +31,6 @@ class ProbablisticStep(Step):
     :type condition: Callable[xr.Dataset, xr.Dataset, bool]
     """
 
-    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager,
-                 targets: Dict[str, BaseStep] = None,
-                 computation_mode=ComputationMode.Default, plot: bool = False,
-                 to_csv: bool = False, summary: bool = False, condition=None):
-        super().__init__(module=module, input_steps=input_steps, targets=targets, file_manager=file_manager,
-                         computation_mode=computation_mode,
-                         plot=plot, to_csv=to_csv, summary=summary, condition=condition)
-
     def _transform(self, input_step):
         # Call probabilistic transform of the encapsulated module
 

@@ -66,12 +66,12 @@ class StepFactory:
                                 computation_mode=computation_mode,
                                 to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
         elif use_inverse_transform:
-            step = InverseStep(module, input_steps, pipeline.file_manager, target_steps,
+            step = InverseStep(module, input_steps, pipeline.file_manager, targets=target_steps,
                                computation_mode=computation_mode,
                                plot=plot, summary=summary,
                                to_csv=to_csv, condition=condition)
         elif use_predict_proba:
-            step = ProbablisticStep(module, input_steps, pipeline.file_manager, target_steps,
+            step = ProbablisticStep(module, input_steps, pipeline.file_manager, targets=target_steps,
                                     computation_mode=computation_mode, plot=plot, summary=summary,
                                     to_csv=to_csv, condition=condition)
         else:

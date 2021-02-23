@@ -31,8 +31,10 @@ class TestRMSECalculator(unittest.TestCase):
                                 "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2])),
                                 "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1])), "time": time})
 
-        test_result = self.rmse_calculator.transform(y=test_data['testCol'], y_hat=test_data['testCol'])  # This fails
+        test_result = self.rmse_calculator.transform(y=test_data['testCol'], gt=test_data['testCol'],
+                                                     pred1=test_data['predictCol1'],
+                                                     pred2=test_data['predictCol2'])
 
-        expected_result = xr.DataArray(np.array([0.0]), coords={"time": result_time}, dims=["time"])
+        expected_result = xr.DataArray(np.array([[0.0, 3.0, 4.0]]), coords={"time": result_time, "predictions" : ["gt", "pred1", "pred2"]}, dims=["time", "predictions"])
 
         xr.testing.assert_equal(test_result, expected_result)

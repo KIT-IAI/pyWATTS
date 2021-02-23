@@ -31,7 +31,7 @@ class RmseCalculator(BaseTransformer):
         """
         return {}
 
-    def transform(self, y_hat: xr.DataArray, y: xr.DataArray) -> xr.DataArray:
+    def transform(self, y: xr.DataArray, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Calculates the RMSE based on the predefined target and predictions variables
 
@@ -43,12 +43,16 @@ class RmseCalculator(BaseTransformer):
         # TODO how to handle multiple predictions? -> kwargs argument: y has to be given, and at least one other..
         """
         t = y.values
-        rmse = list()
-        p = y_hat.values
-        rmse.append(np.sqrt(np.mean((p - t) ** 2)))
+        rmse = []
+        predictions = []
+        for key, y_hat in kwargs.items():
+            p = y_hat.values
+            predictions.append(key)
+            rmse.append(np.sqrt(np.mean((p - t) ** 2)))
 
-        time = y_hat.indexes[_get_time_indeces(y_hat)[0]][-1]
-        return xr.DataArray(np.array(rmse), coords={"time": [time]}, dims=["time"])
+        time = y.indexes[_get_time_indeces(kwargs)[0]][-1]
+        return xr.DataArray(np.array([rmse]), coords={"time": [time], "predictions": predictions},
+                            dims=["time", "predictions"])
 
     def set_params(self, **kwargs):
         """

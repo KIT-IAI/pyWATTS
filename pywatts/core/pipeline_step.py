@@ -3,17 +3,13 @@ from typing import Optional, List, Dict
 from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
 from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.filemanager import FileManager
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
 import pandas as pd
 
 
 class ResultStep(BaseStep):
-    @classmethod
-    def load(cls, stored_step: dict, inputs, targets, module, file_manager):
-        pass
-
-    input_steps: List["PipelineStep"]
 
     def __init__(self, input_steps, buffer_element: str):
         super().__init__(input_steps=input_steps)
@@ -21,6 +17,28 @@ class ResultStep(BaseStep):
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp]):
         return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
+
+    def get_json(self, fm: FileManager) -> Dict:
+        json_dict = super(ResultStep, self).get_json(fm)
+        json_dict["buffer_element"] = self.buffer_element
+        return json_dict
+
+    @classmethod
+    def load(cls, stored_step: dict, inputs, targets, module, file_manager):
+        """
+        Load a stored ResultStep.
+
+        :param stored_step: Informations about the stored step
+        :param inputs: The input step of the stored step
+        :param targets: The target step of the stored step
+        :param module: The module wrapped by this step
+        :return: Step
+        """
+        step = cls(inputs, stored_step["buffer_element"])
+        step.id = stored_step["id"]
+        step.name = stored_step["name"]
+        step.last = stored_step["last"]
+        return step
 
 
 class PipelineStep(Step):

@@ -1,7 +1,7 @@
 """
 Module containing a pipeline
 """
-
+import glob
 import json
 import logging
 import os
@@ -44,8 +44,8 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: str = ".", batch: Optional[pd.Timedelta] = None):
-        super().__init__("Pipeline")
+    def __init__(self, path: str = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+        super().__init__(name)
         self.batch = batch
         self.counter = None
         self.start_steps = dict()
@@ -103,7 +103,7 @@ class Pipeline(BaseTransformer):
             res = step.get_result(self.counter, end)
             if isinstance(res, dict):
                 for j, (key, value) in enumerate(res.items()):
-                    result = self._add_to_result(i, key, res, result)
+                    result = self._add_to_result(i, key, value, result)
             else:
                 result = self._add_to_result(i, step.name, res, result)
         return result
@@ -243,6 +243,9 @@ class Pipeline(BaseTransformer):
     def save(self, fm: FileManager):
         json_module = super().save(fm)
         path = os.path.join(str(fm.basic_path), self.name)
+        if os.path.isdir(path):
+            number = len(glob.glob(f'{path}*'))
+            path = f"{path}_{number + 1}"
         self.to_folder(path)
         json_module["pipeline_path"] = path
         json_module["params"] = {
@@ -252,8 +255,7 @@ class Pipeline(BaseTransformer):
 
     @classmethod
     def load(cls, load_information):
-        pipeline = Pipeline()
-        pipeline = pipeline.from_folder(load_information["pipeline_path"])
+        pipeline = cls.from_folder(load_information["pipeline_path"])
         return pipeline
 
     def to_folder(self, path: Union[str, Path]):
@@ -297,11 +299,12 @@ class Pipeline(BaseTransformer):
             "path": self.file_manager.basic_path,
             "batch": str(self.batch) if self.batch else None,
         }
-        file_path = save_file_manager.get_path('pipeline.json')
+        file_path = save_file_manager.get_path(f'pipeline.json')
         with open(file_path, 'w') as outfile:
             json.dump(obj=stored_pipeline, fp=outfile, sort_keys=True, indent=4)
 
-    def from_folder(self, load_path, file_manager_path=None):
+    @staticmethod
+    def from_folder(load_path, file_manager_path=None):
         """
         Loads the pipeline from the pipeline.json in the specified folder
         .. warning::
@@ -327,24 +330,25 @@ class Pipeline(BaseTransformer):
 
         # load general pipeline config
         if file_manager_path is None:
-            self.file_manager.basic_path = json_dict.get('path', ".")
+            file_manager_path = json_dict.get('path', ".")
 
-        self.batch = pd.Timedelta(json_dict.get("batch")) if json_dict.get("batch") else None
+        batch = pd.Timedelta(json_dict.get("batch")) if json_dict.get("batch") else None
 
+        pipeline = Pipeline(file_manager_path, batch)
         # 1. load all modules
         modules = {}  # create a dict of all modules with their id from the json
         for i, json_module in enumerate(json_dict["modules"]):
-            modules[i] = self._load_modules(json_module)
+            modules[i] = pipeline._load_modules(json_module)
 
         # 2. Load all steps
         for step in json_dict["steps"]:
-            step = self._load_step(modules, step)
-            self.id_to_step[step.id] = step
+            step = pipeline._load_step(modules, step)
+            pipeline.id_to_step[step.id] = step
 
-        self.start_steps = {element.index: (element, StepInformation(step=element, pipeline=self))
-                            for element in filter(lambda x: isinstance(x, StartStep), self.id_to_step.values())}
+        pipeline.start_steps = {element.index: (element, StepInformation(step=element, pipeline=pipeline))
+                            for element in filter(lambda x: isinstance(x, StartStep), pipeline.id_to_step.values())}
 
-        return self
+        return pipeline
 
     def _load_modules(self, json_module):
         mod = __import__(json_module["module"], fromlist=json_module["class"])
@@ -357,11 +361,12 @@ class Pipeline(BaseTransformer):
         module = None
         if isinstance(klass, Step) or issubclass(klass, Step):
             module = modules[step["module_id"]]
-        return klass.load(step,
+        loaded_step= klass.load(step,
                           inputs={key: self.id_to_step[int(step_id)] for step_id, key in step["input_ids"].items()},
                           targets={key: self.id_to_step[int(step_id)] for step_id, key in step["target_ids"].items()},
                           module=module,
                           file_manager=self.file_manager)
+        return loaded_step
 
     def __getitem__(self, item: str):
         """

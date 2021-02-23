@@ -15,7 +15,6 @@ from pywatts.core.step import Step
 from pywatts.modules.missing_value_detection import MissingValueDetector
 from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
-
 pipeline_json = {'id': 1,
                  'name': 'Pipeline',
                  'modules': [{'class': 'SKLearnWrapper',
@@ -43,7 +42,8 @@ pipeline_json = {'id': 1,
                             'module': 'pywatts.core.start_step',
                             'name': 'StartStep',
                             'target_ids': {}},
-                           {'class': 'Step',
+                           {'batch_size': None,
+                            'class': 'Step',
                             'computation_mode': 4,
                             'condition': None,
                             'id': 2,
@@ -57,7 +57,8 @@ pipeline_json = {'id': 1,
                             'target_ids': {},
                             'to_csv': False,
                             'train_if': None},
-                           {'class': 'Step',
+                           {'batch_size': None,
+                            'class': 'Step',
                             'computation_mode': 4,
                             'condition': None,
                             'id': 3,
@@ -102,8 +103,9 @@ class TestPipeline(unittest.TestCase):
         # This should raise an exception since pipeline might get multiple columns in the input dataframe
         with self.assertRaises(Exception) as context:
             SKLearnWrapper(StandardScaler())(x=self.pipeline)  # This should fail
-        self.assertEqual("Adding a pipeline as input might be ambigious. Specifiy the desired column of your dataset by using pipeline[<column_name>]", str(context.exception))
-
+        self.assertEqual(
+            "Adding a pipeline as input might be ambigious. Specifiy the desired column of your dataset by using pipeline[<column_name>]",
+            str(context.exception))
 
     def test_add_module_with_inputs(self):
         scaler1 = SKLearnWrapper(StandardScaler())(x=self.pipeline["x"])
@@ -161,7 +163,7 @@ class TestPipeline(unittest.TestCase):
 
         pickle_mock.load.side_effect = [scaler, linear_regression]
 
-        self.pipeline.from_folder("test_pipeline")
+        pipeline = Pipeline.from_folder("test_pipeline")
         calls_open = [call(os.path.join("test_pipeline", "StandardScaler.pickle"), "rb"),
                       call(os.path.join("test_pipeline", "LinearRegression.pickle"), "rb"),
                       call(os.path.join("test_pipeline", "pipeline.json"), "r")]
@@ -172,7 +174,7 @@ class TestPipeline(unittest.TestCase):
         assert pickle_mock.load.call_count == 2
 
         isdir_mock.assert_called_once()
-        self.assertEqual(3, len(self.pipeline.id_to_step))
+        self.assertEqual(3, len(pipeline.id_to_step))
 
     def test_module_naming_conflict(self):
         # This test should check, that modules with the same name do not lead to an error
@@ -201,8 +203,9 @@ class TestPipeline(unittest.TestCase):
         # One sklearn wrappers, one missing value detector
         self.assertEqual(2, len(modules))
 
-        self.pipeline.train(pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2], "target": [2, 2, 4, 4, -5]},
-                                         index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
+        self.pipeline.train(
+            pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2], "target": [2, 2, 4, 4, -5]},
+                         index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
 
     @patch('pywatts.core.pipeline.FileManager')
     def test_add_pipeline_to_pipeline_and_train(self, fm_mock):
@@ -212,7 +215,8 @@ class TestPipeline(unittest.TestCase):
 
         detector(dataset=sub_pipeline["regression"])
 
-        regressor = SKLearnWrapper(LinearRegression(), name="regression")(x=self.pipeline["test"], target=self.pipeline["target"])
+        regressor = SKLearnWrapper(LinearRegression(), name="regression")(x=self.pipeline["test"],
+                                                                          target=self.pipeline["target"])
         sub_pipeline(regression=regressor)
 
         self.pipeline.train(pd.DataFrame({"test": [24, 24], "target": [12, 24]}, index=pd.to_datetime(
@@ -410,6 +414,7 @@ class TestPipeline(unittest.TestCase):
     @patch("pywatts.core.pipeline.os")
     def test_save(self, os_mock, to_folder_mock, fm_mock):
         os_mock.path.join.return_value = "save_path"
+        os_mock.path.isdir.return_value = False
         sub_pipeline = Pipeline(batch=pd.Timedelta("1h"))
         detector = MissingValueDetector()
         detector(dataset=sub_pipeline["test"])

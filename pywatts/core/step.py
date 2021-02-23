@@ -125,23 +125,24 @@ class Step(BaseStep):
         :param module: The module wrapped by this step
         :return: Step
         """
-        step = cls(module, inputs, targets)
-        step.input_steps = inputs
-        step.targets = targets if targets else {}
-        step.id = stored_step["id"]
-        step.name = stored_step["name"]
-        step.to_csv = stored_step["to_csv"]
-        step.plot = stored_step["plot"]
-        step.summary = stored_step["summary"]
-        step.last = stored_step["last"]
-        step.file_manager = file_manager
-        step.computation_mode = ComputationMode(stored_step["computation_mode"])
         if stored_step["condition"]:
             with open(stored_step["condition"], 'rb') as pickle_file:
-                step.condition = cloudpickle.load(pickle_file)
+                condition = cloudpickle.load(pickle_file)
+        else:
+            condition = None
         if stored_step["train_if"]:
             with open(stored_step["train_if"], 'rb') as pickle_file:
-                step.train_if = cloudpickle.load(pickle_file)
+                train_if = cloudpickle.load(pickle_file)
+        else:
+            train_if = None
+        step = cls(module, inputs, targets=targets, file_manager=file_manager, plot=stored_step["plot"],
+                   to_csv=stored_step["to_csv"], summary=stored_step["summary"],
+                   computation_mode=ComputationMode(stored_step["computation_mode"]), condition=condition,
+                   train_if=train_if, batch_size=stored_step["batch_size"])
+        step.id = stored_step["id"]
+        step.name = stored_step["name"]
+        step.last = stored_step["last"]
+
         return step
 
     def _compute(self, start, end):
@@ -185,7 +186,8 @@ class Step(BaseStep):
                 cloudpickle.dump(self.train_if, outfile)
         json.update({"plot": self.plot,
                      "to_csv": self.to_csv,
-                     "summary":self.summary,
+                     "summary": self.summary,
                      "condition": condition_path,
-                     "train_if": train_if_path})
+                     "train_if": train_if_path,
+                     "batch_size": self.batch_size})
         return json

@@ -46,6 +46,7 @@ class TestStep(unittest.TestCase):
             any_order=True)
         self.assertEqual(json, {
             "target_ids": {},
+            'batch_size': None,
             # BUG: input_ids should not be empty?
             # Same as for test_load.
             "input_ids": {},
@@ -87,6 +88,7 @@ class TestStep(unittest.TestCase):
             # Same as for test_load.
             "input_ids": {},
             "id": -1,
+            'batch_size': None,
             'computation_mode': 4,
             "train_if": os.path.join("folder", "test_train_if.pickle"),
             "module": "pywatts.core.step",
@@ -211,6 +213,7 @@ class TestStep(unittest.TestCase):
 
     def test_load(self):
         step_config = {
+            'batch_size': None,
             "target_ids": {},
             "input_ids": {2: 'x'},
             'computation_mode': 3,
@@ -236,6 +239,7 @@ class TestStep(unittest.TestCase):
         step = Step(self.module_mock, self.step_mock, None)
         json = step.get_json("file")
         self.assertEqual({
+            'batch_size': None,
             "target_ids": {},
             # BUG: input_ids should not be empty?
             # Same as for test_load.

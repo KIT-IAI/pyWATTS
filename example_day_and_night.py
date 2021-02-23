@@ -123,6 +123,10 @@ if __name__ == "__main__":
     # Start the pipeline
     print("Start testing")
     result = pipeline.test(test)
+
+    pipeline.to_folder("stored_day_and_night")
+    pipeline = Pipeline.from_folder("stored_day_and_night")
     print("Testing finished")
+    result2 = pipeline.test(test)
 
     print("FINISHED")

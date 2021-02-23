@@ -52,8 +52,7 @@ class TestSimplePipeline(unittest.TestCase):
         pipeline.to_folder("./pipe1")
         sleep(1)
 
-        pipeline2 = Pipeline()
-        pipeline2.from_folder("./pipe1")
+        pipeline2 = Pipeline.from_folder("./pipe1")
 
         data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)

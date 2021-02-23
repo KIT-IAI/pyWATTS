@@ -57,23 +57,3 @@ class EitherOrStep(BaseStep):
     def _should_stop(self, start, end):
         input_data = self._get_input(start, end)
         return input_data and (all(map(lambda x: x is None, input_data)))
-
-    def get_json(self, fm: FileManager) -> Dict:
-        """
-        Returns a dictionary containing all information needed for restoring the step.
-
-        :param fm: The filemanager which can be used by the step for storing the state of the step.
-        :type fm: FileManager
-        :return: A dictionary containing all information needed for restoring the step.
-        :rtype: Dict
-        """
-        return {
-            "target_ids": list(map(lambda x: x.id, self.targets.values())),
-            "input_ids": [step.id for step in self.input_steps],
-            "id": self.id,
-            "module": self.__module__,
-            "class": self.__class__.__name__,
-            "name": self.name,
-            "last": self.last,
-            "computation_mode": int(self.computation_mode)
-        }

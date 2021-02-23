@@ -92,13 +92,11 @@ if __name__ == "__main__":
     # Save the pipeline to a folder
     pipeline.to_folder("./pipe_getting_started")
 
+    print("Execute second pipeline")
     # Load the pipeline as a new instance
-    pipeline2 = Pipeline("pipeline2_results")
-    pipeline2.from_folder("./pipe_getting_started")
-#       WARNING
-#       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
-#       Consequently, load only pipelines you trust with from_folder.
-#       For more details about pickling see https://docs.python.org/3/library/pickle.html
+    pipeline2 = Pipeline.from_folder("./pipe_getting_started", file_manager_path="pipeline2_results")
+    #       WARNING
+    #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
+    #       Consequently, load only pipelines you trust with from_folder.
+    #       For more details about pickling see https://docs.python.org/3/library/pickle.html
     pipeline2.test(test)
-
-

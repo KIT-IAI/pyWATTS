@@ -60,8 +60,8 @@ class TestSklearnWrapper(unittest.TestCase):
 
 
         result = wrapper.transform(bar=bar)
-        assert result.values[0] == 2.0
-        self.assertEqual(result.shape, (1,))
+        assert result["target"].values[0] == 2.0
+        self.assertEqual(result["target"].shape, (1,))
 
     def test_DensityMixin(self):
         gauss_density = GaussianMixture(n_components=2)
@@ -99,8 +99,8 @@ class TestSklearnWrapper(unittest.TestCase):
         wrapper.fit(bar=bar, foo=foo, target=target)
         result = wrapper.transform(bar=xr.DataArray([2], dims=["time"], coords={'time': time2}),
                                    foo=xr.DataArray([4], dims=["time"], coords={'time': time2}))
-        self.assertAlmostEqual(result.values[0, 0], 6.0)
-        self.assertEqual(result.shape, (1, 1))
+        self.assertAlmostEqual(result["target"].values[0], 6.0)
+        self.assertEqual(result["target"].shape, (1,))
 
     def test_fit_ClusterMixin(self):
         kmeans = KMeans(n_clusters=2)
@@ -137,8 +137,8 @@ class TestSklearnWrapper(unittest.TestCase):
         wrapper.fit(bar=bar, target=target)
 
         result = wrapper.transform(bar=foo)
-        assert result.values[0] == 0
-        self.assertEqual(result.shape, (1,))
+        assert result["target"].values[0] == 0
+        self.assertEqual(result["target"].shape, (1,))
 
     @pytest.mark.xfail
     def test_fit_BiClusterMixin(self):
@@ -161,6 +161,7 @@ class TestSklearnWrapper(unittest.TestCase):
 
 
         result = wrapper.transform(bar=foo)
-        self.assertAlmostEqual(result.values[0, 0], 2.0)
-        self.assertAlmostEqual(result.values[0, 1], 3.0)
-        self.assertEqual(result.shape, (1, 2))
+        self.assertAlmostEqual(result["target1"].values[0], 2.0)
+        self.assertAlmostEqual(result["target2"].values[0], 3.0)
+        self.assertEqual(result["target1"].shape, (1, ))
+        self.assertEqual(result["target2"].shape, (1, ))

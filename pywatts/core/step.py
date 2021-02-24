@@ -8,6 +8,8 @@ from pywatts.core.base_step import BaseStep
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.not_fitted_exception import NotFittedException
 from pywatts.core.filemanager import FileManager
+from pywatts.core.result_step import ResultStep
+
 from pywatts.utils.lineplot import _recursive_plot
 from pywatts.utils.summary import _xarray_summary
 
@@ -56,6 +58,7 @@ class Step(BaseStep):
         self.to_csv = to_csv
         self.summary = summary
         self.train_if = train_if
+        self.result_steps: Dict[str, ResultStep] = {}
 
     def _fit(self, inputs: Dict[str, BaseStep], target_step):
         # Fit the encapsulate module, if the input and the target is not stopped.
@@ -63,6 +66,7 @@ class Step(BaseStep):
 
     def _outputs(self):
         # plots and writs the data if the step is finished.
+        # TODO attention buffer is now a dict and not xarray. Check if this leads to problems
         if self.plot and self.finished:
             self._plot(self.buffer)
         if self.to_csv and self.finished:
@@ -191,3 +195,8 @@ class Step(BaseStep):
                      "train_if": train_if_path,
                      "batch_size": self.batch_size})
         return json
+
+    def get_result_step(self, item: str):
+        if item not in self.result_steps:
+            self.result_steps[item] = ResultStep(input_steps={"result": self}, buffer_element=item)
+        return self.result_steps[item]

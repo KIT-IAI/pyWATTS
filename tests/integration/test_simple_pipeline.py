@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 from pywatts.core.pipeline import Pipeline
 from pywatts.modules.linear_interpolation import LinearInterpolater
+from pywatts.modules.root_mean_squared_error import RmseCalculator
 from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 FIXTURE_DIR = os.path.join(
@@ -30,9 +31,11 @@ class TestSimplePipeline(unittest.TestCase):
         imputer_price = LinearInterpolater(method="nearest", dim="time",
                                            name="imputer_price")(x=pipeline["price_day_ahead"])
         scaler = SKLearnWrapper(StandardScaler())(x=imputer_price)
-        SKLearnWrapper(LinearRegression())(x=scaler, target1=imputer_price, target2=imputer_power_statistics)
+        lin_regression = SKLearnWrapper(LinearRegression())(x=scaler, target1=imputer_price, target2=imputer_power_statistics)
 
-        data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
+        RmseCalculator(name="Load")(y=imputer_power_statistics, pred=lin_regression["target2"])
+        RmseCalculator(name="Price")(y=imputer_price, pred=lin_regression["target1"])
+        data = pd.read_csv("../../data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]
         test = data[:6000]
@@ -54,7 +57,7 @@ class TestSimplePipeline(unittest.TestCase):
 
         pipeline2 = Pipeline.from_folder("./pipe1")
 
-        data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
+        data = pd.read_csv("../../data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]
         test = data[:6000]

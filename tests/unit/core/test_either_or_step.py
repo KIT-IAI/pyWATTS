@@ -33,7 +33,7 @@ class TestEitherOrStep(unittest.TestCase):
         self.step_one.get_result.return_value = None
         step = EitherOrStep({"option1": self.step_one, "option2": self.step_two})
         step.get_result(None, None)
-        xr.testing.assert_equal(step.buffer, self.da2)
+        xr.testing.assert_equal(step.buffer["EitherOr"], self.da2)
 
     def test_load(self):
         params = {

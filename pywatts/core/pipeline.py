@@ -65,7 +65,7 @@ class Pipeline(BaseTransformer):
         :rtype: xr.Dataset
         """
         for key, (start_step, _) in self.start_steps.items():
-            start_step.buffer = x[key].copy()
+            start_step.buffer = {key: x[key].copy()}
             start_step.finished = True
 
         time_index = _get_time_indeces(x)
@@ -100,12 +100,10 @@ class Pipeline(BaseTransformer):
         end = None if not self.batch else self.counter + self.batch
         result = dict()
         for i, step in enumerate(inputs):
-            res = step.get_result(self.counter, end)
-            if isinstance(res, dict):
-                for j, (key, value) in enumerate(res.items()):
-                    result = self._add_to_result(i, key, value, result)
-            else:
-                result = self._add_to_result(i, step.name, res, result)
+            res = step.get_result(self.counter, end, return_all=True)
+            for j, (key, value) in enumerate(res.items()):
+                result = self._add_to_result(i, key, value, result)
+
         return result
 
     def _add_to_result(self, i, key, res, result):
@@ -301,7 +299,7 @@ class Pipeline(BaseTransformer):
         }
         file_path = save_file_manager.get_path(f'pipeline.json')
         with open(file_path, 'w') as outfile:
-            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=True, indent=4)
+            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4)
 
     @staticmethod
     def from_folder(load_path, file_manager_path=None):

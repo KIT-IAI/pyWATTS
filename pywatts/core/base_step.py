@@ -28,9 +28,6 @@ class BaseStep(ABC):
     :param condition: A function which evaluates to False or True for detecting if the module should be executed.
     :param computation_mode: The computation mode for this module
     """
-    stop: bool = False
-    finished = False
-    buffer: xr.Dataset = xr.Dataset()
 
     def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None,
                  targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
@@ -44,10 +41,14 @@ class BaseStep(ABC):
         self.name = "BaseStep"
 
         self.id = -1
+        self.stop = False
+        self.finished = False
         self.last = True
         self._current_end = None
+        self.buffer: Dict[str, xr.DataArray] = {}
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp]):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
+                   return_all=False):
         """
         This method is responsible for providing the result of this step.
         Therefore,
@@ -68,7 +69,7 @@ class BaseStep(ABC):
 
         # Trigger fit and transform if necessary
         if not self.finished:
-            if self.buffer is None or not self._current_end or end > self._current_end:
+            if not self.buffer or not self._current_end or end > self._current_end:
                 self._compute(start, end)
                 self._current_end = end
             if not end:
@@ -77,7 +78,7 @@ class BaseStep(ABC):
                 self.finished = not self.further_elements(end)
             self._outputs()
 
-        return self._pack_data(start, end)
+        return self._pack_data(start, end, buffer_element, return_all=return_all)
 
     def _compute(self, start, end):
         pass
@@ -91,7 +92,8 @@ class BaseStep(ABC):
         :return: True if there exist further data
         :rtype: bool
         """
-        if self.buffer is None or counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
+        if not self.buffer or all(
+                [counter < b.indexes[_get_time_indeces(self.buffer)[0]][-1] for b in self.buffer.values()]):
             return True
         for input_step in self.input_steps.values():
             if not input_step.further_elements(counter):
@@ -101,17 +103,29 @@ class BaseStep(ABC):
                 return False
         return True
 
-    def _pack_data(self, start, end):
+    def _pack_data(self, start, end, buffer_element=None, return_all=False):
         # Provide requested data
         time_index = _get_time_indeces(self.buffer)
         if end and start and end > start:
-            index = self.buffer.indexes[time_index[0]]
+            index = list(self.buffer.values())[0].indexes[time_index[0]]
             start = max(index[0], start.to_numpy())
-            result = self.buffer.copy().sel(**{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
+            if buffer_element is not None:
+                return self.buffer.copy()[buffer_element].sel(
+                    **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
+            elif return_all:
+                return {key: b.copy().sel(**{time_index[0]: index[(index >= start) & (index < end.to_numpy())]}) for
+                        key, b in self.buffer.items()}
+            else:
+                return list(self.buffer.copy().values())[0].sel(
+                    **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
         else:
             self.finished = True
-            result = self.buffer.copy()
-        return result
+            if buffer_element is not None:
+                return self.buffer[buffer_element].copy()
+            elif return_all:
+                return self.buffer.copy()
+            else:
+                return list(self.buffer.copy().values())[0]
 
     def _transform(self, input_step):
         pass
@@ -123,13 +137,20 @@ class BaseStep(ABC):
         pass
 
     def _post_transform(self, result):
-        if self.buffer is None or len(self.buffer) == 0:
+        if isinstance(result, dict) and len(result) > 1:
+            result = result
+        elif isinstance(result, dict) and len(result) <= 1:
+            result = {self.name: list(result.values())[0]}
+        else:
+            result = {self.name: result}
+
+        if not self.buffer:
             self.buffer = result
         else:
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indeces(result)[0]
-            self.buffer = xr.concat([self.buffer, result], dim=dim)
-        # TODO how to handle if there are multiple return value of a module...
+            for key in self.buffer.keys():
+                self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
 
     def get_json(self, fm: FileManager) -> Dict:
         """
@@ -184,7 +205,7 @@ class BaseStep(ABC):
         """
         Resets all information of the step concerning a specific run.
         """
-        self.buffer = None
+        self.buffer = {}
         self.finished = False
         self.stop = False
         self.computation_mode = self._original_compuation_mode
@@ -200,4 +221,3 @@ class BaseStep(ABC):
         """
         if self._original_compuation_mode == computation_mode.Default:
             self.computation_mode = computation_mode
-

@@ -56,9 +56,11 @@ class StepFactory:
                         module
                     )
 
+        # TODO needs to check that inputs are unambigious -> I.e. check that each input has only one output
         pipeline = self._check_ins(kwargs)
 
         input_steps, target_steps = self.split_input_target_steps(kwargs, pipeline)
+
 
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot,
@@ -82,8 +84,14 @@ class StepFactory:
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],
                                target_ids=[step.id for step in target_steps.values()])
-
         step.id = step_id
+
+        if len(target_steps) > 1:
+            step.last = False
+            for target in target_steps.keys():
+                r_step = step.get_result_step(target)
+                r_id = pipeline.add(module=step, input_ids=[step_id])
+                r_step.id = r_id
 
         return StepInformation(step, pipeline)
 
@@ -122,6 +130,12 @@ class StepFactory:
         for key, input_step in kwargs.items():
             if isinstance(input_step, StepInformation):
                 pipeline_temp = input_step.pipeline
+                if len(input_step.step.targets) > 1: # TODO define multi-output steps?
+                    raise StepCreationException(
+                    f"The step {input_step.step.name} has multiple outputs. Adding such a step to the pipeline is "
+                    "ambigious. "
+                    "Specifiy the desired column of your dataset by using step[<column_name>]",
+                    )
             elif isinstance(input_step, Pipeline):
                 raise StepCreationException(
                     "Adding a pipeline as input might be ambigious. "
@@ -130,12 +144,27 @@ class StepFactory:
             elif isinstance(input_step, tuple):
                 # We assume that a tuple consists only of step informations and do not contain a pipeline.
                 pipeline_temp = input_step[0].pipeline
+
+                if len(input_step[0].step.targets) > 1:
+                    raise StepCreationException(
+                        f"The step {input_step.step.name} has multiple outputs. Adding such a step to the pipeline is "
+                        "ambigious. "
+                        "Specifiy the desired column of your dataset by using step[<column_name>]",
+                    )
+
                 for step_information in input_step[1:]:
+
+                    if len(step_information.step.targets) > 1:
+                        raise StepCreationException(
+                            f"The step {input_step.step.name} has multiple outputs. Adding such a step to the pipeline is "
+                            "ambigious. "
+                            "Specifiy the desired column of your dataset by using step[<column_name>]",
+                        )
                     if not pipeline_temp == step_information.pipeline:
                         raise Exception()
 
             if pipeline_temp is None:
-                raise Exception()
+                raise Exception() # TODO
 
             if pipeline is None:
                 pipeline = pipeline_temp

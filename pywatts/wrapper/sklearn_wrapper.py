@@ -1,4 +1,5 @@
 import pickle
+from typing import List
 
 import numpy as np
 import sklearn
@@ -25,6 +26,7 @@ class SKLearnWrapper(BaseWrapper):
             name = module.__class__.__name__
         super().__init__(name)
         self.module = module
+        self.targets = []
 
         if hasattr(self.module, 'inverse_transform'):
             self.has_inverse_transform = True
@@ -60,6 +62,7 @@ class SKLearnWrapper(BaseWrapper):
                 targets[key] = value
             else:
                 inputs[key] = value
+        self.targets = list(targets.keys())
         x = self._dataset_to_sklearn_input(inputs)
         target = self._dataset_to_sklearn_input(targets)
         self.module.fit(x, target)
@@ -79,18 +82,24 @@ class SKLearnWrapper(BaseWrapper):
         return result
 
     @staticmethod
-    def _sklearn_output_to_dataset(kwargs: xr.Dataset, prediction, name: str) -> xr.Dataset:
+    def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[str]):
         reference = kwargs[list(kwargs)[0]]
 
-        coords = (
-            # first dimension is number of batches. We assume that this is the time.
-            ("time", list(reference.coords.values())[0].to_dataframe().index.array),
-            *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
+        if len(targets) == 0:
+            coords = (
+                # first dimension is number of batches. We assume that this is the time.
+                ("time", list(reference.coords.values())[0].to_dataframe().index.array),
+                *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
+            result = xr.DataArray(prediction, coords=coords)
+        else:
+            result = {}
+            for i, target in enumerate(targets):
+                result[target] = xr.DataArray(prediction.reshape((-1,len(targets)))[:, i], coords={
+                    "time": list(reference.coords.values())[0].to_dataframe().index.array}, dims=["time"])
+        # TODO Test if this method of multiple output works..
 
-        # TODO how to handle multiple return values?
-        # data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
-        #        "time": list(reference.coords.values())[0].to_dataframe().index.array}
-        return xr.DataArray(prediction, coords=coords)
+        # TODO test if this works if the horizon is greater than one...
+        return result
 
     def transform(self, **kwargs: xr.DataArray) -> xr.Dataset:
         """
@@ -109,7 +118,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
     def inverse_transform(self, **kwargs: xr.DataArray) -> xr.Dataset:
         """
@@ -125,7 +134,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a inverse transform method",
                 KindOfTransform.INVERSE_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
     def predict_proba(self, **kwargs) -> xr.Dataset:
         """
@@ -141,7 +150,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict_proba method",
                 KindOfTransform.PROBABILISTIC_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
     def save(self, fm: FileManager):
         json = super().save(fm)

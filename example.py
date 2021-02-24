@@ -99,4 +99,5 @@ if __name__ == "__main__":
     #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
     #       Consequently, load only pipelines you trust with from_folder.
     #       For more details about pickling see https://docs.python.org/3/library/pickle.html
-    pipeline2.test(test)
+    result = pipeline2.test(test)
+    print("Finished")

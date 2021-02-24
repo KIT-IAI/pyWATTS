@@ -120,7 +120,7 @@ class TestStep(unittest.TestCase):
                                                                coords={'time': time2})
         step = Step(self.module_mock, {"x": input_step}, file_manager=MagicMock())
         da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
-        step.buffer = da
+        step.buffer = {"test": da}
         xr_mock.concat.return_value = xr.DataArray([2, 3, 4, 3, 3, 1, 2, 2, 3, 4, 3, 3, 1, 2], dims=["time"],
                                                    coords={'time': time3})
 
@@ -163,7 +163,7 @@ class TestStep(unittest.TestCase):
         input_step.further_elements.return_value = False
         time = pd.date_range('2000-01-01', freq='1H', periods=7)
         step = Step(self.module_mock, {"x": input_step}, file_manager=MagicMock())
-        step.buffer = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+        step.buffer = {"STEP": xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
 
         result = step.further_elements(pd.Timestamp("2000.12.12"))
         input_step.further_elements.assert_called_once_with(pd.Timestamp("2000.12.12"))
@@ -174,7 +174,7 @@ class TestStep(unittest.TestCase):
         target_step.further_elements.return_value = False
         time = pd.date_range('2000-01-01', freq='1H', periods=7)
         step = Step(self.module_mock, {"x": self.step_mock}, targets={"target": target_step}, file_manager=MagicMock())
-        step.buffer = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+        step.buffer = {"STEP":xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
 
         result = step.further_elements(pd.Timestamp("2000.12.12"))
         target_step.further_elements.assert_called_once_with(pd.Timestamp("2000.12.12"))
@@ -183,7 +183,7 @@ class TestStep(unittest.TestCase):
     def test_further_elements_already_buffered(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         step = Step(self.module_mock, {"x": self.step_mock}, file_manager=MagicMock())
-        step.buffer = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+        step.buffer = {"STEP" :xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
         result = step.further_elements(pd.Timestamp("2000-01-05"))
         self.step_mock.further_elements.assert_not_called()
         self.assertEqual(result, True)

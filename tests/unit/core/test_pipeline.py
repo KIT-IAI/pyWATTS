@@ -40,7 +40,7 @@ pipeline_json = {'id': 1,
                             'input_ids': {},
                             'last': False,
                             'module': 'pywatts.core.start_step',
-                            'name': 'StartStep',
+                            'name': 'input',
                             'target_ids': {}},
                            {'batch_size': None,
                             'class': 'Step',
@@ -280,14 +280,14 @@ class TestPipeline(unittest.TestCase):
             "step_1": result_step_two
         }
 
-        step_one.get_result.return_value = result_step_one
-        step_two.get_result.return_value = result_step_two
+        step_one.get_result.return_value = {"step": result_step_one}
+        step_two.get_result.return_value = {"step_1": result_step_two}
 
         result = self.pipeline._collect_results([step_one, step_two])
 
         # Assert that steps are correclty called.
-        step_one.get_result.assert_called_once_with(None, None)
-        step_two.get_result.assert_called_once_with(None, None)
+        step_one.get_result.assert_called_once_with(None, None, return_all=True)
+        step_two.get_result.assert_called_once_with(None, None, return_all=True)
 
         # Assert return value is correct
         self.assertEqual(merged_result, result)
@@ -318,14 +318,14 @@ class TestPipeline(unittest.TestCase):
             "step_two": result_step_two
         }
 
-        step_one.get_result.return_value = result_step_one
-        step_two.get_result.return_value = result_step_two
+        step_one.get_result.return_value = {"step_one" :result_step_one}
+        step_two.get_result.return_value = {"step_two" :result_step_two}
 
         result = self.pipeline._collect_results([step_one, step_two])
 
         # Assert that steps are correclty called.
-        step_one.get_result.assert_called_once_with(None, None)
-        step_two.get_result.assert_called_once_with(None, None)
+        step_one.get_result.assert_called_once_with(None, None, return_all=True)
+        step_two.get_result.assert_called_once_with(None, None, return_all=True)
 
         # Assert return value is correct
         self.assertEqual(merged_result, result)
@@ -335,12 +335,16 @@ class TestPipeline(unittest.TestCase):
     def test_batched_pipeline(self, concat_mock, fm_mock):
         # Add some steps to the pipeline
 
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
+        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+
         # Assert that the computation is set to fit_transform if the ComputationMode was default
         first_step = MagicMock()
         first_step.computation_mode = ComputationMode.Default
         first_step.finished = False
         first_step.further_elements.side_effect = [True, True, True, True, False]
 
+        first_step.get_result.return_value = {"one" : da}
         self.pipeline.set_params(pd.Timedelta("24h"))
         self.pipeline.add(module=first_step)
 
@@ -349,10 +353,10 @@ class TestPipeline(unittest.TestCase):
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
         calls = [
-            call(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), pd.Timestamp('2000-01-02 00:00:00', freq='24H')),
-            call(pd.Timestamp('2000-01-02 00:00:00', freq='24H'), pd.Timestamp('2000-01-03 00:00:00', freq='24H')),
-            call(pd.Timestamp('2000-01-03 00:00:00', freq='24H'), pd.Timestamp('2000-01-04 00:00:00', freq='24H')),
-            call(pd.Timestamp('2000-01-04 00:00:00', freq='24H'), pd.Timestamp('2000-01-05 00:00:00', freq='24H')),
+            call(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), pd.Timestamp('2000-01-02 00:00:00', freq='24H'), return_all=True),
+            call(pd.Timestamp('2000-01-02 00:00:00', freq='24H'), pd.Timestamp('2000-01-03 00:00:00', freq='24H'), return_all=True),
+            call(pd.Timestamp('2000-01-03 00:00:00', freq='24H'), pd.Timestamp('2000-01-04 00:00:00', freq='24H'), return_all=True),
+            call(pd.Timestamp('2000-01-04 00:00:00', freq='24H'), pd.Timestamp('2000-01-05 00:00:00', freq='24H'), return_all=True),
         ]
         first_step.get_result.assert_has_calls(calls, any_order=True)
         self.assertEqual(concat_mock.call_count, 3)
@@ -364,6 +368,7 @@ class TestPipeline(unittest.TestCase):
         da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
         pipeline = Pipeline(batch=pd.Timedelta("2h"))
         step_one = MagicMock()
+        step_one.get_result.return_value = {"step": da}
         step_one.name = "step"
         result_mock = MagicMock()
         concat_mock.return_value = result_mock
@@ -387,12 +392,12 @@ class TestPipeline(unittest.TestCase):
         step_two = MagicMock()
         result_mock = MagicMock()
         step_two.name = "mock"
-        step_two.get_result.return_value = result_mock
+        step_two.get_result.return_value = {"mock": result_mock}
         self.pipeline.add(module=step_two, input_ids=[1])
 
         result = self.pipeline.transform(x=input_mock)
 
-        step_two.get_result.assert_called_once_with("20.12.2020", None)
+        step_two.get_result.assert_called_once_with("20.12.2020", None, return_all=True)
         get_time_indeces_mock.assert_called_once_with({"x": input_mock})
         self.assertEqual({"mock": result_mock}, result)
 
@@ -437,6 +442,7 @@ class TestPipeline(unittest.TestCase):
         da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
         pipeline = Pipeline(batch=pd.Timedelta("1h"))
         step_one = MagicMock()
+        step_one.get_result.return_value = {"step": da}
         step_one.name = "step"
         result_mock = MagicMock()
         concat_mock.return_value = result_mock
@@ -460,10 +466,15 @@ class TestPipeline(unittest.TestCase):
         first_step = MagicMock()
         first_step.computation_mode = ComputationMode.Default
         first_step.finished = False
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
 
+        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+
+        first_step.get_result.return_value = {"first": da}
         second_step = MagicMock()
         second_step.computation_mode = ComputationMode.Train
         second_step.finished = False
+        second_step.get_result.return_value = {"Second": da}
 
         self.pipeline.add(module=first_step)
         self.pipeline.add(module=second_step)
@@ -471,8 +482,8 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.test(pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2]},
                                         index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
 
-        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None)
-        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None)
+        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
+        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
         second_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
@@ -483,15 +494,20 @@ class TestPipeline(unittest.TestCase):
     @patch('pywatts.core.pipeline.FileManager')
     def test_train(self, fmmock):
         # Add some steps to the pipeline
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
+
+        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
 
         # Assert that the computation is set to fit_transform if the ComputationMode was default
         first_step = MagicMock()
         first_step.computation_mode = ComputationMode.Default
         first_step.finished = False
+        first_step.get_result.return_value = {"first": da}
 
         second_step = MagicMock()
         second_step.computation_mode = ComputationMode.Train
         second_step.finished = False
+        second_step.get_result.return_value = {"second": da}
 
         self.pipeline.add(module=first_step)
         self.pipeline.add(module=second_step)
@@ -501,8 +517,8 @@ class TestPipeline(unittest.TestCase):
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
         second_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
-        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None)
-        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None)
+        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
+        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
 
         first_step.reset.assert_called_once()
         second_step.reset.assert_called_once()

@@ -13,7 +13,7 @@ class StartStep(BaseStep):
 
     def __init__(self, index: str):
         super().__init__()
-        self.name = "StartStep"
+        self.name = index
         self.index = index
 
     @classmethod
@@ -43,7 +43,8 @@ class StartStep(BaseStep):
         :rtype: bool
         """
         indeces = _get_time_indeces(self.buffer)
-        if len(indeces) == 0 or counter > self.buffer.indexes[indeces[0]][-1]:
+        if len(indeces) == 0 or not all(
+                [counter < b.indexes[_get_time_indeces(self.buffer)[0]][-1] for b in self.buffer.values()]):
             return False
         else:
             return True

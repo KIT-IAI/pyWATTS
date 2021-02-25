@@ -92,13 +92,13 @@ class Resampler(BaseTransformer):
         if method_args is not None:
             self.method_args = method_args
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Resamples the dataset x as specified in the constructor.
 
         :param x: dataset which should be resampled.
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: Resampled xarray dataset as xarray dataset.
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         if self.method_args is not None:
             args = self.method_args

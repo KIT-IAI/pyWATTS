@@ -55,14 +55,14 @@ class ClockShift(BaseTransformer):
             # Do not use if indices here, since this would be false if indices is empty.
             self.indices = indices
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Shifts the given time series x by the defined lag
 
         :param x: the time series to be shifted
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: The shifted time series
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         :raises WrongParameterException: If not all indices are part of x
         """
         indices = self.indices

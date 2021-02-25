@@ -36,7 +36,7 @@ class RmseCalculator(BaseTransformer):
         Calculates the RMSE based on the predefined target and predictions variables
 
         :param x: the input dataset
-        :type x: Optional[xr.Dataset]
+        :type x: Optional[xr.DataArray]
 
         :return: The calculated RMSE
         :rtype: xr.DataArray

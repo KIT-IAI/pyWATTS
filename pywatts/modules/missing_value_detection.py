@@ -25,14 +25,14 @@ class MissingValueDetector(BaseTransformer):
         """
         pass
 
-    def transform(self, dataset: xr.Dataset) -> xr.Dataset:
+    def transform(self, dataset: xr.DataArray) -> xr.DataArray:
         """
         Detects the indices that correspond to the input having missing values
 
         :param dataset: Dataset in which missing values should be detected
-        :type dataset: xr.Dataset
+        :type dataset: xr.DataArray
         :return: Returns a dataset with binary values, true if value is missing and false otherwise
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
 
         return dataset.isnull()

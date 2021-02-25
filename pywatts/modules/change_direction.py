@@ -33,15 +33,15 @@ class ChangeDirection(BaseTransformer):
         """
         pass
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Transforms the time series in a time series that indicates whether the next value is higher, lower, or the same
 
         :param x: The time series that should be transformed
-        :type x: xr.Dataset, optional
+        :type x: xr.DataArray, optional
         :return: A time series, where 1 indicates that the next value is higher, -1 that the next value
         is lower, and 0 that the next value is the same
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         :raises WrongParameterException: If not all indices are part of x
         """
         indices = _get_time_indeces(x)

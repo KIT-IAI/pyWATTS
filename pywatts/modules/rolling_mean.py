@@ -38,7 +38,7 @@ class RollingMean(BaseTransformer):
         if indexes:
             self.indexes = indexes
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         indexes = self.indexes
         if not indexes:
             indexes = _get_time_indeces(x)

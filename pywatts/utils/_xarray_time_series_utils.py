@@ -18,7 +18,7 @@ def _get_time_indeces(x: Dict[str, xr.DataArray]) -> List[str]:
     return indexes
 
 
-def xarray_to_numpy(x: xr.Dataset):
+def xarray_to_numpy(x: xr.DataArray):
     if x is None:
         return None
     result = None
@@ -31,7 +31,7 @@ def xarray_to_numpy(x: xr.Dataset):
     return result
 
 
-def numpy_to_xarray(x: np.ndarray, reference: xr.Dataset, name: str) -> xr.Dataset:
+def numpy_to_xarray(x: np.ndarray, reference: xr.DataArray, name: str) -> xr.DataArray:
     coords = (
         # first dimension is number of batches. We assume that this is the time.
         ("time", list(reference.coords.values())[0].to_dataframe().index.array),
@@ -39,4 +39,4 @@ def numpy_to_xarray(x: np.ndarray, reference: xr.Dataset, name: str) -> xr.Datas
 
     data = {f"{name}": (tuple(map(lambda x: x[0], coords)), x),
             "time": list(reference.coords.values())[0].to_dataframe().index.array}
-    return xr.Dataset(data)
+    return xr.DataArray(data)

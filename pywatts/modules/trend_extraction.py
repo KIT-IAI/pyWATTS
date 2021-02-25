@@ -67,14 +67,14 @@ class TrendExtraction(BaseTransformer):
             # Do not use if indexes here, since this would be false if indexes is empty.
             self.indexes = indexes
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Extract trend values
 
-        :param x: input xarray Dataset
-        :type x: xr.Dataset
+        :param x: input xarray DataArray
+        :type x: xr.DataArray
         :return: a dataset containing the trend information
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         indexes = self.indexes
         if not indexes:

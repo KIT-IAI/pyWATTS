@@ -52,7 +52,7 @@ class Pipeline(BaseTransformer):
         self.id_to_step: Dict[int, BaseStep] = {}
         self.file_manager = FileManager(path)
 
-    def transform(self, **x: xr.DataArray) -> xr.Dataset:
+    def transform(self, **x: xr.DataArray) -> xr.DataArray:
         """
         Transform the input into output, by performing all the step in this pipeline.
         Moreover, this method collects the results of the last steps in this pipeline.
@@ -60,9 +60,9 @@ class Pipeline(BaseTransformer):
         Note, this method is necessary for enabling subpipelining.
 
         :param x: The input data
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return:The transformed data
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         for key, (start_step, _) in self.start_steps.items():
             start_step.buffer = {key: x[key].copy()}
@@ -78,7 +78,7 @@ class Pipeline(BaseTransformer):
         return self._collect_batches(last_steps, time_index)
 
     def _collect_batches(self, last_steps, time_index):
-        result = xr.Dataset()
+        result = dict()
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
             if not result:
@@ -177,7 +177,7 @@ class Pipeline(BaseTransformer):
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
         :return: The result of all end points of the pipeline
-        :rytpe: Dict[xr.Dataset]
+        :rytpe: Dict[xr.DataArray]
         """
 
         return self._run(data, ComputationMode.FitTransform)

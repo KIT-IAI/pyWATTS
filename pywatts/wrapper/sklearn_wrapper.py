@@ -101,7 +101,7 @@ class SKLearnWrapper(BaseWrapper):
         # TODO test if this works if the horizon is greater than one...
         return result
 
-    def transform(self, **kwargs: xr.DataArray) -> xr.Dataset:
+    def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Transforms a dataset or predicts the result with the wrapped sklearn module
         :param x: the input dataset
@@ -120,7 +120,7 @@ class SKLearnWrapper(BaseWrapper):
 
         return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
-    def inverse_transform(self, **kwargs: xr.DataArray) -> xr.Dataset:
+    def inverse_transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Performs the inverse transform of a dataset with the wrapped sklearn module
         :param x: the input dataset
@@ -136,7 +136,7 @@ class SKLearnWrapper(BaseWrapper):
 
         return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
-    def predict_proba(self, **kwargs) -> xr.Dataset:
+    def predict_proba(self, **kwargs) -> xr.DataArray:
         """
         Performs the probabilistic transform of a dataset with the wrapped sklearn module
         :param x: the input dataset

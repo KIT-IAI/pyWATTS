@@ -57,7 +57,7 @@ class Base(ABC):
         """
 
     @abstractmethod
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, **kwargs: Dict[str: xr.DataArray]) -> xr.DataArray:
         """
         Transforms the input.
 
@@ -65,7 +65,7 @@ class Base(ABC):
         :return: The transformed input
         """
 
-    def inverse_transform(self, x: xr.Dataset) -> xr.Dataset:
+    def inverse_transform(self, *kwargs: Dict[str: xr.DataArray]) -> xr.DataArray:
         """
         Performs the inverse transformation if available.
         Note for developers of modules: if this method is implemented the flag "self.has_inverse_transform" must be set
@@ -79,7 +79,7 @@ class Base(ABC):
         raise KindOfTransformDoesNotExistException(f"The module {self.name} does not have a inverse transformation",
                                                    KindOfTransform.INVERSE_TRANSFORM)
 
-    def predict_proba(self, x: xr.Dataset) -> xr.Dataset:
+    def predict_proba(self, *kwargs: Dict[str: xr.DataArray]) -> xr.DataArray:
         """
         Performs the probabilistic transformation if available.
         Note for developers of modules: if this method is implemented, the flag "self.has_predict_proba" must be set to

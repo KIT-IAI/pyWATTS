@@ -36,9 +36,9 @@ class Step(BaseStep):
     :param to_csv: Flag if the result of this step should be written in a csv file.
     :type to_csv: bool
     :param condition: A callable which checks if the step should be executed with the current data.
-    :type condition: Callable[xr.Dataset, xr.Dataset, bool]
+    :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     :param train_if: A callable which checks if the train_if step should be executed or not.
-    :type train_if: Callable[xr.Dataset, xr.Dataset, bool]
+    :type train_if: Callable[xr.DataArray, xr.DataArray, bool]
     """
 
     def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *,

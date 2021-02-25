@@ -58,14 +58,14 @@ class LinearInterpolater(BaseTransformer):
         if fill_value is not None:
             self.fill_value = fill_value
 
-    def transform(self, x=xr.Dataset) -> xr.Dataset:
+    def transform(self, x=xr.DataArray) -> xr.DataArray:
         """
         Transforms the input
 
         :param x: Input xarray dataset
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: Interpolated dataset
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         if self.dim not in x.dims:
             raise WrongParameterException(

@@ -65,14 +65,14 @@ class Sampler(BaseTransformer):
         if data_var_names:
             self.data_var_names = data_var_names
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Sample the given time series x by the lag.
 
         :param x: the input
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: A shifted time series.
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         indexes = self.indexes
         if not indexes:

@@ -31,7 +31,7 @@ class PipelineStep(Step):
     :param summary: Flag if a summary of the result should be printed.
     :type summary: bool
     :param condition: A callable which checks if the step should be executed with the current data.
-    :type condition: Callable[xr.Dataset, xr.Dataset, bool]
+    :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     """
     module: Pipeline
 

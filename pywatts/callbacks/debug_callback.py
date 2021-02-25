@@ -1,4 +1,5 @@
 import xarray as xr
+from typing import Dict
 
 from pywatts.callbacks.base_callback import BaseCallback
 
@@ -11,16 +12,19 @@ class PrintCallback(BaseCallback):
     :type BaseCallback: BaseCallback
     """
 
-    def __call__(self, x: xr.DataArray):
+    def __call__(self, data_dict: xr.DataArray):
         """
         Implementation of abstract base method to print out
         pipeline result data into terminal.
 
-        :param x: Data that should be printed into terminal.
-        :type x: xr.DataArray
+        :param data_dict: Dict of DataArrays that should be printed out into terminal.
+        :type data_dict: Dict[str, xr.DataArray]
         """
         # NOTE: print out pandas arrays is a little bit more understandable IMO.
-        print(x.to_pandas())
+        print("\n# Print Callback")
+        for key in data_dict:
+            print(f"## {key}")
+            print(data_dict[key].to_pandas())
 
 
 class StatisticCallback(BaseCallback):
@@ -32,12 +36,15 @@ class StatisticCallback(BaseCallback):
     :type BaseCallback: BaseCallback
     """
 
-    def __call__(self, x: xr.DataArray):
+    def __call__(self, data_dict: Dict[str, xr.DataArray]):
         """
         Implementation of abstract base method to print out
-        pipeline step results into terminal.
+        pipeline statistical information of step results into terminal.
 
-        :param x: Data that should be printed into terminal.
-        :type x: xr.DataArray
+        :param data_dict: Dict of DataArrays that statistical information should be printed out.
+        :type data_dict: Dict[str, xr.DataArray]
         """
-        print(x.to_pandas().describe())
+        print("\n# Statistical Callback")
+        for key in data_dict:
+            print(f"## {key}")
+            print(data_dict[key].to_pandas().describe())

@@ -1,17 +1,19 @@
 import inspect
-from typing import Tuple, Union, Dict
+from typing import Tuple, Dict, Union, List, Callable
+
+import xarray as xr
 
 from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
 from pywatts.core.either_or_step import EitherOrStep
 from pywatts.core.exceptions.step_creation_exception import StepCreationException
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.inverse_step import InverseStep
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.pipeline_step import PipelineStep
 from pywatts.core.probabilistic_step import ProbablisticStep
 from pywatts.core.step import Step
 from pywatts.core.step_information import StepInformation
+from pywatts.callbacks import BaseCallback
 
 
 class StepFactory:
@@ -22,7 +24,8 @@ class StepFactory:
     def create_step(self,
                     module: Base,
                     kwargs: Dict[str, Union[StepInformation, Tuple[StepInformation, ...]]],
-                    use_inverse_transform: bool, use_predict_proba: bool, plot: bool, to_csv: bool, summary: bool,
+                    use_inverse_transform: bool, use_predict_proba: bool,
+                    callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]],
                     condition,
                     batch_size,
                     computation_mode,
@@ -35,8 +38,7 @@ class StepFactory:
         :param targets: The target steps for the currrent step
         :param use_inverse_transform: Should inverse_transform be called instead of transform
         :param use_predict_proba: Should probabilistic_transform be called instead of transform
-        :param plot: Should the result be plotted
-        :param to_csv:  Should the result be written in a csv file
+        :param callbacks: Callbacks to use after results are processed.
         :param condition: A function returning True or False which indicates if the step should be performed
         :param batch_size: The size of the past time range which should be used for relearning the module
         :param computation_mode: The computation mode of the step
@@ -63,23 +65,19 @@ class StepFactory:
 
 
         if isinstance(module, Pipeline):
-            step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot,
-                                summary=summary,
-                                computation_mode=computation_mode,
-                                to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
+            step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps,
+                                callbacks=callbacks, computation_mode=computation_mode, condition=condition,
+                                batch_size=batch_size, train_if=train_if)
         elif use_inverse_transform:
             step = InverseStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                               computation_mode=computation_mode,
-                               plot=plot, summary=summary,
-                               to_csv=to_csv, condition=condition)
+                               callbacks=callbacks, computation_mode=computation_mode, condition=condition)
         elif use_predict_proba:
             step = ProbablisticStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                                    computation_mode=computation_mode, plot=plot, summary=summary,
-                                    to_csv=to_csv, condition=condition)
+                                    callbacks=callbacks, computation_mode=computation_mode, condition=condition)
         else:
-            step = Step(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot, summary=summary,
-                        computation_mode=computation_mode,
-                        to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
+            step = Step(module, input_steps, pipeline.file_manager, targets=target_steps,
+                        callbacks=callbacks, computation_mode=computation_mode, condition=condition,
+                        batch_size=batch_size, train_if=train_if)
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],

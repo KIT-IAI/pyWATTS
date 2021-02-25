@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 
 import xarray as xr
 
@@ -25,14 +26,14 @@ class BaseCallback(ABC):
         self.use_filemanager = use_filemanager
 
     @abstractmethod
-    def __call__(self, x: xr.DataArray):
+    def __call__(self, data_dict: Dict[str, xr.DataArray]):
         """
         Abstract call method that need to be implemented by child classes.
         So, callback objects can be called like simple functions
         which are also allowed as callbacks.
 
-        :param x: Data that is passed to the callback.
-        :type x: xr.DataArray
+        :param data_dict: Dict of DataArrays as output from the pipeline step.
+        :type data_dict: Dict[str, xr.DataArray]
         :raises NotImplementedError: Callbacks need to implement __call__ method.
         """
         raise NotImplementedError('Callbacks need to implement __call__ method!')
@@ -62,4 +63,4 @@ class BaseCallback(ABC):
         if self.filemanager is None:
             return filename
         else:
-            return self.filemanager.get_path()
+            return self.filemanager.get_path(filename)

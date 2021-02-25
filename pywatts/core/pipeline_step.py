@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
@@ -6,6 +6,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.filemanager import FileManager
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
+from pywatts.core.result_step import ResultStep
 import pandas as pd
 
 
@@ -24,27 +25,19 @@ class PipelineStep(Step):
     :type target: Optional[Step]
     :param computation_mode: The computation mode which should be for this step. (Default: ComputationMode.Default)
     :type computation_mode: ComputationMode
-    :param plot: Flag if the result of this step should be plotted.
-    :type plot: bool
-    :param to_csv: Flag if the result of this step should be written in a csv file.
-    :type to_csv: bool
-    :param summary: Flag if a summary of the result should be printed.
-    :type summary: bool
+    :param callbacks: Callbacks to use after results are processed.
+    :type callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]]
     :param condition: A callable which checks if the step should be executed with the current data.
     :type condition: Callable[xr.Dataset, xr.Dataset, bool]
     """
     module: Pipeline
 
-    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, targets, plot,
-                 summary,
-                 computation_mode,
-                 to_csv, condition, batch_size, train_if):
+    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, targets,
+                 callbacks, computation_mode, condition, batch_size, train_if):
 
-        super().__init__(module, input_steps, file_manager, targets=targets, plot=plot,
-                         summary=summary,
-                         computation_mode=computation_mode,
-                         to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
-        # TODO delete this init?
+        super().__init__(module, input_steps, file_manager, targets=targets, callbacks=callbacks,
+                         computation_mode=computation_mode, condition=condition, batch_size=batch_size, train_if=train_if)
+        self.result_steps: Dict[str, ResultStep] = {}
 
     def set_computation_mode(self, computation_mode: ComputationMode):
         """

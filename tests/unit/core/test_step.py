@@ -47,8 +47,6 @@ class TestStep(unittest.TestCase):
         self.assertEqual(json, {
             "target_ids": {},
             'batch_size': None,
-            # BUG: input_ids should not be empty?
-            # Same as for test_load.
             "input_ids": {},
             "id": -1,
             'computation_mode': 4,
@@ -56,10 +54,8 @@ class TestStep(unittest.TestCase):
             "module": "pywatts.core.step",
             "class": "Step",
             "name": "test",
-            'summary': True,
+            'callbacks': [],
             "last": True,
-            'plot': False,
-            'to_csv': False,
             'condition': os.path.join("folder", "test_condition.pickle")}, json)
 
         self.assertEqual(reloaded_step.module, self.module_mock)
@@ -94,10 +90,8 @@ class TestStep(unittest.TestCase):
             "module": "pywatts.core.step",
             "class": "Step",
             "name": "test",
-            'summary': True,
+            'callbacks': [],
             "last": True,
-            'plot': False,
-            'to_csv': False,
 
             'condition': None}, json),
 
@@ -174,7 +168,7 @@ class TestStep(unittest.TestCase):
         target_step.further_elements.return_value = False
         time = pd.date_range('2000-01-01', freq='1H', periods=7)
         step = Step(self.module_mock, {"x": self.step_mock}, targets={"target": target_step}, file_manager=MagicMock())
-        step.buffer = {"STEP":xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
+        step.buffer = {"STEP": xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
 
         result = step.further_elements(pd.Timestamp("2000.12.12"))
         target_step.further_elements.assert_called_once_with(pd.Timestamp("2000.12.12"))
@@ -183,7 +177,7 @@ class TestStep(unittest.TestCase):
     def test_further_elements_already_buffered(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         step = Step(self.module_mock, {"x": self.step_mock}, file_manager=MagicMock())
-        step.buffer = {"STEP" :xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
+        step.buffer = {"STEP": xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})}
         result = step.further_elements(pd.Timestamp("2000-01-05"))
         self.step_mock.further_elements.assert_not_called()
         self.assertEqual(result, True)
@@ -206,7 +200,7 @@ class TestStep(unittest.TestCase):
 
     def test_transform(self):
         input_dict = {'input_data': None}
-        step = Step(self.module_mock, {"x" :self.step_mock}, None)
+        step = Step(self.module_mock, {"x": self.step_mock}, None)
         step._fit(input_dict, {})
         step._transform(input_dict)
         self.module_mock.transform.assert_called_once_with(**input_dict)
@@ -222,11 +216,9 @@ class TestStep(unittest.TestCase):
             "class": "Step",
             "condition": None,
             "train_if": None,
-            'summary': False,
+            'callbacks': [],
             "name": "test",
             "last": False,
-            "to_csv": False,
-            "plot": False
         }
         step = Step.load(step_config, {'x': self.step_mock}, None, self.module_mock, None)
 
@@ -238,24 +230,18 @@ class TestStep(unittest.TestCase):
     def test_get_json(self):
         step = Step(self.module_mock, self.step_mock, None)
         json = step.get_json("file")
-        self.assertEqual({
-            'batch_size': None,
-            "target_ids": {},
-            # BUG: input_ids should not be empty?
-            # Same as for test_load.
-            "input_ids": {},
-            'condition': None,
-            'train_if': None,
-            "id": -1,
-            'summary': True,
-            'computation_mode': 4,
-            "module": "pywatts.core.step",
-            "class": "Step",
-            "name": "test",
-            "last": True,
-            'plot': False,
-            'to_csv': False}, json)
-
+        self.assertEqual({'batch_size': None,
+                          'callbacks': [],
+                          'class': 'Step',
+                          'computation_mode': 4,
+                          'condition': None,
+                          'id': -1,
+                          'input_ids': {},
+                          'last': True,
+                          'module': 'pywatts.core.step',
+                          'name': 'test',
+                          'target_ids': {},
+                          'train_if': None}, json)
 
     def test_set_computation_mode(self):
         step = Step(MagicMock(), MagicMock(), MagicMock())

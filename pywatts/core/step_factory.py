@@ -5,7 +5,6 @@ from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
 from pywatts.core.either_or_step import EitherOrStep
 from pywatts.core.exceptions.step_creation_exception import StepCreationException
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.inverse_step import InverseStep
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.pipeline_step import PipelineStep
@@ -61,7 +60,6 @@ class StepFactory:
 
         input_steps, target_steps = self.split_input_target_steps(kwargs, pipeline)
 
-
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps, plot=plot,
                                 summary=summary,
@@ -88,7 +86,7 @@ class StepFactory:
 
         if len(target_steps) > 1:
             step.last = False
-            for target in target_steps.keys():
+            for target in target_steps:
                 r_step = step.get_result_step(target)
                 r_id = pipeline.add(module=step, input_ids=[step_id])
                 r_step.id = r_id
@@ -127,20 +125,20 @@ class StepFactory:
 
     def _check_ins(self, kwargs):
         pipeline = None
-        for key, input_step in kwargs.items():
+        for input_step in kwargs.values():
             if isinstance(input_step, StepInformation):
                 pipeline_temp = input_step.pipeline
-                if len(input_step.step.targets) > 1: # TODO define multi-output steps?
+                if len(input_step.step.targets) > 1:  # TODO define multi-output steps?
                     raise StepCreationException(
-                    f"The step {input_step.step.name} has multiple outputs. Adding such a step to the pipeline is "
-                    "ambigious. "
-                    "Specifiy the desired column of your dataset by using step[<column_name>]",
+                        f"The step {input_step.step.name} has multiple outputs. "
+                        "Adding such a step to the pipeline is ambigious. "
+                        "Specifiy the desired column of your dataset by using step[<column_name>]",
                     )
             elif isinstance(input_step, Pipeline):
                 raise StepCreationException(
                     "Adding a pipeline as input might be ambigious. "
                     "Specifiy the desired column of your dataset by using pipeline[<column_name>]",
-                    )
+                )
             elif isinstance(input_step, tuple):
                 # We assume that a tuple consists only of step informations and do not contain a pipeline.
                 pipeline_temp = input_step[0].pipeline
@@ -164,7 +162,7 @@ class StepFactory:
                         raise Exception()
 
             if pipeline_temp is None:
-                raise Exception() # TODO
+                raise Exception()  # TODO
 
             if pipeline is None:
                 pipeline = pipeline_temp

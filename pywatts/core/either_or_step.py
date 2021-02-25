@@ -1,7 +1,4 @@
-from typing import Dict
-
 from pywatts.core.base_step import BaseStep
-from pywatts.core.filemanager import FileManager
 
 
 class EitherOrStep(BaseStep):

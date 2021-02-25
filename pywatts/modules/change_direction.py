@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 import xarray as xr
 
@@ -31,7 +31,6 @@ class ChangeDirection(BaseTransformer):
         """
         Sets the parameters (note that this module has no parameters)
         """
-        pass
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """

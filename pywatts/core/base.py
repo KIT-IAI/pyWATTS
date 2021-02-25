@@ -138,16 +138,16 @@ class Base(ABC):
         """
         Adds this module to pipeline by creating step and step information
 
-        :param inputs: The input for the current step. If the input is a pipeline, then the corresponding module and
-                       step is a starting step in the pipeline. If inputs is a list then the elements of the list have
-                       to be a StepInformation or a tuple of Stepinformations. If it is a StepInformation then the input
-                       has to be provided for calculating the next step. If it is a tuple, at least the result of one of
-                       the steps in the tuple of step information must be provided for calculating the next step. The
-                       tuples can be used for merging to path after an if statement.
-        :type inputs: Union[Pipeline, List[Union[StepInformation, Tuple[StepInformation]]]
-        :param targets: The steps which provide the target value for the current step. For the meaning of the tuples see
-            inputs
-        :type targets: List[Union[StepInformation, Tuple[StepInformation]]
+        :param kwargs: The inputs for the current step. The user has to choose as key words the key words of the fit and
+                       transform method of the module which is added. Note, that all keywords that starts with "target"
+                       are target variables and only passed to the fit method, for fitting the module.
+                       Moreover, note that if the input is a pipeline or a module with multiple outputs, it
+                       is important that the desired data column is specified by input[<desired_column>].
+
+                       The input can also be a tuple, in that case at least the result of one of
+                       the steps in the tuple must be provided for calculating the next step. The
+                       tuples can be used for merging paths after a condition.
+        :type inputs: Union[StepInformation, Tuple[StepInformation]]
         :param use_inverse_transform: Indicate if inverse transform should be called instead of transform.
                                       (default false)
         :type use_inverse_transform: bool

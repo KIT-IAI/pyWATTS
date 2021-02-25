@@ -15,21 +15,15 @@ logger = logging.getLogger(__name__)
 class BaseStep(ABC):
     """
     The base class of all steps.
-    Attributes:
-        stop -- Flag which indicates if the step is stopped. I.e. the condition mechanism stops the execution of this
-                step for the current data
-        finished -- Flag which indicates that all data are processed.
-        buffer -- contains the results of this step.
-
     :param input_steps: The input steps
-    :type input_steps: Step
+    :type input_steps: Optional[Dict[str, BaseStep]]
     :param targets: The target steps
-    :type targets: step
+    :type targets: Optional[Dict[str, BaseStep]]
     :param condition: A function which evaluates to False or True for detecting if the module should be executed.
     :param computation_mode: The computation mode for this module
     """
 
-    def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None,
+    def __init__(self,  input_steps: Optional[Dict[str, "BaseStep"]]=None,
                  targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
                  computation_mode=ComputationMode.Default):
         self._original_compuation_mode = computation_mode
@@ -137,11 +131,9 @@ class BaseStep(ABC):
         pass
 
     def _post_transform(self, result):
-        if isinstance(result, dict) and len(result) > 1:
-            result = result
-        elif isinstance(result, dict) and len(result) <= 1:
+        if isinstance(result, dict) and len(result) <= 1:
             result = {self.name: list(result.values())[0]}
-        else:
+        elif not isinstance(result, dict):
             result = {self.name: result}
 
         if not self.buffer:

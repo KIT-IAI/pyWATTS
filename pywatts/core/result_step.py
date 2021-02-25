@@ -1,12 +1,15 @@
 from typing import Optional, Dict
 
-from pywatts.core.base_step import BaseStep
 import pandas as pd
 
+from pywatts.core.base_step import BaseStep
 from pywatts.core.filemanager import FileManager
 
 
 class ResultStep(BaseStep):
+    """
+    This steps fetch the correct column if the previous step provides data with multiple columns as output
+    """
 
     def __init__(self, input_steps, buffer_element: str):
         super().__init__(input_steps=input_steps)
@@ -16,7 +19,7 @@ class ResultStep(BaseStep):
         return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
 
     def get_json(self, fm: FileManager) -> Dict:
-        json_dict = super(ResultStep, self).get_json(fm)
+        json_dict = super().get_json(fm)
         json_dict["buffer_element"] = self.buffer_element
         return json_dict
 
@@ -36,4 +39,3 @@ class ResultStep(BaseStep):
         step.name = stored_step["name"]
         step.last = stored_step["last"]
         return step
-

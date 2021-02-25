@@ -1,12 +1,6 @@
-from typing import Optional, List, Dict
-
-from pywatts.core.base import Base
-from pywatts.core.base_step import BaseStep
 from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.filemanager import FileManager
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
-import pandas as pd
 
 
 class PipelineStep(Step):
@@ -58,5 +52,3 @@ class PipelineStep(Step):
         super().reset()
         for step in self.module.id_to_step.values():
             step.reset()
-
-

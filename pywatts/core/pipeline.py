@@ -101,7 +101,7 @@ class Pipeline(BaseTransformer):
         result = dict()
         for i, step in enumerate(inputs):
             res = step.get_result(self.counter, end, return_all=True)
-            for j, (key, value) in enumerate(res.items()):
+            for key, value in res.items():
                 result = self._add_to_result(i, key, value, result)
 
         return result
@@ -142,7 +142,6 @@ class Pipeline(BaseTransformer):
         """
 
         # TODO built the graph which should be drawn by starting with the last steps...
-
 
     def test(self, data: Union[pd.DataFrame, xr.Dataset]):
         """
@@ -286,7 +285,7 @@ class Pipeline(BaseTransformer):
             "path": self.file_manager.basic_path,
             "batch": str(self.batch) if self.batch else None,
         }
-        file_path = save_file_manager.get_path(f'pipeline.json')
+        file_path = save_file_manager.get_path('pipeline.json')
         with open(file_path, 'w') as outfile:
             json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4)
 
@@ -333,7 +332,7 @@ class Pipeline(BaseTransformer):
             pipeline.id_to_step[step.id] = step
 
         pipeline.start_steps = {element.index: (element, StepInformation(step=element, pipeline=pipeline))
-                            for element in filter(lambda x: isinstance(x, StartStep), pipeline.id_to_step.values())}
+                                for element in filter(lambda x: isinstance(x, StartStep), pipeline.id_to_step.values())}
 
         return pipeline
 
@@ -348,11 +347,13 @@ class Pipeline(BaseTransformer):
         module = None
         if isinstance(klass, Step) or issubclass(klass, Step):
             module = modules[step["module_id"]]
-        loaded_step= klass.load(step,
-                          inputs={key: self.id_to_step[int(step_id)] for step_id, key in step["input_ids"].items()},
-                          targets={key: self.id_to_step[int(step_id)] for step_id, key in step["target_ids"].items()},
-                          module=module,
-                          file_manager=self.file_manager)
+        loaded_step = klass.load(step,
+                                 inputs={key: self.id_to_step[int(step_id)] for step_id, key in
+                                         step["input_ids"].items()},
+                                 targets={key: self.id_to_step[int(step_id)] for step_id, key in
+                                          step["target_ids"].items()},
+                                 module=module,
+                                 file_manager=self.file_manager)
         return loaded_step
 
     def __getitem__(self, item: str):

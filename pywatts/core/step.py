@@ -119,7 +119,7 @@ class Step(BaseStep):
     #   raise RuntimeError('Input for Module ' + self.name + ' not available')
 
     @classmethod
-    def load(cls, stored_step: dict, inputs, targets, module, file_manager):
+    def load(cls, stored_step: Dict, inputs, targets, module, file_manager):
         """
         Load a stored step.
 

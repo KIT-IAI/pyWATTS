@@ -1,5 +1,5 @@
 import pickle
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import sklearn
@@ -83,7 +83,7 @@ class SKLearnWrapper(BaseWrapper):
         return result
 
     @staticmethod
-    def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[str]):
+    def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
         reference = kwargs[list(kwargs)[0]]
 
         if len(targets) == 0:
@@ -99,7 +99,7 @@ class SKLearnWrapper(BaseWrapper):
             for i, target in enumerate(targets):
                 result[target[0]] = xr.DataArray(prediction[:, position: position + target[1]], coords={
                     "time": list(reference.coords.values())[0].to_dataframe().index.array, "dim_0": list(
-                    range(target[1]))}, dims = ["time", "dim_0"])
+                        range(target[1]))}, dims=["time", "dim_0"])
                 position += target[1]
         return result
 

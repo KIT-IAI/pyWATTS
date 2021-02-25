@@ -105,11 +105,13 @@ class Step(BaseStep):
                 train_if = cloudpickle.load(pickle_file)
         else:
             train_if = None
-        if stored_step["callbacks"]:
-            with open(stored_step["callbacks"], 'rb') as pickle_file:
-                callbacks = cloudpickle.load(pickle_file)
-        else:
-            callbacks = []
+        callbacks = []
+        for callback_path in  stored_step["callbacks"]:
+            with open(callback_path, 'rb') as pickle_file:
+                callback = cloudpickle.load(pickle_file)
+            callback.set_filemanager(file_manager)
+            callbacks.append(callback)
+
         step = cls(module, inputs, targets=targets, file_manager=file_manager,
                    computation_mode=ComputationMode(stored_step["computation_mode"]), condition=condition,
                    train_if=train_if, callbacks=callbacks, batch_size=stored_step["batch_size"])
@@ -150,7 +152,7 @@ class Step(BaseStep):
         json = super().get_json(fm)
         condition_path = None
         train_if_path = None
-        callbacks_path = None
+        callbacks_paths = []
         if self.condition:
             condition_path = fm.get_path(f"{self.name}_condition.pickle")
             with open(condition_path, 'wb') as outfile:
@@ -159,11 +161,12 @@ class Step(BaseStep):
             train_if_path = fm.get_path(f"{self.name}_train_if.pickle")
             with open(train_if_path, 'wb') as outfile:
                 cloudpickle.dump(self.train_if, outfile)
-        if self.callbacks:
-            callbacks_path = fm.get_path(f"{self.name}_callbacks.pickle")
-            with open(callbacks_path, 'wb') as outfile:
-                cloudpickle.dump(self.callbacks, outfile)
-        json.update({"callbacks_path": self.callbacks,
+        for callback in self.callbacks:
+            callback_path = fm.get_path(f"{self.name}_callback.pickle")
+            with open(callback_path, 'wb') as outfile:
+                cloudpickle.dump(callback, outfile)
+            callbacks_paths.append(callback_path)
+        json.update({"callbacks": callbacks_paths,
                      "condition": condition_path,
                      "train_if": train_if_path,
                      "batch_size": self.batch_size})

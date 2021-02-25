@@ -256,22 +256,6 @@ class TestStep(unittest.TestCase):
             'plot': False,
             'to_csv': False}, json)
 
-    def test_to_csv(self):
-        fm_mock = MagicMock()
-        fm_mock.get_path.return_value = "path/test.csv"
-        dataset_mock = MagicMock()
-        df_mock = MagicMock()
-        dataset_mock.to_dataframe.return_value = df_mock
-
-        step = Step(self.module_mock, self.step_mock, fm_mock, to_csv=True)
-
-        # perform to csv and check results
-        step._to_csv(dataset_mock)
-
-        fm_mock.get_path.assert_called_with("test.csv")
-        dataset_mock.to_dataframe.assert_called_once()
-
-        df_mock.to_csv.assert_called_once_with("path/test.csv", sep=";")
 
     def test_set_computation_mode(self):
         step = Step(MagicMock(), MagicMock(), MagicMock())

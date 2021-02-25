@@ -50,21 +50,3 @@ class TestInverseTransform(unittest.TestCase):
         self.assertEqual(KindOfTransform.INVERSE_TRANSFORM, context.exception.method)
 
         self.inverse_module.inverse_transform.assert_not_called()
-
-    def test_to_csv(self):
-        fm_mock = MagicMock()
-        fm_mock.get_path.return_value = "path/test.csv"
-        dataset_mock = MagicMock()
-        df_mock = MagicMock()
-        dataset_mock.to_dataframe.return_value = df_mock
-        self.inverse_module.name = "test"
-
-        step = InverseStep(self.inverse_module, self.input_step, fm_mock, to_csv=True)
-
-        # perform to csv and check results
-        step._to_csv(dataset_mock)
-
-        fm_mock.get_path.assert_called_with("test.csv")
-        dataset_mock.to_dataframe.assert_called_once()
-
-        df_mock.to_csv.assert_called_once_with("path/test.csv", sep=";")

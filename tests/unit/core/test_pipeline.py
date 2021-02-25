@@ -43,6 +43,7 @@ pipeline_json = {'id': 1,
                             'name': 'input',
                             'target_ids': {}},
                            {'batch_size': None,
+                            'callbacks_path': [],
                             'class': 'Step',
                             'computation_mode': 4,
                             'condition': None,
@@ -52,12 +53,10 @@ pipeline_json = {'id': 1,
                             'module': 'pywatts.core.step',
                             'module_id': 0,
                             'name': 'StandardScaler',
-                            'plot': False,
-                            'summary': False,
                             'target_ids': {},
-                            'to_csv': False,
                             'train_if': None},
                            {'batch_size': None,
+                            'callbacks_path': [],
                             'class': 'Step',
                             'computation_mode': 4,
                             'condition': None,
@@ -67,10 +66,7 @@ pipeline_json = {'id': 1,
                             'module': 'pywatts.core.step',
                             'module_id': 1,
                             'name': 'LinearRegression',
-                            'plot': False,
-                            'summary': False,
                             'target_ids': {},
-                            'to_csv': False,
                             'train_if': None}],
                  'version': 1}
 
@@ -318,8 +314,8 @@ class TestPipeline(unittest.TestCase):
             "step_two": result_step_two
         }
 
-        step_one.get_result.return_value = {"step_one" :result_step_one}
-        step_two.get_result.return_value = {"step_two" :result_step_two}
+        step_one.get_result.return_value = {"step_one": result_step_one}
+        step_two.get_result.return_value = {"step_two": result_step_two}
 
         result = self.pipeline._collect_results([step_one, step_two])
 
@@ -344,7 +340,7 @@ class TestPipeline(unittest.TestCase):
         first_step.finished = False
         first_step.further_elements.side_effect = [True, True, True, True, False]
 
-        first_step.get_result.return_value = {"one" : da}
+        first_step.get_result.return_value = {"one": da}
         self.pipeline.set_params(pd.Timedelta("24h"))
         self.pipeline.add(module=first_step)
 
@@ -353,10 +349,14 @@ class TestPipeline(unittest.TestCase):
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
         calls = [
-            call(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), pd.Timestamp('2000-01-02 00:00:00', freq='24H'), return_all=True),
-            call(pd.Timestamp('2000-01-02 00:00:00', freq='24H'), pd.Timestamp('2000-01-03 00:00:00', freq='24H'), return_all=True),
-            call(pd.Timestamp('2000-01-03 00:00:00', freq='24H'), pd.Timestamp('2000-01-04 00:00:00', freq='24H'), return_all=True),
-            call(pd.Timestamp('2000-01-04 00:00:00', freq='24H'), pd.Timestamp('2000-01-05 00:00:00', freq='24H'), return_all=True),
+            call(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), pd.Timestamp('2000-01-02 00:00:00', freq='24H'),
+                 return_all=True),
+            call(pd.Timestamp('2000-01-02 00:00:00', freq='24H'), pd.Timestamp('2000-01-03 00:00:00', freq='24H'),
+                 return_all=True),
+            call(pd.Timestamp('2000-01-03 00:00:00', freq='24H'), pd.Timestamp('2000-01-04 00:00:00', freq='24H'),
+                 return_all=True),
+            call(pd.Timestamp('2000-01-04 00:00:00', freq='24H'), pd.Timestamp('2000-01-05 00:00:00', freq='24H'),
+                 return_all=True),
         ]
         first_step.get_result.assert_has_calls(calls, any_order=True)
         self.assertEqual(concat_mock.call_count, 3)
@@ -482,8 +482,10 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.test(pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2]},
                                         index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
 
-        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
-        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
+        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
+                                                      return_all=True)
+        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
+                                                       return_all=True)
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
         second_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
@@ -517,8 +519,10 @@ class TestPipeline(unittest.TestCase):
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
         second_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
-        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
-        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None, return_all=True)
+        first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
+                                                      return_all=True)
+        second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
+                                                       return_all=True)
 
         first_step.reset.assert_called_once()
         second_step.reset.assert_called_once()
@@ -526,17 +530,18 @@ class TestPipeline(unittest.TestCase):
     def test_horizon_greater_one_regression(self):
         lin_reg = LinearRegression()
 
-        multi_regressor = SKLearnWrapper(lin_reg)(foo=self.pipeline["foo"], target=self.pipeline["target"], target2=self.pipeline["target2"])
+        multi_regressor = SKLearnWrapper(lin_reg)(foo=self.pipeline["foo"], target=self.pipeline["target"],
+                                                  target2=self.pipeline["target2"])
         RmseCalculator()(y=self.pipeline["target"], prediction=multi_regressor["target"])
 
         time = pd.date_range('2000-01-01', freq='24H', periods=5)
 
         foo = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
-        target = xr.DataArray([[2, 3], [2, 4], [2, 5], [2, 6], [2, 7]], dims=["time", "horizon"], coords={'time': time, "horizon":[1,2]})
+        target = xr.DataArray([[2, 3], [2, 4], [2, 5], [2, 6], [2, 7]], dims=["time", "horizon"],
+                              coords={'time': time, "horizon": [1, 2]})
         target2 = xr.DataArray([3, 3, 3, 3, 3], dims=["time"], coords={'time': time})
 
-        ds = xr.Dataset({'foo': foo, "target":target, "target2":target2})
+        ds = xr.Dataset({'foo': foo, "target": target, "target2": target2})
 
         result = self.pipeline.train(ds)
         self.assertAlmostEqual(result["RmseCalculator"].values[0], 0.0)
-

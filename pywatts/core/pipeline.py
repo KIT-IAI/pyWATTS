@@ -143,17 +143,6 @@ class Pipeline(BaseTransformer):
 
         # TODO built the graph which should be drawn by starting with the last steps...
 
-    #        complete_graph: nx.DiGraph = nx.compose(self.computational_graph, self.target_graph)
-    #       queue = nx.topological_sort(complete_graph)
-    #      graph = nx.DiGraph()
-    #     for module_id in queue:
-    #        graph.add_node(self.id_to_step[module_id].name + str(module_id))
-    #       for successor_id in complete_graph.successors(module_id):
-    #          graph.add_node(self.id_to_step[successor_id].name + str(successor_id))
-    #         graph.add_edge(self.id_to_step[module_id].name + str(module_id),
-    #                      self.id_to_step[successor_id].name + str(successor_id))
-
-    # nx.draw_planar(graph, with_labels=True)
 
     def test(self, data: Union[pd.DataFrame, xr.Dataset]):
         """
@@ -164,7 +153,7 @@ class Pipeline(BaseTransformer):
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
         :return: The result of all end points of the pipeline
-        :rytpe: Dict[xr.Dataset]
+        :rytpe: Dict[xr.DataArray]
         """
         return self._run(data, ComputationMode.Transform)
 

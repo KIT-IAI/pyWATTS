@@ -65,6 +65,8 @@ class SKLearnWrapper(BaseWrapper):
         self.targets = list(targets.keys())
         x = self._dataset_to_sklearn_input(inputs)
         target = self._dataset_to_sklearn_input(targets)
+        self.targets = list(
+            zip(targets.keys(), map(lambda x: x.shape[-1] if len(x.shape) > 1 else 1, list(targets.values()))))
         self.module.fit(x, target)
         self.is_fitted = True
 
@@ -73,8 +75,7 @@ class SKLearnWrapper(BaseWrapper):
         if x is None:
             return None
         result = None
-        for data_var in x.values():
-            data_array = data_var
+        for data_array in x.values():
             if result is not None:
                 result = np.concatenate([result, data_array.values.reshape((len(data_array.values), -1))], axis=1)
             else:
@@ -93,12 +94,13 @@ class SKLearnWrapper(BaseWrapper):
             result = xr.DataArray(prediction, coords=coords)
         else:
             result = {}
+            position = 0
+            prediction = prediction.reshape(len(list(reference.coords.values())[0]), -1)
             for i, target in enumerate(targets):
-                result[target] = xr.DataArray(prediction.reshape((-1,len(targets)))[:, i], coords={
-                    "time": list(reference.coords.values())[0].to_dataframe().index.array}, dims=["time"])
-        # TODO Test if this method of multiple output works..
-
-        # TODO test if this works if the horizon is greater than one...
+                result[target[0]] = xr.DataArray(prediction[:, position: position + target[1]], coords={
+                    "time": list(reference.coords.values())[0].to_dataframe().index.array, "dim_0": list(
+                    range(target[1]))}, dims = ["time", "dim_0"])
+                position += target[1]
         return result
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:

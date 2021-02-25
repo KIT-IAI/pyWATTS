@@ -35,17 +35,6 @@ class PipelineStep(Step):
     """
     module: Pipeline
 
-    def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, targets, plot,
-                 summary,
-                 computation_mode,
-                 to_csv, condition, batch_size, train_if):
-
-        super().__init__(module, input_steps, file_manager, targets=targets, plot=plot,
-                         summary=summary,
-                         computation_mode=computation_mode,
-                         to_csv=to_csv, condition=condition, batch_size=batch_size, train_if=train_if)
-        # TODO delete this init?
-
     def set_computation_mode(self, computation_mode: ComputationMode):
         """
         Sets the computation mode of the step for the current run. Note that after reset the all mode is restored.

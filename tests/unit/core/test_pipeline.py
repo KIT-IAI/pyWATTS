@@ -12,6 +12,7 @@ from pywatts.core.pipeline import Pipeline
 from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
 from pywatts.modules.missing_value_detection import MissingValueDetector
+from pywatts.modules.root_mean_squared_error import RmseCalculator
 from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 pipeline_json = {'id': 1,
@@ -521,3 +522,21 @@ class TestPipeline(unittest.TestCase):
 
         first_step.reset.assert_called_once()
         second_step.reset.assert_called_once()
+
+    def test_horizon_greater_one_regression(self):
+        lin_reg = LinearRegression()
+
+        multi_regressor = SKLearnWrapper(lin_reg)(foo=self.pipeline["foo"], target=self.pipeline["target"], target2=self.pipeline["target2"])
+        RmseCalculator()(y=self.pipeline["target"], prediction=multi_regressor["target"])
+
+        time = pd.date_range('2000-01-01', freq='24H', periods=5)
+
+        foo = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
+        target = xr.DataArray([[2, 3], [2, 4], [2, 5], [2, 6], [2, 7]], dims=["time", "horizon"], coords={'time': time, "horizon":[1,2]})
+        target2 = xr.DataArray([3, 3, 3, 3, 3], dims=["time"], coords={'time': time})
+
+        ds = xr.Dataset({'foo': foo, "target":target, "target2":target2})
+
+        result = self.pipeline.train(ds)
+        self.assertAlmostEqual(result["RmseCalculator"].values[0], 0.0)
+

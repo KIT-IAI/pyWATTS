@@ -57,7 +57,7 @@ class TestSimplePipeline(unittest.TestCase):
 
         pipeline2 = Pipeline.from_folder("./pipe1")
 
-        data = pd.read_csv("../../data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
+        data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]
         test = data[:6000]

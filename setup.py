@@ -5,7 +5,7 @@ setup(
     version="0.0.1.dev",
     packages=['pywatts'],
 
-    install_requires=['scikit-learn', 'cloudpickle', 'holidays', 'xarray', 'networkx', 'numpy', 'pandas', 'matplotlib',
+    install_requires=['scikit-learn', 'cloudpickle', 'holidays', 'xarray', 'numpy', 'pandas', 'matplotlib',
                       'tensorflow', 'workalendar'],
     extras_require={
         'dev': [

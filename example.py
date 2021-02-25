@@ -25,7 +25,6 @@ if __name__ == "__main__":
     pipeline = Pipeline(path="results")
 
     # Extract dummy calender features, using holidays from Germany
-    # NOTE: Will it also work without x=pipeline["time"]? So, pipeline["time"]?
     # NOTE: CalendarExtraction can't return multiple features.
     calendar_month = CalendarExtraction(
         encoding="numerical", continent="Europe", country="Germany"

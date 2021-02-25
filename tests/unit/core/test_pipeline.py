@@ -4,7 +4,6 @@ from unittest.mock import mock_open, patch, call, MagicMock
 
 import pandas as pd
 import xarray as xr
-from networkx.tests.test_convert_pandas import pd
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 

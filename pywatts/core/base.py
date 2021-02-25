@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Union, Tuple, Callable, TYPE_CHECKING
+from typing import Optional, List, Dict, Union, Tuple, Callable, TYPE_CHECKING
 
 import pandas as pd
 import xarray as xr
@@ -11,6 +11,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
 from pywatts.core.filemanager import FileManager
+from pywatts.callbacks import BaseCallback
 
 if TYPE_CHECKING:
     from pywatts.core.step_factory import StepInformation
@@ -126,9 +127,7 @@ class Base(ABC):
     def __call__(self,
                  use_inverse_transform: bool = False,
                  use_prob_transform: bool = False,
-                 plot: bool = False,
-                 to_csv: bool = False,
-                 summary: bool = False,
+                 callbacks: List[BaseCallback, Callable[[Dict[str, xr.DataArray]]]] = [],
                  condition: Optional[Callable] = None,
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
@@ -153,10 +152,8 @@ class Base(ABC):
         :type use_inverse_transform: bool
         :param use_prob_transform: Indicate if prob predict should be called instead of transform. (default false)
         :type use_prob_transform: bool
-        :param plot: Indicate if the result of the current step should be plotted. (default false)
-        :type plot: bool
-        :param to_csv: Indicate if the result of the current step should be saved as csv. (default false)
-        :type to_csv: bool
+        :param callbacks: Callbacks to use after results are processed.
+        :type callbacks: List[BaseCallback, Callable[[Dict[str, xr.DataArray]]]]
         :param train_if: A callable, which contains a condition that indicates if the module should be trained or not
         :type train_if: Optional[Callable]
         :param batch_size: Determines how much data from the past should be used for training
@@ -173,9 +170,9 @@ class Base(ABC):
 
         return StepFactory().create_step(self, kwargs=kwargs,
                                          use_inverse_transform=use_inverse_transform,
-                                         use_predict_proba=use_prob_transform, plot=plot, to_csv=to_csv,
-                                         summary=summary,
+                                         use_predict_proba=use_prob_transform,
                                          condition=condition,
+                                         callbacks=callbacks,
                                          computation_mode=computation_mode, batch_size=batch_size,
                                          train_if=train_if
                                          )

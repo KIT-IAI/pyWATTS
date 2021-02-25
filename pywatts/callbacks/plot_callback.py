@@ -15,13 +15,13 @@ class LinePlotCallback(BaseCallback):
     :type BaseCallback: BaseCallback
     """
 
-    def __init__(self, filename: str, use_filemanager: Optional[bool] = None):
+    def __init__(self, prefix: str, use_filemanager: Optional[bool] = None):
         """
         Initialise line plot callback object given a filename and
         optional use_filemanager flag.
 
-        :param filename: Filename to use for the line plot output file.
-        :type filename: str
+        :param prefix: Prefix to use for the line plot output file.
+        :type prefix: str
         :param use_filemanager: Flag to denote if the filemanager of the pipeline should be used.
         :type use_filemanager: Optional[bool]
         """
@@ -30,18 +30,20 @@ class LinePlotCallback(BaseCallback):
             super().__init__()
         else:
             super().__init__(use_filemanager)
-        self.filename = filename
+        self.prefix = prefix
 
-    def __call__(self, x: xr.DataArray):
+    def __call__(self, data_dict: xr.DataArray):
         """
         Implementation of abstract __call__ base method to save a line plot.
 
-        :param x: Data that should be plotted and saved.
-        :type x: xr.DataArray
+        :param data_dict: Dict of DataArrays that should be plotted.
+        :type data_dict: Dict[str, xr.DataArray]
         """
-        x.to_pandas().plot.line()
-        plt.savefig(self.get_path(self.filename))
-        plt.close()
+        print(data_dict)
+        for key in data_dict:
+            data_dict[key].to_pandas().plot.line()
+            plt.savefig(self.get_path(f"{self.prefix}_{key}.png"))
+            plt.close()
 
 
 class ImagePlotCallback(BaseCallback):
@@ -52,13 +54,13 @@ class ImagePlotCallback(BaseCallback):
     :type BaseCallback: BaseCallback
     """
 
-    def __init__(self, filename: str, use_filemanager: Optional[bool] = None):
+    def __init__(self, prefix: str, use_filemanager: Optional[bool] = None):
         """
         Initialise image plot callback object given a filename and
         optional use_filemanager flag.
 
-        :param filename: Filename to use for the line plot output file.
-        :type filename: str
+        :param prefix: Prefix to use for the line plot output file.
+        :type prefix: str
         :param use_filemanager: Flag to denote if the filemanager of the pipeline should be used.
         :type use_filemanager: Optional[bool]
         """
@@ -67,17 +69,20 @@ class ImagePlotCallback(BaseCallback):
             super().__init__()
         else:
             super().__init__(use_filemanager)
-        self.filename = filename
+        self.prefix = prefix
 
-    def __call__(self, x: xr.DataArray):
+    def __call__(self, data_dict: xr.DataArray):
         """
         Implementation of abstract __call__ base method to save an image plot.
 
-        :param x: Data that should be plotted and saved.
-        :type x: xr.DataArray
+        :param data_dict: Dict of DataArrays that should be plotted.
+        :type data_dict: Dict[str, xr.DataArray]
         """
-        img = x.to_pandas().to_numpy()
-        img = img.T
-        plt.imshow(img)
-        plt.savefig(self.get_path(self.filename))
-        plt.close()
+        for key in data_dict:
+            img = data_dict[key].to_pandas().to_numpy()
+            if len(img.shape) > 1:
+                img = img.T
+                plt.figure()
+                plt.imshow(img)
+                plt.savefig(self.get_path(f"{self.prefix}_{key}.png"))
+                plt.close()

@@ -17,10 +17,8 @@ class InverseStep(Step):
     :type target: Optional[Step]
     :param computation_mode: The computation mode which should be for this step. (Default: ComputationMode.Default)
     :type computation_mode: ComputationMode
-    :param plot: Flag if the result of this step should be plotted.
-    :type plot: bool
-    :param to_csv: Flag if the result of this step should be written in a csv file.
-    :type to_csv: bool
+    :param callbacks: Callbacks to use after results are processed.
+    :type callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]]
     :param condition: A callable which checks if the step should be executed with the current data.
     :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     """

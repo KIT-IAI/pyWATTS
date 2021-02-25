@@ -70,7 +70,7 @@ class BaseStep(ABC):
                 self.finished = True
             else:
                 self.finished = not self.further_elements(end)
-            self._outputs()
+            self._callbacks()
 
         return self._pack_data(start, end, buffer_element, return_all=return_all)
 
@@ -127,7 +127,7 @@ class BaseStep(ABC):
     def _fit(self, input_step, target_step):
         pass
 
-    def _outputs(self):
+    def _callbacks(self):
         pass
 
     def _post_transform(self, result):

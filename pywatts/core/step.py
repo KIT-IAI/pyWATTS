@@ -1,7 +1,9 @@
 import logging
-from typing import Optional, Dict
+from typing import Optional, Dict, Union, Iterable, Callable, List
 
 import cloudpickle
+
+import xarray as xr
 
 from pywatts.core.base import Base, BaseEstimator
 from pywatts.core.base_step import BaseStep
@@ -12,6 +14,7 @@ from pywatts.core.result_step import ResultStep
 
 from pywatts.utils.lineplot import _recursive_plot
 from pywatts.utils.summary import _xarray_summary
+from pywatts.callbacks import BaseCallback
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +34,8 @@ class Step(BaseStep):
     :type target: Optional[Step]
     :param computation_mode: The computation mode which should be for this step. (Default: ComputationMode.Default)
     :type computation_mode: ComputationMode
-    :param plot: Flag if the result of this step should be plotted.
-    :type plot: bool
-    :param to_csv: Flag if the result of this step should be written in a csv file.
-    :type to_csv: bool
+    :param callbacks: Callbacks to use after results are processed.
+    :type callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]]
     :param condition: A callable which checks if the step should be executed with the current data.
     :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     :param train_if: A callable which checks if the train_if step should be executed or not.
@@ -44,7 +45,8 @@ class Step(BaseStep):
     def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *,
                  targets: Optional[Dict[str, "BaseStep"]] = None,
                  computation_mode=ComputationMode.Default,
-                 plot=False, to_csv=False, summary: bool = True, condition=None,
+                 callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]] = [],
+                 condition=None,
                  batch_size: Optional[None] = None,
                  train_if=None):
 
@@ -53,10 +55,8 @@ class Step(BaseStep):
         self.name = module.name
         self.file_manager = file_manager
         self.module = module
+        self.callbacks = callbacks
         self.batch_size = batch_size
-        self.plot = plot
-        self.to_csv = to_csv
-        self.summary = summary
         self.train_if = train_if
         self.result_steps: Dict[str, ResultStep] = {}
 
@@ -64,15 +64,16 @@ class Step(BaseStep):
         # Fit the encapsulate module, if the input and the target is not stopped.
         self.module.fit(**inputs, **target_step)
 
-    def _outputs(self):
+    def _callbacks(self):
         # plots and writs the data if the step is finished.
-        # TODO attention buffer is now a dict and not xarray. Check if this leads to problems
-        if self.plot and self.finished:
-            self._plot(self.buffer)
-        if self.to_csv and self.finished:
-            self._to_csv(self.buffer)
-        if self.summary and self.finished:
-            self._summary(self.buffer)
+        for callback in self.callbacks:
+            if isinstance(callback, BaseCallback):
+                callback.set_filemanager(self.file_manager)
+            if isinstance(self.buffer, xr.DataArray) or isinstance(self.buffer, xr.Dataset):
+                # DEPRECATED: direct DataArray or Dataset passing is depricated
+                callback({"deprecated": self.buffer})
+            else:
+                callback(self.buffer)
 
     def _transform(self, input_step):
         if isinstance(self.module, BaseEstimator) and not self.module.is_fitted:
@@ -82,41 +83,6 @@ class Step(BaseStep):
         result = self.module.transform(**input_step)
         self._post_transform(result)
         return result
-
-    def _plot(self, result):
-        if isinstance(result, dict):
-            for key, value in result.items():
-                name = f"{self.module.name}" + "_" + key
-                title = self.module.name + "_" + key
-                _recursive_plot(result[key], filemanager=self.file_manager, name=name, title=title)
-        else:
-            name = f"{self.module.name}"
-            title = self.module.name
-            _recursive_plot(result, filemanager=self.file_manager, name=name, title=title)
-
-    def _to_csv(self, dataset):
-        if isinstance(dataset, dict):
-            for key, value in dataset.items():
-                dataset[key].to_dataframe(self.name + "_" + key).to_csv(
-                    self.file_manager.get_path(f"{self.name}_{key}.csv"), sep=";"
-                )
-        else:
-            dataset.to_dataframe(self.name).to_csv(
-                self.file_manager.get_path(f"{self.name}.csv"), sep=";"
-            )
-
-    def _summary(self, dataset):
-        """
-        Print out some basic information of the dataset
-        like pandas DataFrame.describe method.
-
-        :param dataset: xarray dataset to print out summary for.
-        """
-        _xarray_summary(dataset)
-
-    # # simple pre-condition check if the buffer is available
-    # if self.inputs[0] is None:
-    #   raise RuntimeError('Input for Module ' + self.name + ' not available')
 
     @classmethod
     def load(cls, stored_step: Dict, inputs, targets, module, file_manager):
@@ -139,10 +105,14 @@ class Step(BaseStep):
                 train_if = cloudpickle.load(pickle_file)
         else:
             train_if = None
-        step = cls(module, inputs, targets=targets, file_manager=file_manager, plot=stored_step["plot"],
-                   to_csv=stored_step["to_csv"], summary=stored_step["summary"],
+        if stored_step["callbacks"]:
+            with open(stored_step["callbacks"], 'rb') as pickle_file:
+                callbacks = cloudpickle.load(pickle_file)
+        else:
+            callbacks = []
+        step = cls(module, inputs, targets=targets, file_manager=file_manager,
                    computation_mode=ComputationMode(stored_step["computation_mode"]), condition=condition,
-                   train_if=train_if, batch_size=stored_step["batch_size"])
+                   train_if=train_if, callbacks=callbacks, batch_size=stored_step["batch_size"])
         step.id = stored_step["id"]
         step.name = stored_step["name"]
         step.last = stored_step["last"]
@@ -180,6 +150,7 @@ class Step(BaseStep):
         json = super().get_json(fm)
         condition_path = None
         train_if_path = None
+        callbacks_path = None
         if self.condition:
             condition_path = fm.get_path(f"{self.name}_condition.pickle")
             with open(condition_path, 'wb') as outfile:
@@ -188,9 +159,11 @@ class Step(BaseStep):
             train_if_path = fm.get_path(f"{self.name}_train_if.pickle")
             with open(train_if_path, 'wb') as outfile:
                 cloudpickle.dump(self.train_if, outfile)
-        json.update({"plot": self.plot,
-                     "to_csv": self.to_csv,
-                     "summary": self.summary,
+        if self.callbacks:
+            callbacks_path = fm.get_path(f"{self.name}_callbacks.pickle")
+            with open(callbacks_path, 'wb') as outfile:
+                cloudpickle.dump(self.callbacks, outfile)
+        json.update({"callbacks_path": self.callbacks,
                      "condition": condition_path,
                      "train_if": train_if_path,
                      "batch_size": self.batch_size})

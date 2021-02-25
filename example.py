@@ -12,6 +12,7 @@ from sklearn.preprocessing import StandardScaler
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
+from pywatts.callbacks import LinePlotCallback, CSVCallback
 # All modules required for the pipeline are imported
 from pywatts.modules.calendar_extraction import CalendarExtraction
 from pywatts.modules.clock_shift import ClockShift
@@ -63,17 +64,17 @@ if __name__ == "__main__":
         cal_weekday=calendar_weekday,
         call_weekend=calendar_weekend,
         target=scale_power_statistics,
-        plot=True,
+        callbacks=[LinePlotCallback('linear_regression')],
     )
 
     # Rescale the predictions to be on the original time scale
     inverse_power_scale = power_scaler(
         x=regressor_power_statistics, computation_mode=ComputationMode.Transform,
-        use_inverse_transform=True, plot=True
+        use_inverse_transform=True, callbacks=[LinePlotCallback('rescale')]
     )
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], to_csv=True)
+    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], callbacks=[CSVCallback('RMSE')])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

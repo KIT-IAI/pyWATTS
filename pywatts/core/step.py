@@ -4,7 +4,7 @@ from typing import Optional, Dict, Union, Callable, List
 import cloudpickle
 import xarray as xr
 
-from pywatts.callbacks.base_callback import BaseCallback
+from pywatts.callbacks import BaseCallback
 from pywatts.core.base import Base, BaseEstimator
 from pywatts.core.base_step import BaseStep
 from pywatts.core.computation_mode import ComputationMode

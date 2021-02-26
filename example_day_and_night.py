@@ -10,8 +10,8 @@ from sklearn.svm import SVR
 
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks.csv_callback import CSVCallback
-from pywatts.callbacks.plot_callback import  LinePlotCallback
+from pywatts.callbacks import CSVCallback, LinePlotCallback
+
 
 # Import the pyWATTS pipeline and the required modules
 from pywatts.modules.clock_shift import ClockShift

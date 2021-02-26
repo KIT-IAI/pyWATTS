@@ -11,7 +11,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
 from pywatts.core.filemanager import FileManager
-from pywatts.callbacks.base_callback import  BaseCallback
+from pywatts.callbacks import BaseCallback
 
 if TYPE_CHECKING:
     from pywatts.core.step_factory import StepInformation

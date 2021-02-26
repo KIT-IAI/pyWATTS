@@ -13,7 +13,7 @@ from pywatts.core.pipeline_step import PipelineStep
 from pywatts.core.probabilistic_step import ProbablisticStep
 from pywatts.core.step import Step
 from pywatts.core.step_information import StepInformation
-from pywatts.callbacks.base_callback import  BaseCallback
+from pywatts.callbacks import BaseCallback
 
 
 class StepFactory:

@@ -1,9 +1,9 @@
-from setuptools import setup
+import setuptools
 
-setup(
+setuptools.setup(
     name="pywatts",
     version="0.0.1.dev",
-    packages=['pywatts'],
+    packages=setuptools.find_packages(),
 
     install_requires=['scikit-learn', 'cloudpickle', 'holidays', 'xarray', 'numpy', 'pandas', 'matplotlib',
                       'tensorflow', 'workalendar'],

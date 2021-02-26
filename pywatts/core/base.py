@@ -26,7 +26,7 @@ class Base(ABC):
     :type name: str
     """
 
-    def __init__(self, name: str, **kwargs):
+    def __init__(self, name: str):
         self.name = name
         self.is_wrapper = False
 
@@ -52,8 +52,7 @@ class Base(ABC):
         """
         Fit the model, e.g. optimize parameters such that model(x) = y
 
-        :param x: input
-        :param y: target
+        :param kwargs: key word arguments as input. If the key word starts with target, then it is a target variable.
         :return:
         """
 
@@ -62,7 +61,9 @@ class Base(ABC):
         """
         Transforms the input.
 
-        :param x: the input
+        :param x: key word arguments as input. Note that it is not allowed to use key words that starts with target
+                  here, since this are target variables. And this function shall not fit any models against a target
+                  variable.
         :return: The transformed input
         """
 
@@ -71,9 +72,11 @@ class Base(ABC):
         Performs the inverse transformation if available.
         Note for developers of modules: if this method is implemented the flag "self.has_inverse_transform" must be set
         to True in the constructor.
-         I.e. self.has_inverse_transform = True (must be called after "super().__init__(name)")
+        I.e. self.has_inverse_transform = True (must be called after "super().__init__(name)")
 
-        :param x: the input
+        :param x: key word arguments as input. Note that it is not allowed to use key words that starts with target
+                  here, since this are target variables. And this function shall not fit any models against a target
+                  variable.
         :return: The transformed input
         """
         # if this method is not overwritten and hence not implemented, raise an exception
@@ -87,7 +90,9 @@ class Base(ABC):
         True in the constructor.
         I.e. self.has_inverse_transform = True (must be called after "super().__init__(name)")
 
-        :param x: the input
+        :param x: key word arguments as input. Note that it is not allowed to use key words that starts with target
+                  here, since this are target variables. And this function shall not fit any models against a target
+                  variable.
         :return: The transformed input
         """
         # if this method is not overwritten and hence not implemented, raise an exception
@@ -127,7 +132,7 @@ class Base(ABC):
     def __call__(self,
                  use_inverse_transform: bool = False,
                  use_prob_transform: bool = False,
-                 callbacks: List[BaseCallback, Callable[[Dict[str, xr.DataArray]]]] = [],
+                 callbacks: List[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]] = [],
                  condition: Optional[Callable] = None,
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
@@ -146,7 +151,7 @@ class Base(ABC):
                        The input can also be a tuple, in that case at least the result of one of
                        the steps in the tuple must be provided for calculating the next step. The
                        tuples can be used for merging paths after a condition.
-        :type inputs: Union[StepInformation, Tuple[StepInformation]]
+        :type kwargs: Union[StepInformation, Tuple[StepInformation]]
         :param use_inverse_transform: Indicate if inverse transform should be called instead of transform.
                                       (default false)
         :type use_inverse_transform: bool
@@ -161,9 +166,8 @@ class Base(ABC):
         :param computation_mode: Determines the computation mode of the step. Could be ComputationMode.Train,
                                  ComputationMode.Transform, and Computation.FitTransform
         :type computation_mode: ComputationMode
-        :return: Tuple of two step informations. The first one is the original step_information. The second one is
-              the stepinformation with the inversed condition
-        :rtype: Tuple[StepInformation]
+        :return: a step information.
+        :rtype: StepInformation
         """
 
         from pywatts.core.step_factory import StepFactory

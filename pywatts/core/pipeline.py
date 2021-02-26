@@ -120,7 +120,7 @@ class Pipeline(BaseTransformer):
         """
         Returns the parameter of a pipeline module
         :return: Dictionary containing information about this module
-        :rtype: dict
+        :rtype: Dict
         """
         return {"batch": self.batch}
 
@@ -152,7 +152,7 @@ class Pipeline(BaseTransformer):
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
         :return: The result of all end points of the pipeline
-        :rytpe: Dict[xr.DataArray]
+        :rtype: Dict[xr.DataArray]
         """
         return self._run(data, ComputationMode.Transform)
 
@@ -165,7 +165,7 @@ class Pipeline(BaseTransformer):
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
         :return: The result of all end points of the pipeline
-        :rytpe: Dict[xr.DataArray]
+        :rtype: Dict[xr.DataArray]
         """
 
         return self._run(data, ComputationMode.FitTransform)
@@ -227,6 +227,10 @@ class Pipeline(BaseTransformer):
         return step_id
 
     def save(self, fm: FileManager):
+        """
+        Saves the pipeline. Note You should not call this method from outside of pyWATTS. If you want to store your
+        pipeline then you should use to_folder.
+        """
         json_module = super().save(fm)
         path = os.path.join(str(fm.basic_path), self.name)
         if os.path.isdir(path):
@@ -241,6 +245,10 @@ class Pipeline(BaseTransformer):
 
     @classmethod
     def load(cls, load_information):
+        """
+        Loads the pipeline.  Note You should not call this method from outside of pyWATTS. If you want to store your
+        pipeline then you should use from_folder.
+        """
         pipeline = cls.from_folder(load_information["pipeline_path"])
         return pipeline
 

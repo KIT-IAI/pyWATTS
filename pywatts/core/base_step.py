@@ -20,7 +20,9 @@ class BaseStep(ABC):
     :param targets: The target steps
     :type targets: Optional[Dict[str, BaseStep]]
     :param condition: A function which evaluates to False or True for detecting if the module should be executed.
+    :type condition: Callable
     :param computation_mode: The computation mode for this module
+    :type computation_mode: ComputationMode
     """
 
     def __init__(self,  input_steps: Optional[Dict[str, "BaseStep"]]=None,
@@ -53,6 +55,11 @@ class BaseStep(ABC):
         :type start: pd.Timedstamp
         :param end: The end date of the requested results of the step (exclusive)
         :type end: Optional[pd.Timestamp]
+        :param buffer_element: if the buffer of the step contains multiple results, this determines the result which is
+                               returned.
+        :type buffer_element: str
+        :param return_all: Flag that indicates if all results in the buffer should be returned.
+        :type return_all: bool
         :return: The resulting data or None if no data are calculated
         """
         self.stop = False

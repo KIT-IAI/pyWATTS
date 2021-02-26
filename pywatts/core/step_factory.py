@@ -61,7 +61,7 @@ class StepFactory:
         # TODO needs to check that inputs are unambigious -> I.e. check that each input has only one output
         pipeline = self._check_ins(kwargs)
 
-        input_steps, target_steps = self.split_input_target_steps(kwargs, pipeline)
+        input_steps, target_steps = self._split_input_target_steps(kwargs, pipeline)
 
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps,
@@ -92,7 +92,7 @@ class StepFactory:
 
         return StepInformation(step, pipeline)
 
-    def split_input_target_steps(self, kwargs, pipeline):
+    def _split_input_target_steps(self, kwargs, pipeline):
         input_steps: Dict[str, BaseStep] = dict()
         target_steps: Dict[str, BaseStep] = dict()
         for key, element in kwargs.items():

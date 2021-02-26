@@ -15,10 +15,16 @@ class ResultStep(BaseStep):
         super().__init__(input_steps=input_steps)
         self.buffer_element = buffer_element
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp]):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], *args):
+        """
+        Returns the specified result of the previous step.
+        """
         return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
 
     def get_json(self, fm: FileManager) -> Dict:
+        """
+        Returns all information for restoring the resultStep.
+        """
         json_dict = super().get_json(fm)
         json_dict["buffer_element"] = self.buffer_element
         return json_dict

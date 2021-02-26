@@ -50,6 +50,9 @@ class StartStep(BaseStep):
             return True
 
     def get_json(self, fm: FileManager) -> Dict:
+        """
+        Returns all information that are needed for restoring the start step
+        """
         json = super().get_json(fm)
         json["index"] = self.index
         return json

@@ -10,7 +10,8 @@ import torch
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.callbacks.csv_callback import CSVCallback
+from pywatts.callbacks.plot_callback import  LinePlotCallback
 
 # Import the pyWATTS pipeline and the required modules
 from pywatts.modules.calendar_extraction import CalendarExtraction

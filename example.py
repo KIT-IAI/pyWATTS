@@ -12,7 +12,8 @@ from sklearn.preprocessing import StandardScaler
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.callbacks.csv_callback import CSVCallback
+from pywatts.callbacks.plot_callback import  LinePlotCallback
 # All modules required for the pipeline are imported
 from pywatts.modules.calendar_extraction import CalendarExtraction
 from pywatts.modules.clock_shift import ClockShift

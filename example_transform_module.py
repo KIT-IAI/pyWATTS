@@ -5,7 +5,8 @@ import pandas as pd
 
 # From pyWATTS the pipeline is imported
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.callbacks.csv_callback import CSVCallback
+from pywatts.callbacks.plot_callback import  LinePlotCallback
 # All modules required for the pipeline are imported
 from pywatts.wrapper.function_module import FunctionModule
 

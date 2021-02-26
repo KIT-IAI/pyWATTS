@@ -39,9 +39,9 @@ class LinePlotCallback(BaseCallback):
         :param data_dict: Dict of DataArrays that should be plotted.
         :type data_dict: Dict[str, xr.DataArray]
         """
-        print(data_dict)
         for key in data_dict:
             data_dict[key].to_pandas().plot.line()
+            plt.tight_layout()
             plt.savefig(self.get_path(f"{self.prefix}_{key}.png"))
             plt.close()
 
@@ -82,7 +82,7 @@ class ImagePlotCallback(BaseCallback):
             img = data_dict[key].to_pandas().to_numpy()
             if len(img.shape) > 1:
                 img = img.T
-                plt.figure()
                 plt.imshow(img)
+                plt.tight_layout()
                 plt.savefig(self.get_path(f"{self.prefix}_{key}.png"))
                 plt.close()

@@ -9,8 +9,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
 from pywatts.core.computation_mode import ComputationMode
-# Import the pyWATTS pipeline and the required modules
 from pywatts.core.pipeline import Pipeline
+from pywatts.callbacks import CSVCallback, LinePlotCallback
+
+# Import the pyWATTS pipeline and the required modules
 from pywatts.modules.clock_shift import ClockShift
 from pywatts.modules.linear_interpolation import LinearInterpolater
 from pywatts.modules.root_mean_squared_error import RmseCalculator
@@ -52,19 +54,19 @@ def create_test_pipeline(modules):
                                                    ClockShift_1=pipeline["ClockShift_1"],
                                                    condition=lambda x, y: not is_daytime(x, y),
                                                    computation_mode=ComputationMode.Transform,
-                                                   plot=True)
+                                                   callbacks=[LinePlotCallback('SVR')])
 
     # Add the linear regressor to the pipeline. This regressor should be called if it is daytime
     regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["ClockShift"],
                                                            ClockShift_1=pipeline["ClockShift_1"],
                                                            condition=lambda x, y: is_daytime(x, y),
                                                            computation_mode=ComputationMode.Transform,
-                                                           plot=True)
+                                                           callbacks=[LinePlotCallback('LinearRegression')])
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
     RmseCalculator()(
         y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"],
-        plot=True, to_csv=True)
+        callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
 
     return pipeline
 
@@ -94,11 +96,11 @@ if __name__ == "__main__":
     regressor_lin_reg(ClockShift=preprocessing_pipeline["ClockShift"],
                       ClockShift_1=preprocessing_pipeline["ClockShift_1"],
                       target=train_pipeline["load_power_statistics"],
-                      plot=True)
+                      callbacks=[LinePlotCallback('LinearRegression')])
     regressor_svr(ClockShift=preprocessing_pipeline["ClockShift"],
                   ClockShift_1=preprocessing_pipeline["ClockShift_1"],
                   target=train_pipeline["load_power_statistics"],
-                  plot=True)
+                  callbacks=[LinePlotCallback('SVR')])
 
     print("Start training")
     train_pipeline.train(data)
@@ -117,7 +119,7 @@ if __name__ == "__main__":
     test_pipeline(ClockShift=preprocessing_pipeline["ClockShift"],
                   ClockShift_1=preprocessing_pipeline["ClockShift_1"],
                   load_power_statistics=pipeline["load_power_statistics"],
-                  plot=True, to_csv=True)
+                  callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

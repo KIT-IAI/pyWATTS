@@ -1,3 +1,5 @@
+from typing import Dict
+
 import torch
 import xarray as xr
 from torch.optim.lr_scheduler import StepLR
@@ -36,14 +38,17 @@ class PyTorchWrapper(DlWrapper):
     def __init__(self, model: torch.nn.Module, name: str = "PyTorchWrapper", fit_kwargs=None, compile_kwargs=None):
         super().__init__(model, name, fit_kwargs, compile_kwargs)
 
-    def fit(self, x: xr.Dataset, y: xr.Dataset):
+    def fit(self, **kwargs: xr.DataArray):
         """
         Calls the compile and the fit method of the wrapped keras module.
-
-        :param x: The input data
-        :param y: The target data
         """
-
+        x = dict()
+        y = dict()
+        for key, value in kwargs.items():
+            if key.startswith("target"):
+                y[key] = value
+            else:
+                x[key] = value
         # check if gpu is available
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
@@ -104,7 +109,7 @@ class PyTorchWrapper(DlWrapper):
         self.model.to("cpu")
         self.is_fitted = True
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Calls predict of the underlying PyTorch model.
 
@@ -115,7 +120,7 @@ class PyTorchWrapper(DlWrapper):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
 
-        x_np = xarray_to_numpy(x)
+        x_np = xarray_to_numpy(kwargs)
         x_dl = torch.from_numpy(x_np).float()
 
         self.model.eval()
@@ -137,7 +142,7 @@ class PyTorchWrapper(DlWrapper):
                 "time": list(x.coords.values())[0].to_dataframe().index.array}
         result = xr.Dataset(data)
         '''
-        ret = numpy_to_xarray(pred, x, self.name)
+        ret = numpy_to_xarray(pred, list(kwargs.values())[0], self.name)
         return ret
 
     def save(self, fm: FileManager):
@@ -153,9 +158,6 @@ class PyTorchWrapper(DlWrapper):
         file_path = fm.get_path(f'{self.name}.pt')
         torch.save(self.model, file_path)
         json.update({"pytorch_module": file_path})
-
-        # sm = torch.jit.script(self.model)
-
         return json
 
     @classmethod

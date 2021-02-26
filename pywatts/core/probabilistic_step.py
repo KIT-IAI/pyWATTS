@@ -1,7 +1,5 @@
-from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import \
     KindOfTransformDoesNotExistException, KindOfTransform
-from pywatts.core.base import Base
 from pywatts.core.step import Step
 
 
@@ -26,15 +24,8 @@ class ProbablisticStep(Step):
     :param summary: Flag if the summary of the result of this step should be printed.
     :type summary: bool
     :param condition: A callable which checks if the step should be executed with the current data.
-    :type condition: Callable[xr.Dataset, xr.Dataset, bool]
+    :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     """
-
-    def __init__(self, module: Base, input_step: 'Step', file_manager, target=None,
-                 computation_mode=ComputationMode.Default, plot: bool = False,
-                 to_csv: bool = False, summary: bool = False, condition=None):
-        super().__init__(module=module, input_step=input_step, target=target, file_manager=file_manager,
-                         computation_mode=computation_mode,
-                         plot=plot, to_csv=to_csv, summary=summary, condition=condition)
 
     def _transform(self, input_step):
         # Call probabilistic transform of the encapsulated module

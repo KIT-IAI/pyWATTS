@@ -1,4 +1,5 @@
 import pickle
+from typing import List, Tuple
 
 import numpy as np
 import sklearn
@@ -25,6 +26,7 @@ class SKLearnWrapper(BaseWrapper):
             name = module.__class__.__name__
         super().__init__(name)
         self.module = module
+        self.targets = []
 
         if hasattr(self.module, 'inverse_transform'):
             self.has_inverse_transform = True
@@ -47,15 +49,25 @@ class SKLearnWrapper(BaseWrapper):
         """
         return self.module.set_params(**kwargs)
 
-    def fit(self, x: xr.Dataset, y: xr.Dataset = None):
+    def fit(self, **kwargs):
         """
         Fit the sklearn module
         :param x: input data
         :param y: target data
         """
-        x = self._dataset_to_sklearn_input(x)
-        y = self._dataset_to_sklearn_input(y)
-        self.module.fit(x, y)
+        inputs = dict()
+        targets = dict()
+        for key, value in kwargs.items():
+            if key.startswith("target"):
+                targets[key] = value
+            else:
+                inputs[key] = value
+        self.targets = list(targets.keys())
+        x = self._dataset_to_sklearn_input(inputs)
+        target = self._dataset_to_sklearn_input(targets)
+        self.targets = list(
+            zip(targets.keys(), map(lambda x: x.shape[-1] if len(x.shape) > 1 else 1, list(targets.values()))))
+        self.module.fit(x, target)
         self.is_fitted = True
 
     @staticmethod
@@ -63,8 +75,7 @@ class SKLearnWrapper(BaseWrapper):
         if x is None:
             return None
         result = None
-        for data_var in x.data_vars:
-            data_array = x[data_var]
+        for data_array in x.values():
             if result is not None:
                 result = np.concatenate([result, data_array.values.reshape((len(data_array.values), -1))], axis=1)
             else:
@@ -72,24 +83,33 @@ class SKLearnWrapper(BaseWrapper):
         return result
 
     @staticmethod
-    def _sklearn_output_to_dataset(x: xr.Dataset, prediction, name: str) -> xr.Dataset:
+    def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
+        reference = kwargs[list(kwargs)[0]]
 
-        coords = (
-            # first dimension is number of batches. We assume that this is the time.
-            ("time", list(x.coords.values())[0].to_dataframe().index.array),
-            *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
+        if len(targets) == 0:
+            coords = (
+                # first dimension is number of batches. We assume that this is the time.
+                ("time", list(reference.coords.values())[0].to_dataframe().index.array),
+                *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
+            result = xr.DataArray(prediction, coords=coords)
+        else:
+            result = {}
+            position = 0
+            prediction = prediction.reshape(len(list(reference.coords.values())[0]), -1)
+            for i, target in enumerate(targets):
+                result[target[0]] = xr.DataArray(prediction[:, position: position + target[1]], coords={
+                    "time": list(reference.coords.values())[0].to_dataframe().index.array, "dim_0": list(
+                        range(target[1]))}, dims=["time", "dim_0"])
+                position += target[1]
+        return result
 
-        data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
-                "time": list(x.coords.values())[0].to_dataframe().index.array}
-        return xr.Dataset(data)
-
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Transforms a dataset or predicts the result with the wrapped sklearn module
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(x)
+        x_np = self._dataset_to_sklearn_input(kwargs)
 
         if isinstance(self.module, TransformerMixin):
             prediction = self.module.transform(x_np)
@@ -100,15 +120,15 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(x, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
-    def inverse_transform(self, x: xr.Dataset) -> xr.Dataset:
+    def inverse_transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Performs the inverse transform of a dataset with the wrapped sklearn module
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(x)
+        x_np = self._dataset_to_sklearn_input(kwargs)
         if self.has_inverse_transform:
             prediction = self.module.inverse_transform(x_np)
         else:
@@ -116,15 +136,15 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a inverse transform method",
                 KindOfTransform.INVERSE_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(x, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
-    def predict_proba(self, x: xr.Dataset) -> xr.Dataset:
+    def predict_proba(self, **kwargs) -> xr.DataArray:
         """
         Performs the probabilistic transform of a dataset with the wrapped sklearn module
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(x)
+        x_np = self._dataset_to_sklearn_input(kwargs)
         if self.has_predict_proba:
             prediction = self.module.predict_proba(x_np)
         else:
@@ -132,7 +152,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict_proba method",
                 KindOfTransform.PROBABILISTIC_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(x, prediction, self.name)
+        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
     def save(self, fm: FileManager):
         json = super().save(fm)

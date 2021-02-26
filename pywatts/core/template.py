@@ -54,7 +54,7 @@ class Template(BaseEstimator):
 
         pass
 
-    def fit(self, x: xr.Dataset, y: xr.Dataset):
+    def fit(self, x: xr.DataArray, y: xr.DataArray):
         """
         Fit the model, e.g. optimize parameters such that model(x) = y
 
@@ -65,7 +65,7 @@ class Template(BaseEstimator):
         """
         # Write the code for fitting the module/model
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, x: Optional[xr.DataArray]) -> xr.DataArray:
         """
         Transforms the input
 
@@ -76,7 +76,7 @@ class Template(BaseEstimator):
         """
         # Write here code for transforming the input
 
-    def predict_proba(self, x: xr.Dataset) -> xr.Dataset:
+    def predict_proba(self, x: xr.DataArray) -> xr.DataArray:
         """
         Probabilistic transform, necessary, for example, for methods for probabilist forecasts.
 
@@ -89,9 +89,9 @@ class Template(BaseEstimator):
         """
 
         # add here code for the probabilist transform
-        return xr.Dataset()
+        return xr.DataArray()
 
-    def inverse_transform(self, x: xr.Dataset) -> xr.Dataset:
+    def inverse_transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Inverse transform, necessary, for example, for methods for that can perform the inverse of the transform,
         e.g., Scaler.
@@ -105,4 +105,4 @@ class Template(BaseEstimator):
         """
 
         # Add here code for the inverse transform
-        return xr.Dataset()
+        return xr.DataArray()

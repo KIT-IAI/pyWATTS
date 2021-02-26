@@ -35,7 +35,6 @@ class FunctionModule(BaseTransformer):
         Does nothing:
         """
 
-
     def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
         """
         Call the function wrapped by this module on x.

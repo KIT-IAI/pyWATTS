@@ -1,5 +1,3 @@
-from typing import List
-
 from pywatts.core.base_step import BaseStep
 
 
@@ -12,8 +10,8 @@ class EitherOrStep(BaseStep):
     :type input_step: List[BaseStep]
     """
 
-    def __init__(self, input_step: List[BaseStep]):
-        super().__init__(list(input_step))
+    def __init__(self, input_steps):
+        super().__init__(input_steps)
         self.name = "EitherOr"
 
     def _compute(self, start, end):
@@ -22,7 +20,7 @@ class EitherOrStep(BaseStep):
 
     def _get_input(self, start, batch):
         inputs = []
-        for step in self.inputs:
+        for step in self.input_steps.values():
             inp = step.get_result(start, batch)
             inputs.append(inp)
         return inputs
@@ -30,7 +28,7 @@ class EitherOrStep(BaseStep):
     def _transform(self, input_step):
         # Chooses the first input_step which calculation is not stopped.
         for in_step in input_step:
-            if not in_step is None:
+            if in_step is not None:
                 # This buffer is never changed in this step. Consequently, no copy is necessary..
                 self._post_transform(in_step)
                 return

@@ -9,8 +9,8 @@ from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 class Sampler(BaseTransformer):
     """
-    This module creates samples with a size specified by sample_size. I.e., if sample_size is 24h. It creates for each timestamp a vector.
-    containing all values of the past 24 hours.
+    This module creates samples with a size specified by sample_size. I.e., if sample_size is 24h. It creates for each
+    timestamp a vector containing all values of the past 24 hours.
     E.g., this module is useful if it forecasting algorithms needs the values of the past 24 hours as input.
 
     :param sample_size: The offset for shifting the time series
@@ -42,7 +42,7 @@ class Sampler(BaseTransformer):
         return {
             "lag": self.sample_size,
             "indeces": self.indexes,
-            "data_var_names":self.data_var_names
+            "data_var_names": self.data_var_names
         }
 
     def set_params(self, sample_size: int = None, indexes: List[str] = None, data_var_names=[]):
@@ -63,16 +63,16 @@ class Sampler(BaseTransformer):
             # Do not use if indexes here, since this would be false if indexes is empty.
             self.indexes = indexes
         if data_var_names:
-            self.data_var_names =data_var_names
+            self.data_var_names = data_var_names
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Sample the given time series x by the lag.
 
         :param x: the input
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: A shifted time series.
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         indexes = self.indexes
         if not indexes:
@@ -84,7 +84,7 @@ class Sampler(BaseTransformer):
         except ValueError:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
-                f"Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
+                "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
                 module=self.name)
         result = result.transpose(_get_time_indeces(x)[0], "horizon", ...)
         if self.data_var_names:

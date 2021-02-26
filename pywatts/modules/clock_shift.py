@@ -55,25 +55,23 @@ class ClockShift(BaseTransformer):
             # Do not use if indices here, since this would be false if indices is empty.
             self.indices = indices
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Shifts the given time series x by the defined lag
 
         :param x: the time series to be shifted
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: The shifted time series
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         :raises WrongParameterException: If not all indices are part of x
         """
         indices = self.indices
         if not indices:
             indices = _get_time_indeces(x)
         try:
-            return x.shift({index: self.lag for index in indices}, fill_value=0).rename({
-                old_name: self.name for old_name in list(x.data_vars)
-            })
+            return x.shift({index: self.lag for index in indices}, fill_value=0)
         except ValueError:
             raise WrongParameterException(
                 f"Not all indices ({indices}) are in the indices of x ({list(x.indexes.keys())}).",
-                f"Perhaps you set the wrong indices with set_params or during the initialization of the ClockShift.",
+                "Perhaps you set the wrong indices with set_params or during the initialization of the ClockShift.",
                 module=self.name)

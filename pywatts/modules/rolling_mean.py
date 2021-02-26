@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict
 
 import xarray as xr
 
@@ -38,7 +38,7 @@ class RollingMean(BaseTransformer):
         if indexes:
             self.indexes = indexes
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         indexes = self.indexes
         if not indexes:
             indexes = _get_time_indeces(x)
@@ -47,5 +47,5 @@ class RollingMean(BaseTransformer):
         except KeyError:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
-                f"Perhaps you set the wrong indexes with set_params or during the initialization of mean regressor.",
+                "Perhaps you set the wrong indexes with set_params or during the initialization of mean regressor.",
                 module=self.name)

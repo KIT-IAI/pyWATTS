@@ -41,10 +41,11 @@ class TestPyTorchWrapper(unittest.TestCase):
                                  fit_kwargs={"batch_size": 8, "epochs": 1},
                                  compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]})
 
-        x = xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])})
-        y = xr.Dataset({"test": xr.DataArray([1, 2, 3, 4, 5])})
+        time = pd.date_range('2000-01-01', freq='24H', periods=5)
+        x = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
+        y = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
 
-        wrapper.fit(x, y)
+        wrapper.fit(x=x, target=y)
 
     def test_fit_transform_PyTorchModel(self):
         model = self.get_sequential_model(d_in=1, d_out=1, h=5)
@@ -53,15 +54,10 @@ class TestPyTorchWrapper(unittest.TestCase):
                                  compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]})
 
         time = pd.date_range('2000-01-01', freq='24H', periods=5)
-        x = xr.Dataset(
-            {'test': (['time'], [1, 2, 3, 4, 5]),
-             'time': time})
-        y = xr.Dataset(
-            {'test': (['time'], [1, 2, 3, 4, 5]),
-             'time': time})
+        x = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
+        y = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
 
-        wrapper.fit(x, y)
-        y_pred = wrapper.transform(x)
+        wrapper.fit(x=x, target=y)
+        y_pred = wrapper.transform(x=x)
 
         self.assertIsNotNone(y_pred)
-

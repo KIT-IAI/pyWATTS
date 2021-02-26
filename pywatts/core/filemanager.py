@@ -12,7 +12,7 @@ ALLOWED_FILES = ["png", "csv", "xlsx", "pickle", "tex", "json", "h5", "pt"]
 
 class FileManager:
     """
-    This class is responsible for managing files in PyWatts.
+    This class is responsible for managing files in pyWATTS.
     It ensures that all files for one pipeline run are in the same folder.
     Moreover, it appends a timestamp to the corresponding path
 

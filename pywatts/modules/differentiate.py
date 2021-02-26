@@ -85,13 +85,13 @@ class Differentiate(BaseTransformer):
         if pad_args is not None:
             self.pad_args = pad_args
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Add n-th order differentiate to xarray dataset.
 
         :param x: Xarray dataset to apply differentiation on.
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return: Xarray dataset containing the n-th order differentiations.
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
         # check parameters for non list types and make it a list
         if isinstance(self.n, int):
@@ -110,7 +110,7 @@ class Differentiate(BaseTransformer):
         for idx in idxs:
             if idx not in x:
                 raise WrongParameterException(f"Index {idx} not in dataset!",
-                                              f"Assert that the previous modules provide the correct index.",
+                                              "Assert that the previous modules provide the correct index.",
                                               module=self.name)
 
         # iterate over xarray indizes and n-th orders

@@ -46,12 +46,13 @@ class KerasWrapper(DlWrapper):
 
         result = None
         for i, pred in enumerate(prediction):
+            time_index = _get_time_indeces(x)[0]
             coords = (
                 # first dimension is number of batches. We assume that this is the time.
-                ("time", x.indexes[_get_time_indeces(x)[0]]),
+                (time_index, x.indexes[time_index]),
                 *[(f"dim_{j}", list(range(size))) for j, size in enumerate(pred.shape[1:])])
             data = {self.model.outputs[i].name.split("/")[0]: (tuple(map(lambda x: x[0], coords)), pred),
-                    "time": x.indexes[_get_time_indeces(x)[0]]}
+                    time_index: x.indexes[time_index]}
             if not result:
                 result = xr.Dataset(data)
             else:
@@ -71,7 +72,7 @@ class KerasWrapper(DlWrapper):
             aux_model.save(filepath=fm.get_path(f"{self.name}_{name}.h5"))
             aux_models.append((name, fm.get_path(f"{self.name}_{name}.h5")))
         json.update({
-            f"aux_models": aux_models,
+            "aux_models": aux_models,
             "model": fm.get_path(f"{self.name}.h5")
         })
 

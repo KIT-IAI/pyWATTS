@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict
 
 import numpy as np
 import xarray as xr
@@ -19,10 +19,8 @@ class RmseCalculator(BaseTransformer):
     :type predictions: list.
     """
 
-    def __init__(self, name: str = "RmseCalculator", target: str = "target", predictions: list = ["predictions"]):
+    def __init__(self, name: str = "RmseCalculator"):
         super().__init__(name)
-        self.target = target
-        self.predictions = predictions
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -31,40 +29,32 @@ class RmseCalculator(BaseTransformer):
         :return: Parameters set for the RMSE calculator
         :rtype: Dict[str, object]
         """
-        return {"target": self.target,
-                "predictions": self.predictions}
+        return {}
 
-    def set_params(self, target: str = None, prediction: list = None):
-        """
-        Sets the parameters for the linear interpolation
-
-        :param target: Variable to be used as the target (actual value)
-        :type target: str
-
-        :param prediction: Variable to be used as the predictions
-        :type prediction: list
-        """
-        if target is not None:
-            self.target = target
-        if prediction is not None:
-            self.predictions = prediction
-
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, y: xr.DataArray, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Calculates the RMSE based on the predefined target and predictions variables
 
         :param x: the input dataset
-        :type x: Optional[xr.Dataset]
+        :type x: Optional[xr.DataArray]
 
         :return: The calculated RMSE
-        :rtype: xr.Dataset[str, xr.DataArray]
+        :rtype: xr.DataArray
         """
-        t = x.get(self.target).values
-        rmse = list()
-        for pr in self.predictions:
-            p = x.get(pr).values
+        t = y.values
+        rmse = []
+        predictions = []
+        for key, y_hat in kwargs.items():
+            p = y_hat.values
+            predictions.append(key)
             rmse.append(np.sqrt(np.mean((p - t) ** 2)))
 
-        dimension = self.predictions
-        time = x.indexes[_get_time_indeces(x)[0]][-1]
-        return xr.Dataset({"RMSE": (["time", "Result"], xr.DataArray([rmse]))},coords={"Result": dimension, "time":[time]})
+        time = y.indexes[_get_time_indeces(kwargs)[0]][-1]
+        return xr.DataArray(np.array([rmse]), coords={"time": [time], "predictions": predictions},
+                            dims=["time", "predictions"])
+
+    def set_params(self, **kwargs):
+        """
+        No parameters can be set.
+        """
+        pass

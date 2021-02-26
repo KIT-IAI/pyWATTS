@@ -15,37 +15,36 @@ logger = logging.getLogger(__name__)
 class BaseStep(ABC):
     """
     The base class of all steps.
-    Attributes:
-        stop -- Flag which indicates if the step is stopped. I.e. the condition mechanism stops the execution of this
-                step for the current data
-        finished -- Flag which indicates that all data are processed.
-        buffer -- contains the results of this step.
-
-    :param inputs: The input steps
-    :type inputs: Step
+    :param input_steps: The input steps
+    :type input_steps: Optional[Dict[str, BaseStep]]
     :param targets: The target steps
-    :type targets: step
+    :type targets: Optional[Dict[str, BaseStep]]
     :param condition: A function which evaluates to False or True for detecting if the module should be executed.
+    :type condition: Callable
     :param computation_mode: The computation mode for this module
+    :type computation_mode: ComputationMode
     """
-    stop: bool = False
-    finished = False
-    buffer: xr.Dataset = xr.Dataset()
 
-    def __init__(self, inputs=None, targets=None, condition=None, computation_mode=ComputationMode.Default):
+    def __init__(self,  input_steps: Optional[Dict[str, "BaseStep"]]=None,
+                 targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
+                 computation_mode=ComputationMode.Default):
         self._original_compuation_mode = computation_mode
         self.computation_mode = computation_mode
-        self.inputs = [] if inputs is None else inputs
-        self.targets = [] if targets is None else targets
+        self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
+        self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
 
         self.name = "BaseStep"
 
         self.id = -1
+        self.stop = False
+        self.finished = False
         self.last = True
         self._current_end = None
+        self.buffer: Dict[str, xr.DataArray] = {}
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp]):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
+                   return_all=False):
         """
         This method is responsible for providing the result of this step.
         Therefore,
@@ -56,6 +55,11 @@ class BaseStep(ABC):
         :type start: pd.Timedstamp
         :param end: The end date of the requested results of the step (exclusive)
         :type end: Optional[pd.Timestamp]
+        :param buffer_element: if the buffer of the step contains multiple results, this determines the result which is
+                               returned.
+        :type buffer_element: str
+        :param return_all: Flag that indicates if all results in the buffer should be returned.
+        :type return_all: bool
         :return: The resulting data or None if no data are calculated
         """
         self.stop = False
@@ -66,19 +70,16 @@ class BaseStep(ABC):
 
         # Trigger fit and transform if necessary
         if not self.finished:
-            if len(_get_time_indeces(self.buffer)) == 0:
-                self._compute(start, end)
-                self._current_end = end
-            elif not self.buffer or not self._current_end or end > self._current_end:
+            if not self.buffer or not self._current_end or end > self._current_end:
                 self._compute(start, end)
                 self._current_end = end
             if not end:
                 self.finished = True
             else:
                 self.finished = not self.further_elements(end)
-            self._outputs()
+            self._callbacks()
 
-        return self._pack_data(start, end)
+        return self._pack_data(start, end, buffer_element, return_all=return_all)
 
     def _compute(self, start, end):
         pass
@@ -92,27 +93,40 @@ class BaseStep(ABC):
         :return: True if there exist further data
         :rtype: bool
         """
-        if len(self.buffer.data_vars) > 0 and counter < self.buffer.indexes[_get_time_indeces(self.buffer)[0]][-1]:
+        if not self.buffer or all(
+                [counter < b.indexes[_get_time_indeces(self.buffer)[0]][-1] for b in self.buffer.values()]):
             return True
-        for input_step in self.inputs:
+        for input_step in self.input_steps.values():
             if not input_step.further_elements(counter):
                 return False
-        for target_step in self.targets:
+        for target_step in self.targets.values():
             if not target_step.further_elements(counter):
                 return False
         return True
 
-    def _pack_data(self, start, end):
+    def _pack_data(self, start, end, buffer_element=None, return_all=False):
         # Provide requested data
         time_index = _get_time_indeces(self.buffer)
         if end and start and end > start:
-            index = self.buffer.indexes[time_index[0]]
+            index = list(self.buffer.values())[0].indexes[time_index[0]]
             start = max(index[0], start.to_numpy())
-            result = self.buffer.copy().sel(**{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
+            if buffer_element is not None:
+                return self.buffer.copy()[buffer_element].sel(
+                    **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
+            elif return_all:
+                return {key: b.copy().sel(**{time_index[0]: index[(index >= start) & (index < end.to_numpy())]}) for
+                        key, b in self.buffer.items()}
+            else:
+                return list(self.buffer.copy().values())[0].sel(
+                    **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
         else:
             self.finished = True
-            result = self.buffer.copy()
-        return result
+            if buffer_element is not None:
+                return self.buffer[buffer_element].copy()
+            elif return_all:
+                return self.buffer.copy()
+            else:
+                return list(self.buffer.copy().values())[0]
 
     def _transform(self, input_step):
         pass
@@ -120,16 +134,22 @@ class BaseStep(ABC):
     def _fit(self, input_step, target_step):
         pass
 
-    def _outputs(self):
+    def _callbacks(self):
         pass
 
     def _post_transform(self, result):
+        if isinstance(result, dict) and len(result) <= 1:
+            result = {self.name: list(result.values())[0]}
+        elif not isinstance(result, dict):
+            result = {self.name: result}
+
         if not self.buffer:
             self.buffer = result
         else:
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indeces(result)[0]
-            self.buffer = xr.concat([self.buffer, result], dim=dim)
+            for key in self.buffer.keys():
+                self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
 
     def get_json(self, fm: FileManager) -> Dict:
         """
@@ -141,8 +161,8 @@ class BaseStep(ABC):
         :rtype: Dict
         """
         return {
-            "target_ids": list(map(lambda x: x.id, self.targets)),
-            "input_ids": list(map(lambda x: x.id, self.inputs)),
+            "target_ids": {step.id: key for key, step in self.targets.items()},
+            "input_ids": {step.id: key for key, step in self.input_steps.items()},
             "id": self.id,
             "module": self.__module__,
             "class": self.__class__.__name__,
@@ -177,14 +197,14 @@ class BaseStep(ABC):
         target_step = self._get_target(start, end)
 
         return (self.condition is not None and not self.condition(input_step, target_step)) or \
-               (self.inputs and any(map(lambda x: x.stop, self.inputs))) \
-               or (self.targets and any(map(lambda x: x.stop, self.targets)))
+               (self.input_steps and any(map(lambda x: x.stop, self.input_steps.values()))) or \
+               (self.targets and any(map(lambda x: x.stop, self.targets.values())))
 
     def reset(self):
         """
         Resets all information of the step concerning a specific run.
         """
-        self.buffer = xr.Dataset()
+        self.buffer = {}
         self.finished = False
         self.stop = False
         self.computation_mode = self._original_compuation_mode

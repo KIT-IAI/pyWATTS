@@ -1,7 +1,7 @@
 """
 Module containing a pipeline
 """
-
+import glob
 import json
 import logging
 import os
@@ -9,20 +9,18 @@ import warnings
 from pathlib import Path
 from typing import Union, List, Dict, Optional
 
-import networkx as nx
 import pandas as pd
 import xarray as xr
-from xarray import MergeError
 
-from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.base import BaseTransformer
 from pywatts.core.base_step import BaseStep
+from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.exceptions.io_exceptions import IOException
 from pywatts.core.filemanager import FileManager
 from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
+from pywatts.core.step_information import StepInformation
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
-
-from pywatts.core.exceptions.io_exceptions import IOException
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
                     level=logging.ERROR)
@@ -46,18 +44,15 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: str = ".", batch: Optional[pd.Timedelta] = None):
-        super().__init__("Pipeline")
+    def __init__(self, path: str = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+        super().__init__(name)
         self.batch = batch
         self.counter = None
-        self.start_step = StartStep()
+        self.start_steps = dict()
         self.id_to_step: Dict[int, BaseStep] = {}
-        self.computational_graph = nx.DiGraph()
-        self.target_graph = nx.DiGraph()
         self.file_manager = FileManager(path)
-        self.start_step.id = self.add(module=self.start_step, input_ids=[], target_ids=[])
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, **x: xr.DataArray) -> xr.DataArray:
         """
         Transform the input into output, by performing all the step in this pipeline.
         Moreover, this method collects the results of the last steps in this pipeline.
@@ -65,25 +60,25 @@ class Pipeline(BaseTransformer):
         Note, this method is necessary for enabling subpipelining.
 
         :param x: The input data
-        :type x: xr.Dataset
+        :type x: xr.DataArray
         :return:The transformed data
-        :rtype: xr.Dataset
+        :rtype: xr.DataArray
         """
-        queue = nx.dag.topological_sort(nx.compose(self.computational_graph, self.target_graph))
-        self.start_step.buffer = x.copy()
-        self.start_step.finished = True
+        for key, (start_step, _) in self.start_steps.items():
+            start_step.buffer = {key: x[key].copy()}
+            start_step.finished = True
 
         time_index = _get_time_indeces(x)
-        self.counter = x.indexes[time_index[0]][0]  # The start date of the input time series.
+        self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
 
-        last_steps = list(map(lambda x: self.id_to_step[x], filter(lambda x: self.id_to_step[x].last, queue)))
+        last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
 
         if not self.batch:
             return self._collect_results(last_steps)
         return self._collect_batches(last_steps, time_index)
 
     def _collect_batches(self, last_steps, time_index):
-        result = xr.Dataset()
+        result = dict()
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
             if not result:
@@ -91,7 +86,8 @@ class Pipeline(BaseTransformer):
             else:
                 input_results = self._collect_results(last_steps)
                 if input_results is not None:
-                    result = xr.concat([result, input_results], dim=time_index[0])
+                    for key in input_results.keys():
+                        result[key] = xr.concat([result[key], input_results[key]], dim=time_index[0])
                 else:
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)
@@ -102,30 +98,29 @@ class Pipeline(BaseTransformer):
     def _collect_results(self, inputs):
         # Note the return value is None if none of the inputs provide a result for this step...
         end = None if not self.batch else self.counter + self.batch
-        results = [step.get_result(self.counter, end) for step in inputs]
+        result = dict()
+        for i, step in enumerate(inputs):
+            res = step.get_result(self.counter, end, return_all=True)
+            for key, value in res.items():
+                result = self._add_to_result(i, key, value, result)
 
-        result = results[0]
-        for i, step_result in enumerate(results[1:]):
-            if step_result is not None and result is None:
-                # Possible if the first ds is None
-                result = step_result
-            elif step_result is not None:
-                try:
-                    result = result.merge(step_result)
-                except MergeError:
-                    step_result = step_result.rename({key: key + f"_{i}" for key in step_result.data_vars})
-                    message = f'There was a naming conflict. Therefore, we renamed:' + str(
-                        {key: f"{key}_{i}" for key in step_result.data_vars})
-                    logger.info(message)
-                    warnings.warn(message)
-                    result = result.merge(step_result)
+        return result
+
+    def _add_to_result(self, i, key, res, result):
+        if key in result.keys():
+            message = f"Naming Conflict: {key} is renamed to. {key}_{i}"
+            warnings.warn(message)
+            logger.info(message)
+            result[f"{key}_{i}"] = res
+        else:
+            result[key] = res
         return result
 
     def get_params(self) -> Dict[str, object]:
         """
         Returns the parameter of a pipeline module
         :return: Dictionary containing information about this module
-        :rtype: dict
+        :rtype: Dict
         """
         return {"batch": self.batch}
 
@@ -145,17 +140,8 @@ class Pipeline(BaseTransformer):
         Draws the graph with the names of th modules
         :return:
         """
-        complete_graph: nx.DiGraph = nx.compose(self.computational_graph, self.target_graph)
-        queue = nx.topological_sort(complete_graph)
-        graph = nx.DiGraph()
-        for module_id in queue:
-            graph.add_node(self.id_to_step[module_id].name + str(module_id))
-            for successor_id in complete_graph.successors(module_id):
-                graph.add_node(self.id_to_step[successor_id].name + str(successor_id))
-                graph.add_edge(self.id_to_step[module_id].name + str(module_id),
-                               self.id_to_step[successor_id].name + str(successor_id))
 
-        nx.draw_planar(graph, with_labels=True)
+        # TODO built the graph which should be drawn by starting with the last steps...
 
     def test(self, data: Union[pd.DataFrame, xr.Dataset]):
         """
@@ -166,7 +152,7 @@ class Pipeline(BaseTransformer):
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
         :return: The result of all end points of the pipeline
-        :rytpe: Dict[xr.Dataset]
+        :rtype: Dict[xr.DataArray]
         """
         return self._run(data, ComputationMode.Transform)
 
@@ -179,12 +165,13 @@ class Pipeline(BaseTransformer):
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
         :return: The result of all end points of the pipeline
-        :rytpe: Dict[xr.Dataset]
+        :rtype: Dict[xr.DataArray]
         """
 
         return self._run(data, ComputationMode.FitTransform)
 
     def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode):
+
         for step in self.id_to_step.values():
             step.reset()
             step.set_computation_mode(mode)
@@ -192,7 +179,7 @@ class Pipeline(BaseTransformer):
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
 
-        return self.transform(data)
+        return self.transform(**{key: data[key] for key in data.data_vars})
 
     def add(self, *,
             module: Union[BaseStep],
@@ -212,47 +199,43 @@ class Pipeline(BaseTransformer):
         if target_ids is None:
             target_ids = []
 
-        # register modules not in the pipeline and get ids
-        module_id = self._register_step(module)
-
-        self._add_to_graph(input_ids, module_id, target_ids)
+        # register modules in the pipeline and get ids
+        step_id = self._register_step(module)
 
         logger.info("Add %s to the pipeline. Inputs are %s%s",
-                    self.id_to_step[module_id],
+                    self.id_to_step[step_id],
                     [self.id_to_step[input_id] for input_id in input_ids],
                     "." if not input_ids else f" and the target is "
                                               f"{[self.id_to_step[target_id] for target_id in target_ids]}.")
 
-        return module_id
+        return step_id
 
-    def _add_to_graph(self, input_ids, module_id, target_ids):
-        # create graph based on the pipeline ids
-        self.computational_graph.add_node(module_id)
-        self.target_graph.add_node(module_id)
-        for input_id in input_ids:
-            self.computational_graph.add_edge(input_id, module_id)
-        for target_id in target_ids:
-            self.target_graph.add_edge(target_id, module_id)
-
-    def _register_step(self, module) -> int:
+    def _register_step(self, step) -> int:
         """
         Registers the module in the pipeline and inits the wrapper as well as the id.
 
-        :param module: the module to be registered
+        :param step: the step to be registered
         :return:
         """
         # if the module is not there, find new id
         if self.id_to_step:
-            module_id = max(self.id_to_step) + 1
+            step_id = max(self.id_to_step) + 1
         else:
-            module_id = 1
+            step_id = 1
 
-        self.id_to_step[module_id] = module
-        return module_id
+        self.id_to_step[step_id] = step
+        return step_id
 
     def save(self, fm: FileManager):
+        """
+        Saves the pipeline. Note You should not call this method from outside of pyWATTS. If you want to store your
+        pipeline then you should use to_folder.
+        """
         json_module = super().save(fm)
         path = os.path.join(str(fm.basic_path), self.name)
+        if os.path.isdir(path):
+            number = len(glob.glob(f'{path}*'))
+            path = f"{path}_{number + 1}"
         self.to_folder(path)
         json_module["pipeline_path"] = path
         json_module["params"] = {
@@ -262,8 +245,11 @@ class Pipeline(BaseTransformer):
 
     @classmethod
     def load(cls, load_information):
-        pipeline = Pipeline()
-        pipeline = pipeline.from_folder(load_information["pipeline_path"])
+        """
+        Loads the pipeline.  Note You should not call this method from outside of pyWATTS. If you want to store your
+        pipeline then you should use from_folder.
+        """
+        pipeline = cls.from_folder(load_information["pipeline_path"])
         return pipeline
 
     def to_folder(self, path: Union[str, Path]):
@@ -309,9 +295,10 @@ class Pipeline(BaseTransformer):
         }
         file_path = save_file_manager.get_path('pipeline.json')
         with open(file_path, 'w') as outfile:
-            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=True, indent=4)
+            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4)
 
-    def from_folder(self, load_path, file_manager_path=None):
+    @staticmethod
+    def from_folder(load_path, file_manager_path=None):
         """
         Loads the pipeline from the pipeline.json in the specified folder
         .. warning::
@@ -339,32 +326,50 @@ class Pipeline(BaseTransformer):
         if file_manager_path is None:
             file_manager_path = json_dict.get('path', ".")
 
-        self.batch = pd.Timedelta(json_dict.get("batch")) if json_dict.get("batch") else None
+        batch = pd.Timedelta(json_dict.get("batch")) if json_dict.get("batch") else None
 
-        # pipeline = cls(file_manager_path, batch=batch)
-
+        pipeline = Pipeline(file_manager_path, batch)
         # 1. load all modules
         modules = {}  # create a dict of all modules with their id from the json
         for i, json_module in enumerate(json_dict["modules"]):
-            mod = __import__(json_module["module"], fromlist=json_module["class"])
-            klass = getattr(mod, json_module["class"])
-            module = klass.load(json_module)
-            modules[i] = module
+            modules[i] = pipeline._load_modules(json_module)
 
         # 2. Load all steps
         for step in json_dict["steps"]:
-            mod = __import__(step["module"], fromlist=step["class"])
-            klass = getattr(mod, step["class"])
-            module = None
-            if isinstance(klass, Step) or issubclass(klass, Step):
-                module = modules[step["module_id"]]
-            step = klass.load(step,
-                              inputs=list(map(lambda x: self.id_to_step[x], step["input_ids"])),
-                              targets=list(map(lambda x: self.id_to_step[x], step["target_ids"])),
-                              module=module, file_manager=self.file_manager)
-            self.id_to_step[step.id] = step
-            self._add_to_graph(input_ids=list(map(lambda x: x.id, step.inputs), ),
-                               module_id=step.id,
-                               target_ids=list(map(lambda x: x.id, step.targets)))
-        self.start_step = self.id_to_step[1]
-        return self
+            step = pipeline._load_step(modules, step)
+            pipeline.id_to_step[step.id] = step
+
+        pipeline.start_steps = {element.index: (element, StepInformation(step=element, pipeline=pipeline))
+                                for element in filter(lambda x: isinstance(x, StartStep), pipeline.id_to_step.values())}
+
+        return pipeline
+
+    def _load_modules(self, json_module):
+        mod = __import__(json_module["module"], fromlist=json_module["class"])
+        klass = getattr(mod, json_module["class"])
+        return klass.load(json_module)
+
+    def _load_step(self, modules, step):
+        mod = __import__(step["module"], fromlist=step["class"])
+        klass = getattr(mod, step["class"])
+        module = None
+        if isinstance(klass, Step) or issubclass(klass, Step):
+            module = modules[step["module_id"]]
+        loaded_step = klass.load(step,
+                                 inputs={key: self.id_to_step[int(step_id)] for step_id, key in
+                                         step["input_ids"].items()},
+                                 targets={key: self.id_to_step[int(step_id)] for step_id, key in
+                                          step["target_ids"].items()},
+                                 module=module,
+                                 file_manager=self.file_manager)
+        return loaded_step
+
+    def __getitem__(self, item: str):
+        """
+        Returns the step_information for the start step corresponding to the item
+        """
+        if item not in self.start_steps.keys():
+            start_step = StartStep(item)
+            self.start_steps[item] = start_step, StepInformation(step=start_step, pipeline=self)
+            start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
+        return self.start_steps[item][-1]

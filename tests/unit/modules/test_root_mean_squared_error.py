@@ -3,6 +3,7 @@ import xarray as xr
 import pandas as pd
 
 from pywatts.modules.root_mean_squared_error import RmseCalculator
+import numpy as np
 
 
 class TestRMSECalculator(unittest.TestCase):
@@ -15,23 +16,7 @@ class TestRMSECalculator(unittest.TestCase):
 
     def test_get_params(self):
         self.assertEqual(self.rmse_calculator.get_params(),
-                         {
-                             "target": "target",
-                             "predictions": ["predictions"]
-                         })
-
-    def test_set_params(self):
-        self.assertEqual(self.rmse_calculator.get_params(),
-                         {
-                             "target": "target",
-                             "predictions": ["predictions"]
-                         })
-        self.rmse_calculator.set_params(target="testCol", prediction=["predictCol1", "predictCol2"])
-        self.assertEqual(self.rmse_calculator.get_params(),
-                         {
-                             "target": "testCol",
-                             "predictions": ["predictCol1", "predictCol2"]
-                         })
+                         {})
 
     def test_transform(self):
         self.rmse_calculator.set_params(target="testCol", prediction=["predictCol1", "predictCol2"])
@@ -46,9 +31,10 @@ class TestRMSECalculator(unittest.TestCase):
                                 "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2])),
                                 "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1])), "time": time})
 
-        test_result = self.rmse_calculator.transform(test_data)
+        test_result = self.rmse_calculator.transform(y=test_data['testCol'], gt=test_data['testCol'],
+                                                     pred1=test_data['predictCol1'],
+                                                     pred2=test_data['predictCol2'])
 
-        dimension = ["predictCol1", "predictCol2"]
-        expected_result = xr.Dataset({"RMSE": (["time", "Result"], [[3., 4.]])}, coords={"Result": dimension, "time": result_time})
+        expected_result = xr.DataArray(np.array([[0.0, 3.0, 4.0]]), coords={"time": result_time, "predictions" : ["gt", "pred1", "pred2"]}, dims=["time", "predictions"])
 
         xr.testing.assert_equal(test_result, expected_result)

@@ -6,6 +6,6 @@ class StepCreationException(Exception):
         module -- the module which raised that exception
     """
 
-    def __init__(self, message, module = ""):
+    def __init__(self, message, module=""):
         self.message = message
         self.module = module

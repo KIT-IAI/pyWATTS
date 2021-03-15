@@ -1,11 +1,14 @@
+import logging
 from typing import Dict
 
 import numpy as np
 import xarray as xr
+from pywatts.core.exceptions.input_not_available import InputNotAvailable
 
 from pywatts.core.base import BaseTransformer
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
+logger = logging.getLogger(__name__)
 
 class RmseCalculator(BaseTransformer):
     """
@@ -44,6 +47,14 @@ class RmseCalculator(BaseTransformer):
         t = y.values
         rmse = []
         predictions = []
+        if kwargs == {}:
+            logger.error("No predictions are provided as input for the RMSE Calculator. "
+                         "You should add the predictions by a seperate key word arguments if you add the RMSECalculator "
+                         "to the pipeline.")
+            raise InputNotAvailable("No predictions are provided as input for the RMSE Calculator. "
+                         "You should add the predictions by a seperate key word arguments if you add the RMSECalculator "
+                         "to the pipeline.")
+
         for key, y_hat in kwargs.items():
             p = y_hat.values
             predictions.append(key)

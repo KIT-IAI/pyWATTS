@@ -1,5 +1,5 @@
 import xarray as xr
-from typing import Dict
+from typing import Dict, Optional
 
 from pywatts.callbacks.base_callback import BaseCallback
 
@@ -36,6 +36,23 @@ class StatisticCallback(BaseCallback):
     :type BaseCallback: BaseCallback
     """
 
+    def __init__(self, prefix: str, use_filemanager: Optional[bool] = None):
+        """
+        Initialise Statistical callback object given a filename and
+        optional use_filemanager flag.
+
+        :param prefix: Prefix to use for the line plot output file.
+        :type prefix: str
+        :param use_filemanager: Flag to denote if the filemanager of the pipeline should be used.
+        :type use_filemanager: Optional[bool]
+        """
+        if use_filemanager is None:
+            # use base class default if use_filemanager is not set
+            super().__init__()
+        else:
+            super().__init__(use_filemanager)
+        self.prefix = prefix
+
     def __call__(self, data_dict: Dict[str, xr.DataArray]):
         """
         Implementation of abstract base method to print out
@@ -44,7 +61,13 @@ class StatisticCallback(BaseCallback):
         :param data_dict: Dict of DataArrays that statistical information should be printed out.
         :type data_dict: Dict[str, xr.DataArray]
         """
+        result_string = "\n# Statistical Callback\n"
         print("\n# Statistical Callback")
+
         for key in data_dict:
             print(f"## {key}")
             print(data_dict[key].to_pandas().describe())
+            result_string +=f"## {key}\n {data_dict[key].to_pandas().describe()} \n"
+
+        with open(self.get_path(f"{self.prefix}_Statistics.md"), "w") as file:
+            file.write(result_string)

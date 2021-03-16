@@ -13,7 +13,9 @@
 ### Deprecated
 
 ### Fixed
+
   * Fixed pipeline crashing in RMSE module because of wrong time index ([#39](https://github.com/KIT-IAI/pyWATTS/issues/39))
+  * Fixed bracket operator not working for steps within the pipeline ([#42](https://github.com/KIT-IAI/pyWATTS/issues/42))
 
 
 ## [0.0.1] - 2021-MM-DD

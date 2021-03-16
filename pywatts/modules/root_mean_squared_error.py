@@ -49,7 +49,7 @@ class RmseCalculator(BaseTransformer):
             predictions.append(key)
             rmse.append(np.sqrt(np.mean((p - t) ** 2)))
 
-        time = y.indexes[_get_time_indeces(kwargs)[0]][-1]
+        time = y.indexes[_get_time_indeces(y)[0]][-1]
         return xr.DataArray(np.array([rmse]), coords={"time": [time], "predictions": predictions},
                             dims=["time", "predictions"])
 

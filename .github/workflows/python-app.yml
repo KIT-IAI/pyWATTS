@@ -34,3 +34,9 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Integration tests
+      run: |
+        python example.py
+        python example_day_and_night.py
+        python example_pytorch.py
+        python example_transform_module.py

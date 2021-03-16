@@ -5,7 +5,7 @@ import tensorflow as tf
 import xarray as xr
 
 from pywatts.core.filemanager import FileManager
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indeces, xarray_to_numpy, numpy_to_xarray
 from pywatts.wrapper.dl_wrapper import DlWrapper
 
 
@@ -22,41 +22,41 @@ class KerasWrapper(DlWrapper):
             model = model[0]
         super().__init__(model, name, fit_kwargs, compile_kwargs)
 
-    def fit(self, x: xr.Dataset, y: xr.Dataset):
+    def fit(self, **kwargs: xr.DataArray):
         """
         Calls the compile and the fit method of the wrapped keras module.
         :param x: The input data
         :param y: The target data
         """
+        x = dict()
+        y = dict()
+        for key, value in kwargs.items():
+            if key.startswith("target"):
+                y[key] = value.values
+            else:
+                x[key] = value.values
+
+        self.targets = list(y.keys())
+
         if not self.compiled:
             self.model.compile(**self.compile_kwargs)
             self.compiled = True
-        self.model.fit(x=self._to_dl_input(x), y=self._to_dl_input(y), **self.fit_kwargs)
+        self.model.fit(x=x, y=y, **self.fit_kwargs)
         self.is_fitted = True
 
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Calls predict of the underlying keras Model.
         :param x: The dataset for which a prediction should be performed
         :return:  The prediction. Each output of the keras model is a separate data variable in the returned xarray.
         """
-        prediction = self.model.predict(x=self._to_dl_input(x))
+        prediction = self.model.predict({key: da.values for key, da in kwargs.items()})
         if not isinstance(prediction, list):
             prediction = [prediction]
 
-        result = None
-        for i, pred in enumerate(prediction):
-            time_index = _get_time_indeces(x)[0]
-            coords = (
-                # first dimension is number of batches. We assume that this is the time.
-                (time_index, x.indexes[time_index]),
-                *[(f"dim_{j}", list(range(size))) for j, size in enumerate(pred.shape[1:])])
-            data = {self.model.outputs[i].name.split("/")[0]: (tuple(map(lambda x: x[0], coords)), pred),
-                    time_index: x.indexes[time_index]}
-            if not result:
-                result = xr.Dataset(data)
-            else:
-                result = result.merge(xr.Dataset(data))
+        result = {
+            key : numpy_to_xarray(pred, list(kwargs.values())[0], self.name) for key, pred in zip(self.targets, prediction)
+        }
         return result
 
     def save(self, fm: FileManager) -> dict:

@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
-    data = pd.read_csv("data/getting_started_data.csv",
+    data = pd.read_csv("../data/getting_started_data.csv",
                        index_col="time",
                        parse_dates=["time"],
                        infer_datetime_format=True,
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     print("Execute second pipeline")
     # Load the pipeline as a new instance
-    pipeline2 = Pipeline.from_folder("./pipe_getting_started", file_manager_path="pipeline2_results")
+    pipeline2 = Pipeline.from_folder("./pipe_getting_started", file_manager_path="../pipeline2_results")
     #       WARNING
     #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
     #       Consequently, load only pipelines you trust with from_folder.

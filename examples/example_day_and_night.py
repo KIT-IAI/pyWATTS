@@ -48,7 +48,7 @@ def create_test_pipeline(modules):
     regressor_svr, regressor_lin_reg = modules
 
     # Create test pipeline which works on a batch size of one hour.
-    pipeline = Pipeline("test_pipeline", batch=pd.Timedelta("1h"))
+    pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
 
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
     regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["ClockShift"],

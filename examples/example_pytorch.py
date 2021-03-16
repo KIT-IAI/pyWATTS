@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Now, the pipeline is complete
     # so we can load data and train the model
-    data = pd.read_csv("data/getting_started_data.csv",
+    data = pd.read_csv("../data/getting_started_data.csv",
                        index_col="time",
                        parse_dates=["time"],
                        infer_datetime_format=True,

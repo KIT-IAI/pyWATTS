@@ -17,11 +17,11 @@ stored_model = {
         ],
         [
             "decoder",
-            os.path.join("pipe1","SimpleAE_4decoder.h5")
+            os.path.join("pipe1", "SimpleAE_4decoder.h5")
         ]
     ],
     "class": "KerasWrapper",
-    "model": os.path.join("pipe1","SimpleAE_4.h5"),
+    "model": os.path.join("pipe1", "SimpleAE_4.h5"),
     "module": "pywatts.wrapper.keras_wrapper",
     "name": "SimpleAE",
     'is_fitted': False,
@@ -54,22 +54,20 @@ class TestKerasWrapper(unittest.TestCase):
         self.keras_wrapper.set_params(fit_kwargs={"epochs": 200}, compile_kwargs={"optimizer": "adam"})
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
-        ds = xr.Dataset(
-            {'BAR': (['time', 'horizon'], [[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]),
-             'time': time})
+        da = xr.DataArray([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]],
+                          dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
 
-        target = xr.Dataset(
-            {'FOO': (['time', 'horizon'], [[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]]),
-             'time': time})
+        target = xr.DataArray([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]],
+                              dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
 
-        self.keras_wrapper.fit(ds, target)
+        self.keras_wrapper.fit(data=da, target=target)
         self.keras_mock.compile.assert_called_once_with(optimizer="adam")
         self.keras_mock.fit.assert_called_once()
         args = self.keras_mock.fit.call_args
 
-        np.testing.assert_equal(args[1]["x"]["BAR"],
+        np.testing.assert_equal(args[1]["x"]["data"],
                                 np.array([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]))
-        np.testing.assert_equal(args[1]["y"]["FOO"],
+        np.testing.assert_equal(args[1]["y"]["target"],
                                 np.array([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]])),
         self.assertEqual(len(args[1]["x"]), 1)
         self.assertEqual(len(args[1]["y"]), 1)
@@ -81,33 +79,27 @@ class TestKerasWrapper(unittest.TestCase):
     def test_transform_single_output(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
-        ds = xr.Dataset(
-            {'BAR': (['time', 'horizon'], [[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]),
-             'time': time})
+        da = xr.DataArray([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]],
+                          dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
 
         target = np.array([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]])
 
         self.keras_mock.predict.return_value = target
         self.keras_mock.outputs[0].name = "first/output"
+        self.keras_wrapper.targets = ["target"]
 
-        result = self.keras_wrapper.transform(ds)
-
-        expected_result = xr.Dataset({"first": (["time", "dim_0"], target), 'time': time})
+        result = self.keras_wrapper.transform(x=da)
 
         self.keras_mock.predict.assert_called_once()
-        args = self.keras_mock.predict.call_args
 
-        np.testing.assert_equal(args[1]["x"]["BAR"],
-                                np.array([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]))
-
-        xr.testing.assert_equal(result, expected_result)
+        np.testing.assert_equal(target,
+                                result["target"])
 
     def test_transform_multiple_output(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
-        ds = xr.Dataset(
-            {'BAR': (['time', 'horizon'], [[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]),
-             'time': time})
+        da = xr.DataArray([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]],
+                          dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
 
         target = [np.array([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]]),
                   np.array([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]])]
@@ -119,21 +111,20 @@ class TestKerasWrapper(unittest.TestCase):
         second.name = "second"
         outputs = [first, second]
         self.keras_mock.outputs = outputs
+        self.keras_wrapper.targets = ["target1", "target2"]
 
-        result = self.keras_wrapper.transform(ds)
-        expected_result = xr.Dataset(
-            {"first": (["time", "dim_0"], np.array([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]])),
-             "second": (["time", "dim_0"], np.array([[5, 5], [6, 6], [7, 7], [7, 7], [8, 8], [9, 9], [9, 9]])),
-             'time': time})
+        result = self.keras_wrapper.transform(x=da)
 
         self.keras_mock.predict.assert_called_once()
         args = self.keras_mock.predict.call_args
 
-        np.testing.assert_equal(args[1]["x"]["BAR"],
+        np.testing.assert_equal(args[0][0]["x"],
                                 np.array([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]))
 
-        xr.testing.assert_equal(result, expected_result)
-
+        np.testing.assert_equal(target[0],
+                                result["target1"])
+        np.testing.assert_equal(target[1],
+                                result["target2"])
     def test_get_params(self):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},

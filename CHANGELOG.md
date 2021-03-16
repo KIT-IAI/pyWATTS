@@ -13,7 +13,9 @@
 ### Deprecated
 
 ### Fixed
+
   * Fixed pipeline crashing in RMSE module because of wrong time index ([#39](https://github.com/KIT-IAI/pyWATTS/issues/39))
+  * Fixed dict objects could not be passed to pipeline ([#43](https://github.com/KIT-IAI/pyWATTS/issues/43))
 
 
 ## [0.0.1] - 2021-MM-DD

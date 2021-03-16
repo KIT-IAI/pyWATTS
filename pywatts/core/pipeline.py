@@ -20,6 +20,7 @@ from pywatts.core.filemanager import FileManager
 from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
 from pywatts.core.step_information import StepInformation
+from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
@@ -179,7 +180,23 @@ class Pipeline(BaseTransformer):
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
 
-        return self.transform(**{key: data[key] for key in data.data_vars})
+        if isinstance(data, xr.Dataset):
+            return self.transform(**{key: data[key] for key in data.data_vars})
+        elif isinstance(data, dict):
+            for key in data:
+                if not isinstance(data[key], xr.DataArray):
+                    raise WrongParameterException(
+                        "Input Dict does not contain xr.DataArray objects.",
+                        "Make sure to pass Dict[str, xr.DataArray].",
+                        self.name
+                    )
+            return self.transform(**data)
+        
+        raise WrongParameterException(
+            "Unkown data type to pass to pipeline steps.",
+            "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
+            self.name
+        )
 
     def add(self, *,
             module: Union[BaseStep],

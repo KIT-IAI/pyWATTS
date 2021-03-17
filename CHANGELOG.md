@@ -5,6 +5,8 @@
 
 ### Added
 
+  * Added integration tests to github actions by executing the examples in root directory ([#47](https://github.com/KIT-IAI/pyWATTS/issues/47))
+
 ### Changed
 
   * Remove plot, to_csv, summary. Instead we add a callback functionality. Additional, we provide some basic callbacks. ([#16](https://github.com/KIT-IAI/pyWATTS/issues/16))

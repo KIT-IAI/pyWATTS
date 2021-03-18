@@ -191,7 +191,8 @@ Executing, Saving and Loading the Pipeline
 
 With the desired modules added to the pipeline, we can now train and test it.
 We do this by calling the ``train`` method or ``test`` method. Both methods require some input data. Therefore,
-we read some data with pandas and split it into a train and a test set.
+we read some data with [pandas](https://pandas.pydata.org/) or [xarray](http://xarray.pydata.org/en/stable/index.html)
+and split it into a train and a test set.
 
 .. code-block:: python
 

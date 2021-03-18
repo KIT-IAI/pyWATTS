@@ -40,7 +40,7 @@ class PyTorchWrapper(DlWrapper):
 
     def fit(self, **kwargs: xr.DataArray):
         """
-        Calls the compile and the fit method of the wrapped keras module.
+        Calls the compile and the fit method of the wrapped pytorch module.
         """
         x = dict()
         y = dict()

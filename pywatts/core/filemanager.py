@@ -7,7 +7,7 @@ from pywatts.core.exceptions.io_exceptions import IOException
 
 logger = logging.getLogger()
 
-ALLOWED_FILES = ["png", "csv", "xlsx", "pickle", "tex", "json", "h5", "pt"]
+ALLOWED_FILES = ["png", "csv", "xlsx", "pickle", "tex", "json", "h5", "pt", "md"]
 
 
 class FileManager:

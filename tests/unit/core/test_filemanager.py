@@ -63,7 +63,7 @@ class TestFilemanager(unittest.TestCase):
             self.filemanager.get_path("result.test")
         self.assertEqual(cm.exception.args,
                          ("test is not an allowed file type. Allowed types are ['png', 'csv', 'xlsx', "
-                          "'pickle', 'tex', 'json', 'h5', 'pt'].",))
+                          "'pickle', 'tex', 'json', 'h5', 'pt', 'md'].",))
 
     @patch("pywatts.core.filemanager.logger")
     @patch("pywatts.core.filemanager.datetime")

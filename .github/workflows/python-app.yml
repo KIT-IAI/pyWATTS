@@ -36,8 +36,8 @@ jobs:
         pytest
     - name: Integration tests
       run: |
-        python examples\example.py
-        python examples\example_keras.py
-        python examples\example_day_and_night.py
-        python examples\example_pytorch.py
-        python examples\example_transform_module.py
+        python example/example.py
+        python examples/example_keras.py
+        python examples/example_day_and_night.py
+        python examples/example_pytorch.py
+        python examples/example_transform_module.py

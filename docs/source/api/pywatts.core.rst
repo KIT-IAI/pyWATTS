@@ -28,14 +28,6 @@ pywatts.core.base\_step module
    :undoc-members:
    :show-inheritance:
 
-pywatts.core.collect\_step module
----------------------------------
-
-.. automodule:: pywatts.core.collect_step
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pywatts.core.computation\_mode module
 -------------------------------------
 
@@ -92,6 +84,14 @@ pywatts.core.probabilistic\_step module
    :undoc-members:
    :show-inheritance:
 
+pywatts.core.result\_step module
+--------------------------------
+
+.. automodule:: pywatts.core.result_step
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.core.start\_step module
 -------------------------------
 
@@ -131,7 +131,6 @@ pywatts.core.template module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -28,16 +28,22 @@ as any external Scikit-Learn modules we will be using.
 
 .. code-block:: python
 
-   from pywatts.modules.calendar_extraction import CalendarExtraction
-   from pywatts.modules.whitelister import WhiteLister
-   from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
-   from pywatts.modules.clock_shift import ClockShift
-   from pywatts.modules.linear_interpolation import LinearInterpolater
-   from pywatts.modules.root_mean_squared_error import RmseCalculator
-
    import matplotlib.pyplot as plt
-   from sklearn.preprocessing import StandardScaler
-   from sklearn.linear_model import LinearRegression
+    # Other modules required for the pipeline are imported
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
+    from sklearn.preprocessing import StandardScaler
+
+    # From pyWATTS the pipeline is imported
+    from pywatts.core.computation_mode import ComputationMode
+    from pywatts.core.pipeline import Pipeline
+    from pywatts.callbacks import CSVCallback, LinePlotCallback
+    # All modules required for the pipeline are imported
+    from pywatts.modules.calendar_extraction import CalendarExtraction
+    from pywatts.modules.clock_shift import ClockShift
+    from pywatts.modules.linear_interpolation import LinearInterpolater
+    from pywatts.modules.root_mean_squared_error import RmseCalculator
+    from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 With the modules imported, we can now work on building the pipeline.
 
@@ -61,21 +67,21 @@ Now that the pipeline exists, we can add in modules.
 Often we require dummy calendrical features, such as month, weekday, hour and whether or not the day is a weekend,
 for forecasting problems. ``CalendarExtraction`` modules are able to extract these features.
 Since this is the first module in our pipeline, we do not have to worry about defining
-the proceeding module but simply link it. We use round brackets with the pipeline name inside to achieve this: ``(pipeline)``.
+the proceeding module. However, we must specify the column of the dataset which should be used as input for that module.
+Therefore, we use round brackets with the pipeline name inside and square brackets to to achieve this:
+``(x=pipeline["load_power_statistics"])``.
 
 .. code-block:: python
 
     calendar_features = CalendarExtraction(encoding="numerical",
                                            continent="Europe",
-                                           country="Germany")(pipeline)
+                                           country="Germany")(x=pipeline["load_power_statistics"])
 
 When we define a ``CalendarExtraction`` module, we need to choose what encoding to use. In the case we select a
 numerical encoding which encodes time based features with standard integers. It is also possible to select sine
 encoding. Furthermore we choose the continent and the country that is used to calculate public holidays. This is
 particularly important for public holidays that only exist in certain parts of the world (e.g. Thanksgiving).
 
-The ``CalendarExtraction`` module automatically creates a wide range of dummy calendrical features and we then select
-those we require with the help of a ``WhiteLister``.
 
 **WhiteLister**
 
@@ -103,12 +109,12 @@ The next model we include deals with missing values by filling them through line
 
     imputer_power_statistics = LinearInterpolater(method="nearest",
                                                   dim="time",
-                                                  name="imputer_power")([white_lister_power_statistics])
+                                                  name="imputer_power")(x=pipeline["load_power_statistics"])
 
 The parameters here (method and dim) are related to the *scipy* ``interpolate`` method which is used
 inside the module. As before, we need to correctly place the linear interpolator in the pipeline. This example
-takes the output of the ``WhiteLister`` above and is therefore only accounting for missing values in that
-specific time series.
+takes the column ''load_power_statistics'' from the input data. Consequently, we specify the input by
+``(x=pipeline["load_power_statistics"])`` again.
 
 **Scaling**
 
@@ -118,7 +124,7 @@ the ``SKLearnWrapper``:
 .. code-block:: python
 
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
-    scale_power_statistics = power_scaler([imputer_power_statistics])
+    scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
 Here we use the wrapper to import a SciKit-Learn ``StandardScaler`` in the pipeline. In the second line
 we apply the ``StandardScaler`` on the imputed load time series, resulting in a normalised time series.
@@ -130,8 +136,8 @@ one or more values. In `pyWATTS`, we use the ``ClockShift`` module to perform th
 
 .. code-block:: python
 
-    shift_power_statistics = ClockShift(lag=1, name = "ClockShift_Lag1")([scale_power_statistics])
-    shift_power_statistics2 = ClockShift(lag=2, name = "ClockShift_Lag2")([scale_power_statistics])
+    shift_power_statistics = ClockShift(lag=1, name = "ClockShift_Lag1")(x=scale_power_statistics)
+    shift_power_statistics2 = ClockShift(lag=2, name = "ClockShift_Lag2")(x=scale_power_statistics)
 
 In the above example, we create two different lagged time series. The first shifts the time series back by one lag,
 and the second by two. The input for both shifts is the same scaled time series from above. When we include two modules
@@ -145,18 +151,20 @@ We also use the SciKit-learn wrapper for linear regression. The implementation i
 
 .. code-block:: python
 
-    regressor_power_statistics = SKLearnWrapper(module=LinearRegression(fit_intercept=True))([shift_power_statistics,
-                                                                                              shift_power_statistics2,
-                                                                                              calendar_month,
-                                                                                              calendar_weekday,
-                                                                                              calendar_weekend],
-                                                                                              targets=[scale_power_statistics])
+    regressor_power_statistics = SKLearnWrapper(module=LinearRegression(fit_intercept=True))(shift1=shift_power_statistics,
+                                                                                             shift2=shift_power_statistics2,
+                                                                                             month=calendar_month,
+                                                                                             weeday=calendar_weekday,
+                                                                                             weekend=calendar_weekend],
+                                                                                             target_power=scale_power_statistics)
 
 First we see that standard SciKit-learn parameters can be adjusted directly inside the SciKit-learn constructor.
 Here, for example, we have set the ``fit_intercept`` parameter to true. Furthermore,
 a linear regression can have more than one input and also requires a target for fitting. Therefore, we include
-all of the inputs in list form ``[input_1, input_2, ..., input_n]`` and also specify the target variable with
-``targets = target_variable``.
+all of the inputs by keyword-arguments. Note that all keyword-arguments that start with target are considered as target
+variables by pyWATTS. So pyWATTS aims to train a linear regression using ``shift_power_statistics,
+shift_power_statistics2, calendar_month, calendar_weekday, calendar_weekend`` as input to predict
+``scale_power_statistics.``
 
 **Rescaling**
 
@@ -166,13 +174,14 @@ a second time, and ensure we use the inverse transformation.
 
 .. code-block:: python
 
-   inverse_power_scale = power_scaler([regressor_power_statistics],
-                                       fitable=False, use_inverse_transform=True, plot=True)
+   inverse_power_scale = power_scaler(x=regressor_power_statistics,
+                                       computation_mode=ComputationMode.Transform, use_inverse_transform=True,
+                                        callbacks=[LinePlotCallback('rescale')])
 
 
-We also set ``fitable=False`` for this inverse transformation to work. If
+We also set ``computation_mode=ComputationMode.Transform`` for this inverse transformation to work. If
 this is not set, then the scaler will automatically fit itself to the new scaled dataset, and the inverse transformation
-will be useless.
+will be useless. Moreover, we can use callbacks for visualizing or writing the results into files.
 
 **Root Mean Squared Error**
 
@@ -180,11 +189,11 @@ To measure the accuracy of our regression model, we can calculate the root mean 
 
 .. code-block:: python
 
-    rmse = RmseCalculator(target="load_power_statistics_filter_power", predictions=["scaler_power"])(
-        [inverse_power_scale, white_lister_power_statistics], to_csv=True)
+    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"],
+                            callbacks=[CSVCallback('RMSE')])
 
-In this case, we set the variable names of both the target and prediction as parameters. When ``to_csv`` is set to true,
-the RMSE will be saved in a CSV file in the results folder.
+The target variable is determined by the key-word ``y_hat``. All other keyword arguments are considered as predictions.
+Additionally, we use the ``CSVCallback`` for storing the result into a CSV file.
 
 Executing, Saving and Loading the Pipeline
 ******************************************
@@ -228,12 +237,9 @@ the future to check results. We see below an example:
 
     pipeline2 = Pipeline()
     pipeline2.from_folder("./pipe_getting_started")
-    pipeline2.draw()
-    plt.show()
 
 Here, we create a new pipeline and use it to load the information from
-the original pipeline. We then draw the new pipeline and see that
-the plot generated is identical to the original pipeline.
+the original pipeline.
 
 .. warning::
     Sometimes from_folder use unpickle for loading modules. Note that this is not safe.

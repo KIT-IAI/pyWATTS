@@ -92,15 +92,6 @@ pywatts.modules.trend\_extraction module
    :undoc-members:
    :show-inheritance:
 
-pywatts.modules.whitelister module
-----------------------------------
-
-.. automodule:: pywatts.modules.whitelister
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
 Module contents
 ---------------
 

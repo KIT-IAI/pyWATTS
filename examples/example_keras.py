@@ -23,16 +23,14 @@ from pywatts.modules.linear_interpolation import LinearInterpolater
 from pywatts.modules.root_mean_squared_error import RmseCalculator
 
 
-def get_sequential_model():
+def get_keras_model():
     # write the model with the Functional API, Sequential does not support multiple input tensors
 
     D_in, H, D_out = 2, 10, 1  # input dimension, hidden dimension, output dimension
-
     input_1 = layers.Input(shape=(1,),
                            name='ClockShift_Lag1')  # layer name must match time series name
     input_2 = layers.Input(shape=(1,),
                            name='ClockShift_Lag2')  # layer name must match time series name
-
     merged = layers.Concatenate(axis=1)([input_1, input_2])
     hidden = layers.Dense(H,
                           input_dim=D_in,
@@ -41,14 +39,12 @@ def get_sequential_model():
     output = layers.Dense(D_out,
                           activation='linear',
                           name='target')(hidden)  # layer name must match time series name
-
     model = Model(inputs=[input_1, input_2], outputs=output)
-
     return model
 
 
 if __name__ == "__main__":
-    keras_model = get_sequential_model()
+    keras_model = get_keras_model()
 
     pipeline = Pipeline(path="../results")
 

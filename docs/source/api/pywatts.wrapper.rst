@@ -52,7 +52,6 @@ pywatts.wrapper.sklearn\_wrapper module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

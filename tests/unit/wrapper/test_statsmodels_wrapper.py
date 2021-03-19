@@ -16,9 +16,6 @@ stored_module = {
     "name": "AR",
     'is_fitted': False,
     "params": {
-        "module_kwargs": {
-            "lags": [1, 4]
-        },
         "fit_kwargs": {
             "cov_type": "nonrobust"
         },
@@ -45,7 +42,7 @@ class TestStatsmodelsWrapper(unittest.TestCase):
 
     def test_get_params(self):
         self.assertEqual(self.statsmodels_wrapper.get_params(),
-                         {'module_kwargs': {'lags': [1, 2]},
+                         {
                           'fit_kwargs': {},
                           'predict_kwargs': {},
                           'model_params': {}
@@ -53,17 +50,17 @@ class TestStatsmodelsWrapper(unittest.TestCase):
 
     def test_set_params(self):
         self.assertEqual(self.statsmodels_wrapper.get_params(),
-                         {'module_kwargs': {'lags': [1, 2]},
+                         {
                           'fit_kwargs': {},
                           'predict_kwargs': {},
                           'model_params': {}
                           })
-        self.statsmodels_wrapper.set_params(module_kwargs={"lags": [1, 4]},
+        self.statsmodels_wrapper.set_params(
                                             fit_kwargs={"cov_type": "nonrobust"},
                                             predict_kwargs={"dynamic": True},
                                             model_params={"scale": 2.0})
         self.assertEqual(self.statsmodels_wrapper.get_params(),
-                         {"module_kwargs": {"lags": [1, 4]},
+                         {
                           "fit_kwargs": {"cov_type": "nonrobust"},
                           "predict_kwargs": {"dynamic": True},
                           "model_params": {"scale": 2.0}
@@ -79,7 +76,6 @@ class TestStatsmodelsWrapper(unittest.TestCase):
         self.statsmodels_wrapper.fit(data)
 
         # assert fit is called
-        self.statsmodels_mock.module.assert_called_once_with(module_kwargs={"lags": [1, 2]})
         self.statsmodels_mock.fit.assert_called_once()
 
         # assert correct arguments when calling fit

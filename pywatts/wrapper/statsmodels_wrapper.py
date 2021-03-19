@@ -2,10 +2,10 @@ import pickle
 from typing import Dict
 
 import numpy as np
-import statsmodels as sm
 import xarray as xr
 
 from pywatts.core.filemanager import FileManager
+from pywatts.utils._xarray_time_series_utils import _get_time_indeces, numpy_to_xarray
 from pywatts.wrapper.base_wrapper import BaseWrapper
 
 
@@ -27,13 +27,11 @@ class StatsmodelsWrapper(BaseWrapper):
     :type xr.Dataset
     """
 
-    def __init__(self, module: sm.tsa.base.tsa_model.TimeSeriesModel, name: str = None, module_kwargs=None,
+    def __init__(self, module, name: str = None, module_kwargs=None,
                  fit_kwargs=None, predict_kwargs=None, model_params=None):
         if name is None:
             name = module.__class__.__name__
         super().__init__(name)
-        if module_kwargs is None:
-            module_kwargs = {}
         if fit_kwargs is None:
             fit_kwargs = {}
         if predict_kwargs is None:
@@ -77,53 +75,39 @@ class StatsmodelsWrapper(BaseWrapper):
         if model_params:
             self.model_params = model_params
 
-    def fit(self, x: xr.Dataset, y: xr.Dataset = None):
+    def fit(self, **kwargs :xr.DataArray):
         """
         Fits the statsmodels module
 
-        :param x: input data
-        :param y: target data (not needed)
+        :param kwargs: The input and the target data
         """
-        x = self._dataset_to_statsmodels_input(x)
-        self.model_params = self.module(x, **self.module_kwargs).fit(**self.fit_kwargs).params
+        x = []
+        y = []
+        for key, value in kwargs.items():
+            if key.startswith("target"):
+                y.append(value.values.reshape(-1))
+            else:
+                x.append(value.values.reshape(-1))
+
+        self.model = self.module(endog=np.stack(y, axis=-1),exog=np.stack(x, axis=-1), **self.module_kwargs).fit(**self.fit_kwargs)
+
         self.is_fitted = True
 
-    @staticmethod
-    def _dataset_to_statsmodels_input(x):
-        if x is None:
-            return None
-        result = None
-        for data_var in x.data_vars:
-            data_array = x[data_var]
-            if result is not None:
-                result = np.concatenate([result, data_array.values.reshape(-1)], axis=1)
-            else:
-                result = data_array.values.reshape(-1)
-        return result
-
-    @staticmethod
-    def _statsmodels_output_to_dataset(x: xr.Dataset, prediction, name: str) -> xr.Dataset:
-        coords = (
-            # first dimension is number of batches. We assume that this is the time.
-            ("time", list(x.coords.values())[0].to_dataframe().index.array),
-            *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
-
-        data = {f"{name}": (tuple(map(lambda x: x[0], coords)), prediction),
-                "time": list(x.coords.values())[0].to_dataframe().index.array}
-        return xr.Dataset(data)
-
-    def transform(self, x: xr.Dataset) -> xr.Dataset:
+    def transform(self,**kwargs: xr.DataArray) -> xr.DataArray:
         """
         Predicts the result with the wrapped statsmodels module
 
-        :param x: the input dataset
-        :return: the transformed output
+        :param x: the input dataarray
+        :return: the transformed dataarray
         """
-        time_data = x.to_dataframe().iloc[:, 0]
-        start = time_data.index.min()[1]
-        end = time_data.index.max()[1]
-        prediction = self.module.predict(self.model_params, start, end, **self.predict_kwargs)
-        return self._statsmodels_output_to_dataset(x, prediction, self.name)
+        time_data = list(kwargs.values())[0][_get_time_indeces(kwargs)[0]]
+
+        x = []
+        for key, value in kwargs.items():
+            x.append(value.values.reshape(-1))
+
+        prediction = self.model.forecast(len(time_data), exog=np.stack(x, axis=-1), **self.predict_kwargs)[0]
+        return numpy_to_xarray(prediction, list(kwargs.values())[0], self.name)
 
     def save(self, fm: FileManager):
         """

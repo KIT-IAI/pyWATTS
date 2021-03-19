@@ -4,7 +4,6 @@ about: Pull Request that fixes a bug
 title: ''
 labels: bug
 assignees: ''
-
 ---
 
 

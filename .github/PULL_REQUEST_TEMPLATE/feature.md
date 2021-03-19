@@ -12,9 +12,6 @@ New feature (non-breaking change which adds functionality)
 - [ ] This change requires a documentation update
 
 
-
-Bugfix
-
 # How Has This Been Tested?
 
 (If not add the reasons)

@@ -34,6 +34,7 @@ Table of Content
    how_to_use
    core
    advanced_example
+   neural_network_example
    about_us
    contribution
 

@@ -12,6 +12,13 @@ pywatts.utils.lineplot module
    :undoc-members:
    :show-inheritance:
 
+pywatts.utils.summary module
+----------------------------
+
+.. automodule:: pywatts.utils.summary
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------

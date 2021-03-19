@@ -9,8 +9,9 @@ Subpackages
 
    pywatts.core
    pywatts.modules
-   pywatts.utils
    pywatts.wrapper
+   pywatts.callbacks
+   pywatts.utils
 
 Module contents
 ---------------

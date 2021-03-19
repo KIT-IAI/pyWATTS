@@ -52,7 +52,6 @@ pywatts.core.exceptions.wrong\_parameter\_exception module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

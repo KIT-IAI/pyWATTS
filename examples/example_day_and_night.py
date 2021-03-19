@@ -8,12 +8,12 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
 
 
 # Import the pyWATTS pipeline and the required modules
+from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.pipeline import Pipeline
+from pywatts.callbacks import CSVCallback, LinePlotCallback
 from pywatts.modules.clock_shift import ClockShift
 from pywatts.modules.linear_interpolation import LinearInterpolater
 from pywatts.modules.root_mean_squared_error import RmseCalculator

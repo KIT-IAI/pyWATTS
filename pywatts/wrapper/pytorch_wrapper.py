@@ -2,6 +2,7 @@ from typing import Dict
 
 import torch
 import xarray as xr
+import cloudpickle
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Dataset, DataLoader
 
@@ -32,11 +33,17 @@ class PyTorchWrapper(DlWrapper):
     :type name: str
     :param fit_kwargs: Key word arguments used for fitting the model.
     :type fit_kwargs: Optional[Dict]
-    :param compile_kwargs: Key word arguments used for compiling the model.
-    :type compile_kwargs: Optional[Dict]
+    :param loss_fn: The loss function of the model.
+    :type loss_fn: Callable
+    :param optimizer: The optimizer of the model.
+    :type optimizer: Object
     """
-    def __init__(self, model: torch.nn.Module, name: str = "PyTorchWrapper", fit_kwargs=None, compile_kwargs=None):
-        super().__init__(model, name, fit_kwargs, compile_kwargs)
+
+    def __init__(self, model: torch.nn.Module, name: str = "PyTorchWrapper", fit_kwargs=None, optimizer=None,
+                 loss_fn=None):
+        super().__init__(model, name, fit_kwargs)
+        self.loss_fn = loss_fn
+        self.optimizer = optimizer
 
     def fit(self, **kwargs: xr.DataArray):
         """
@@ -53,10 +60,6 @@ class PyTorchWrapper(DlWrapper):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
 
-        # loss_str = self.compile_kwargs['loss']
-        # optimizer_str = self.compile_kwargs['optimizer']
-        # metrics_str = self.compile_kwargs['metrics']
-
         batch_size_str = self.fit_kwargs['batch_size']
         epochs_str = self.fit_kwargs['epochs']
 
@@ -66,11 +69,8 @@ class PyTorchWrapper(DlWrapper):
         dataset = TimeSeriesDataset(x_np, y_np)
         train_loader = DataLoader(dataset=dataset, batch_size=int(batch_size_str), shuffle=True)
 
-        loss_fn = torch.nn.MSELoss(reduction='sum')
-
         learning_rate = 1e-4
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
-        scheduler = StepLR(optimizer, step_size=1)
+        scheduler = StepLR(self.optimizer, step_size=1)
 
         for epoch in range(1, int(epochs_str) + 1):
             self.model.train()
@@ -83,13 +83,13 @@ class PyTorchWrapper(DlWrapper):
                 # weights of the model). This is because by default, gradients are
                 # accumulated in buffers( i.e, not overwritten) whenever .backward()
                 # is called. Checkout docs of torch.autograd.backward for more details.
-                optimizer.zero_grad()
+                self.optimizer.zero_grad()
 
                 # Forward pass: compute predicted y by passing x to the model.
                 y_pred = self.model(data)
 
                 # Compute loss
-                loss = loss_fn(y_pred, target)
+                loss = self.loss_fn(y_pred, target)
 
                 # Backward pass: compute gradient of the loss with respect to model
                 # parameters
@@ -97,7 +97,7 @@ class PyTorchWrapper(DlWrapper):
 
                 # Calling the step function on an Optimizer makes an update to its
                 # parameters
-                optimizer.step()
+                self.optimizer.step()
 
                 # maybe do some printing and loss output
 
@@ -133,15 +133,6 @@ class PyTorchWrapper(DlWrapper):
 
         self.model.to("cpu")
 
-        '''
-        coords = (
-            # first dimension is number of batches. We assume that this is the time.
-            ("time", list(x.coords.values())[0].to_dataframe().index.array),
-            *[(f"dim_{j}", list(range(size))) for j, size in enumerate(pred.shape[1:])])
-        data = {"prediction": (tuple(map(lambda x: x[0], coords)), pred),
-                "time": list(x.coords.values())[0].to_dataframe().index.array}
-        result = xr.Dataset(data)
-        '''
         ret = numpy_to_xarray(pred, list(kwargs.values())[0], self.name)
         return ret
 
@@ -156,8 +147,14 @@ class PyTorchWrapper(DlWrapper):
 
         json = super().save(fm)
         file_path = fm.get_path(f'{self.name}.pt')
+        loss_fn_path = fm.get_path(f"loss_{self.name}.pickle")
+        with open(loss_fn_path, "wb")as file:
+            cloudpickle.dump(self.loss_fn, file)
+        optimizer_path = fm.get_path(f"optimizer_{self.name}.pickle")
+        with open(optimizer_path, "wb")as file:
+            cloudpickle.dump(self.optimizer, file)
         torch.save(self.model, file_path)
-        json.update({"pytorch_module": file_path})
+        json.update({"pytorch_module": file_path, "optimizer": optimizer_path, "loss_fn": loss_fn_path})
         return json
 
     @classmethod
@@ -172,8 +169,34 @@ class PyTorchWrapper(DlWrapper):
         """
         name = load_information["name"]
         model = torch.load(load_information["pytorch_module"])
+        with open(load_information["loss_fn"], "rb") as file:
+            loss_fn = cloudpickle.load(file)
+        with open(load_information["optimizer"], "rb") as file:
+            optimizer = cloudpickle.load(file)
         module = cls(model=model, name=name, fit_kwargs=load_information["params"]["fit_kwargs"],
-                     compile_kwargs=load_information["params"]["compile_kwargs"])
+                     loss_fn=loss_fn, optimizer=optimizer)
         module.is_fitted = load_information["is_fitted"]
 
         return module
+
+    def get_params(self) -> Dict[str, object]:
+        """
+        Returns the parameters of deep learning frameworks.
+        :return: A dict containing the fit keyword arguments and the compile keyword arguments
+        """
+        return {
+            "fit_kwargs": self.fit_kwargs
+        }
+
+    def set_params(self, fit_kwargs=None, loss_fn=None, optimizer=None):
+        """
+        Set the parameters of the deep learning wrapper
+        :param fit_kwargs: keyword arguments for the fit method.
+        :param compile_kwargs: keyword arguments for the compile methods.
+        """
+        if fit_kwargs:
+            self.fit_kwargs = fit_kwargs
+        if loss_fn:
+            self.loss_fn = loss_fn
+        if optimizer:
+            self.optimizer = optimizer

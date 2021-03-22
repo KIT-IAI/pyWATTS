@@ -39,8 +39,7 @@ class PyTorchWrapper(DlWrapper):
     :type optimizer: Object
     """
 
-    def __init__(self, model: torch.nn.Module, name: str = "PyTorchWrapper", fit_kwargs=None, optimizer=None,
-                 loss_fn=None):
+    def __init__(self, model: torch.nn.Module, optimizer, loss_fn, name: str = "PyTorchWrapper", fit_kwargs=None):
         super().__init__(model, name, fit_kwargs)
         self.loss_fn = loss_fn
         self.optimizer = optimizer

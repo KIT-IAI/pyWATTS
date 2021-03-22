@@ -1,25 +1,22 @@
 import unittest
 
 import pandas as pd
-import pytest
 import xarray as xr
-import numpy as np
 
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.modules.rolling_base import RollingGroupBy
-from pywatts.modules.rolling_variance import RollingVariance
+from pywatts.modules.rolling_kurtosis import RollingKurtosis
 
 
-class TestRollingVariance(unittest.TestCase):
+class TestRollingKurtosis(unittest.TestCase):
     def setUp(self) -> None:
-        self.rolling_variance = RollingVariance(window_size=3)
+        self.rolling_kurtosis = RollingKurtosis(window_size=3)
 
     def tearDown(self) -> None:
-        self.rolling_variance = None
+        self.rolling_kurtosis = None
 
     def test_get_params(self):
         self.assertEqual(
-            self.rolling_variance.get_params(),
+            self.rolling_kurtosis.get_params(),
             {
                 "window_size": 3,
                 "window_size_unit": "d",
@@ -31,7 +28,7 @@ class TestRollingVariance(unittest.TestCase):
 
     def test_set_params(self):
         self.assertEqual(
-            self.rolling_variance.get_params(),
+            self.rolling_kurtosis.get_params(),
             {
                 "window_size": 3,
                 "window_size_unit": "d",
@@ -40,9 +37,9 @@ class TestRollingVariance(unittest.TestCase):
                 "continent": "Europe"
             }
         )
-        self.rolling_variance.set_params(window_size=5)
+        self.rolling_kurtosis.set_params(window_size=5)
         self.assertEqual(
-            self.rolling_variance.get_params(),
+            self.rolling_kurtosis.get_params(),
             {
                 "window_size": 5,
                 "window_size_unit": "d",
@@ -57,8 +54,8 @@ class TestRollingVariance(unittest.TestCase):
 
         da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
 
-        result = self.rolling_variance.transform(da)
+        result = self.rolling_kurtosis.transform(da)
 
-        expected_result = xr.DataArray([0., 0, 0.5, 1., 1., 1., 1.], dims=["time"], coords={'time': time})
+        expected_result = xr.DataArray([0., 0, 0, 0, 0, 0, 0], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)

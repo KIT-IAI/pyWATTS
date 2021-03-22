@@ -2,16 +2,12 @@ from typing import Optional, Dict
 
 import numpy as np
 import pandas as pd
-import workalendar.africa
-import workalendar.america
-import workalendar.asia
-import workalendar.europe
-import workalendar.oceania
-import workalendar.usa
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
+from pywatts.core.exceptions.util_exception import UtilException
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts.utils._workalendar_utils import _init_calendar
 
 
 class CalendarExtraction(BaseTransformer):
@@ -48,7 +44,11 @@ class CalendarExtraction(BaseTransformer):
         self.encoding = encoding
         self.continent = continent
         self.country = country
-        self.calendar = self._init_calendar(continent, country)
+        try:
+            self.calendar = _init_calendar(self.continent, self.country)
+        except UtilException as e:
+            raise WrongParameterException(e.message,
+                                          "Please set a valid country or continent for.", CalendarExtraction)
 
         calendar_features = ["year", "month", "day", "weekday", "hour", "weekend", "workday", "holiday"]
         if self.calendar_feature not in calendar_features:
@@ -67,32 +67,6 @@ class CalendarExtraction(BaseTransformer):
                 "Change to the allowed strategies numerical or sine",
                 module=self.name
             )
-
-    def _init_calendar(self, continent: str, country: str):
-        """ Check if continent and country are correct and return calendar object.
-
-        :param continent: Continent where the country or region is located.
-        :type continent: str
-        :param country: Country or region to use for the calendar object.
-        :type country: str
-        :return: Returns workalendar object to use for holiday lookup.
-        :rtype: workalendar object
-        :raises WrongParameterException: If the wrong country or continent are set
-        """
-        if not hasattr(workalendar, continent.lower()):
-            raise WrongParameterException(
-                "Please set a valid continent for the CalendarExtraction step.",
-                "See the documentation of workkalendar for valid continents",
-                module=self.name
-            )
-        module = getattr(workalendar, continent.lower())
-        if not hasattr(module, country):
-            raise WrongParameterException(
-                "Please set a valid country for the CalendarExtraction step.",
-                "See the documentation of workkalendar for valid countries",
-                module=self.name
-            )
-        return getattr(module, country)()
 
     def _encode_numerical(self, feature: str, timeseries: pd.Series):
         """ Encode a specific feature numerical given a pandas series timeseries.
@@ -203,7 +177,11 @@ class CalendarExtraction(BaseTransformer):
         if country is not None:
             self.country = country
 
-        self.calendar = self._init_calendar(self.continent, self.country)
+        try:
+            self.calendar = _init_calendar(self.continent, self.country)
+        except UtilException as e:
+            raise WrongParameterException(e.message,
+                                          "Please set a valid country or continent for.", CalendarExtraction)
         if not hasattr(self, f"_encode_{self.encoding}"):
             raise WrongParameterException(
                 "Please set a valid encoding strategy.",

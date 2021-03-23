@@ -55,7 +55,7 @@ if __name__ == "__main__":
     )(
         power_lag1=shift_power_statistics,
         power_lag2=shift_power_statistics2,
-        callendar=calendar,
+        calendar=calendar,
         target=scale_power_statistics,
         callbacks=[LinePlotCallback('linear_regression')],
     )

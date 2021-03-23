@@ -27,8 +27,10 @@ if __name__ == "__main__":
 
     # Extract dummy calender features, using holidays from Germany
     # NOTE: CalendarExtraction can't return multiple features.
-    calendar = CalendarExtraction(continent="Europe", country="Germany", features=[CalendarFeature.month, CalendarFeature.weekday, CalendarFeature.weekend]
-    )(x=pipeline["load_power_statistics"])
+    calendar = CalendarExtraction(continent="Europe", country="Germany", features=[CalendarFeature.month,
+                                                                                   CalendarFeature.weekday,
+                                                                                   CalendarFeature.weekend]
+                                  )(x=pipeline["load_power_statistics"])
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(
@@ -64,8 +66,11 @@ if __name__ == "__main__":
         use_inverse_transform=True, callbacks=[LinePlotCallback('rescale')]
     )
 
-    # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], callbacks=[CSVCallback('RMSE')])
+    # Calculate the root mean squared error (RMSE) between the linear regression and the true values
+    # save it as csv file
+    rmse = RmseCalculator()(y_hat=inverse_power_scale,
+                            y=pipeline["load_power_statistics"],
+                            callbacks=[CSVCallback('RMSE')])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

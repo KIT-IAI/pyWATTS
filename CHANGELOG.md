@@ -11,6 +11,9 @@
 
   * Remove plot, to_csv, summary. Instead we add a callback functionality. Additional, we provide some basic callbacks. ([#16](https://github.com/KIT-IAI/pyWATTS/issues/16))
   * Use keyword arguments instead of list for determining the input of modules. keyword that start with target are only fed into the fit function.  ([#16](https://github.com/KIT-IAI/pyWATTS/issues/16))
+  * CalendarExtraction: Remove encoding, for each encoding and suitable feature a new feature is created. 
+    E.g. month_sine. Additionally further calendar features are added. E.g. monday, tuesday, .. and cos encodings. For 
+    the different features, a enum type is defined.
 
 ### Deprecated
 

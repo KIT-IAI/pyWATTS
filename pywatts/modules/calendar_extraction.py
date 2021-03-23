@@ -13,6 +13,33 @@ from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 
 class CalendarFeature(IntEnum):
+    """
+    The available calendar features, that are extractable by the calendar extraction module:
+
+    year: Extracting the year of the time series element.
+    month: Extracting the month of the time series element.
+    month_sine: Extracting the month of the time series element and encodes it with sine.
+    month_cos: Extracting the month of the time series element and encodes it with cos.
+    day: Extracting the day of the time series element.
+    day_sine: Extracting the day of the time series element and encodes it with sine.
+    day_cos: Extracting the day of the time series element and encodes it with cos.
+    hour: Extracting the hour of the time series element.
+    hour_sine: Extracting the hour of the time series element and encodes it with sine.
+    hour_cos: Extracting the hour of the time series element and encodes it with cos.
+    weekday: Extracting the weekday of the time series element.
+    weekday_sine: Extracting the weekday of the time series element and encodes it with sine.
+    weekday_cos: Extracting the weekday of the time series element and encodes it with cos.
+    monday: Extracting a flag indicating if the element of the time series element is a monday or not.
+    tuesday: Extracting a flag indicating if the element of the time series element is a tuesday or not.
+    wednesday: Extracting a flag indicating if the element of the time series element is a wednesday or not.
+    thursday: Extracting a flag indicating if the element of the time series element is a thursday or not.
+    friday: Extracting a flag indicating if the element of the time series element is a friday or not.
+    saturday: Extracting a flag indicating if the element of the time series element is a saturday or not.
+    sunday: Extracting a flag indicating if the element of the time series element is a sunday or not.
+    weekend: Extracting a flag indicating if the element of the time series element is a weekend or not.
+    workday: Extracting a flag indicating if the element of the time series element is a workday or not.
+    holiday: Extracting a flag indicating if the element of the time series element is a holiday or not.
+    """
     year = 1
     month = 2
     month_sine = 3

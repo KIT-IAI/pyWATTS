@@ -17,7 +17,9 @@ class TestCalendarExtraction(unittest.TestCase):
                                   CalendarFeature.weekday, CalendarFeature.hour, CalendarFeature.workday,
                                   CalendarFeature.holiday, CalendarFeature.hour_sine, CalendarFeature.hour_cos,
                                   CalendarFeature.weekday_sine, CalendarFeature.weekday_cos, CalendarFeature.month_sine,
-                                  CalendarFeature.month_cos, CalendarFeature.day_sine, CalendarFeature.day_sine]
+                                  CalendarFeature.month_cos, CalendarFeature.day_sine, CalendarFeature.day_cos,
+                                  CalendarFeature.monday, CalendarFeature.tuesday, CalendarFeature.wednesday,
+                                  CalendarFeature.thursday, CalendarFeature.saturday, CalendarFeature.sunday]
 
     def tearDown(self):
         self.da = None
@@ -127,3 +129,25 @@ class TestCalendarExtraction(unittest.TestCase):
                 self.assertEqual(x[0], np.cos(np.pi * 2 * 5 / 6), "Expecting weekday feature starting from 1.")
                 self.assertEqual(x[1], np.cos(np.pi * 2 * 6 / 6), "Expecting weekday feature starting from 1.")
                 self.assertEqual(x[2], np.cos(np.pi * 2 * 0 / 6), "Expecting weekday feature starting from 1.")
+            if calendar_feature == CalendarFeature.monday:
+                self.assertEqual(x[0], 0)
+                self.assertEqual(x[2], 1)
+            if calendar_feature == CalendarFeature.tuesday:
+                self.assertEqual(x[0], 0)
+                self.assertEqual(x[3], 1)
+            if calendar_feature == CalendarFeature.wednesday:
+                self.assertEqual(x[0], 0)
+                self.assertEqual(x[4], 1)
+            if calendar_feature == CalendarFeature.thursday:
+                self.assertEqual(x[0], 0)
+                self.assertEqual(x[5], 1)
+            if calendar_feature == CalendarFeature.friday:
+                self.assertEqual(x[0], 0)
+                self.assertEqual(x[6], 1)
+            if calendar_feature == CalendarFeature.saturday:
+                self.assertEqual(x[1], 0)
+                self.assertEqual(x[0], 1)
+            if calendar_feature == CalendarFeature.sunday:
+                self.assertEqual(x[0], 0)
+                self.assertEqual(x[1], 1)
+

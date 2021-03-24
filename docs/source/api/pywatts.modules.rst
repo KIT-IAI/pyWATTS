@@ -52,6 +52,14 @@ pywatts.modules.missing\_value\_detection module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.profile\_neural\_network module
+-----------------------------------------------
+
+.. automodule:: pywatts.modules.profile_neural_network
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.resample module
 -------------------------------
 

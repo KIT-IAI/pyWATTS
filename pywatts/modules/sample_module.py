@@ -35,7 +35,7 @@ class Sampler(BaseTransformer):
         :rtype: dict
         """
         return {
-            "lag": self.sample_size,
+            "sample_size": self.sample_size,
             "indeces": self.indexes,
         }
 

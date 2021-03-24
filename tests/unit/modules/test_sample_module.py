@@ -18,20 +18,20 @@ class TestSampler(unittest.TestCase):
 
         self.assertEqual(params,
                          {
-                             "lag": 2,
+                             "sample_size": 2,
                              "indeces": [],
                          })
 
     def test_set_params(self):
         self.assertEqual(self.sampler.get_params(),
                          {
-                             "lag": 2,
+                             "sample_size": 2,
                              "indeces": [],
                          })
         self.sampler.set_params(indexes=["Foo"], sample_size=12)
         self.assertEqual(self.sampler.get_params(),
                          {
-                             "lag": 12,
+                             "sample_size": 12,
                              "indeces": ["Foo"],
                          })
 

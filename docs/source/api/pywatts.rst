@@ -11,4 +11,3 @@ Subpackages
    pywatts.modules
    pywatts.wrapper
    pywatts.callbacks
-

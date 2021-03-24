@@ -75,3 +75,9 @@ implement the *transform*, *fit*, *get_param*, and *set_param* method.
 
 The *transform* method should call the predict function of the model. The *fit* method has to train the model. The
 *get_param* and the *set_param* method should implement the functionality to storing and loading the module.
+
+Additionally, you have also to define  your own save and load methods, which should contain all functionality for
+storing and loading your neural network.
+
+As an example you can look at the profile_neural_network module. It implements a neural network using Keras without
+using the KerasWrapper.

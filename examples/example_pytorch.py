@@ -42,12 +42,6 @@ if __name__ == "__main__":
 
     pipeline = Pipeline(path="../results")
 
-    # Extract dummy calender features, using holidays from Germany
-    calendar_features = CalendarExtraction(encoding="numerical", continent="Europe", country="Germany")\
-                        (
-                            x=pipeline["load_power_statistics"]
-                        )
-
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
                                                   name="imputer_power")(x=pipeline["load_power_statistics"])

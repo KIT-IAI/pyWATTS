@@ -40,14 +40,12 @@ class TestTrendExtraction(unittest.TestCase):
     def test_transform(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=10)
 
-        ds = xr.Dataset({'foo': ('time', [2, 3, 4, 5, 6, 7, 8, 9, 10, 42]), 'time': time})
+        da = xr.DataArray([2, 3, 4, 5, 6, 7, 8, 9, 10, 42], dims=["time"], coords={'time': time})
 
-        result = self.trend_extractor.transform(ds)
+        result = self.trend_extractor.transform(da)
 
-        expected_result = xr.Dataset(
-            {'foo_trend': (['length', 'time'], [[0, 0, 2, 3, 4, 5, 6, 7, 8, 9],
-                                                [0, 0, 0, 0, 2, 3, 4, 5, 6, 7],
-                                                [0, 0, 0, 0, 0, 0, 2, 3, 4, 5]]),
-        'time': time})
+        expected_result = xr.DataArray(
+            [[0, 0, 0], [0, 0, 0], [2, 0, 0], [3, 0, 0], [4, 2, 0], [5, 3, 0], [6, 4, 2], [7, 5, 3], [8, 6, 4],
+             [9, 7, 5]], dims=["time", "length"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)

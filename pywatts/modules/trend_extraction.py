@@ -83,4 +83,4 @@ class TrendExtraction(BaseTransformer):
         for i in range(2, self.length + 1):
             trend = xr.concat([trend,
                                x.shift({index: self.period * i for index in indexes}, fill_value=0)], dim="length")
-        return trend.rename(dict(zip(x.data_vars.keys(), map(lambda x: x + "_trend", x.data_vars.keys()))))
+        return trend.transpose(_get_time_indeces(x)[0], "length", ...)

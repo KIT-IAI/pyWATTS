@@ -21,7 +21,3 @@ Anyone in the community is free to review the PR once the tests have passed.
 - [ ] Check that all items from **Before submitting** are resolved
 - [ ] Make sure the title is self-explanatory and the description concisely explains the PR
 - [ ] Add labels and milestones to the PR so it can be classified
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] My changes generate no new warnings

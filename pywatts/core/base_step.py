@@ -168,7 +168,7 @@ class BaseStep(ABC):
             "class": self.__class__.__name__,
             "name": self.name,
             "last": self.last,
-            "computation_mode": int(self.computation_mode)
+            "computation_mode": int(self._original_compuation_mode)
         }
 
     @classmethod

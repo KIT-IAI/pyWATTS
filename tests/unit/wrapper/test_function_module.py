@@ -16,9 +16,9 @@ class TestFunctionModule(unittest.TestCase):
 
     def test_transform(self):
         data_mock = MagicMock()
-        self.function_module.transform(data_mock)
+        self.function_module.transform(input_data=data_mock)
 
-        self.mocked_function.assert_called_once_with(data_mock)
+        self.mocked_function.assert_called_once_with(input_data=data_mock)
 
     @patch('pywatts.wrapper.function_module.cloudpickle')
     @patch("builtins.open")

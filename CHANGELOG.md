@@ -19,7 +19,7 @@
   * Fixed pipeline crashing in RMSE module because of wrong time index ([#39](https://github.com/KIT-IAI/pyWATTS/issues/39))
   * Fixed bracket operator not working for steps within the pipeline ([#42](https://github.com/KIT-IAI/pyWATTS/issues/42))
   * Fixed dict objects could not be passed to pipeline ([#43](https://github.com/KIT-IAI/pyWATTS/issues/43))
-
+  * Fixed old parameter in sample_module  ([#67](https://github.com/KIT-IAI/pyWATTS/issues/67))
 
 ## [0.0.1] - 2021-MM-DD
 

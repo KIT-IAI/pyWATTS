@@ -17,20 +17,15 @@ class Sampler(BaseTransformer):
     :type sample_size: int
     :param indices: The indices which should be shifted through time
     :type indices: List[str]
-    :param data_var_names: Name for the shifted time series
-    :type data_var_names: List[str]
 
      """
 
-    def __init__(self, sample_size: int, name: str = "SampleModule", indeces: List[str] = None, data_var_names=None):
+    def __init__(self, sample_size: int, name: str = "SampleModule", indeces: List[str] = None):
         super().__init__(name)
         if indeces is None:
             indeces = []
-        if data_var_names is None:
-            data_var_names = []
         self.sample_size = sample_size
         self.indexes = indeces
-        self.data_var_names = data_var_names
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -42,10 +37,9 @@ class Sampler(BaseTransformer):
         return {
             "lag": self.sample_size,
             "indeces": self.indexes,
-            "data_var_names": self.data_var_names
         }
 
-    def set_params(self, sample_size: int = None, indexes: List[str] = None, data_var_names=[]):
+    def set_params(self, sample_size: int = None, indexes: List[str] = None):
         """
         Set params.
 
@@ -53,8 +47,6 @@ class Sampler(BaseTransformer):
         :type sample_size: int
         :param indices: The indices which should be shifted through time
         :type indices: List[str]
-        :param data_var_names: Name for the shifted time series
-        :type data_var_names: List[str]
 
         """
         if sample_size:
@@ -62,8 +54,7 @@ class Sampler(BaseTransformer):
         if indexes is not None:
             # Do not use if indexes here, since this would be false if indexes is empty.
             self.indexes = indexes
-        if data_var_names:
-            self.data_var_names = data_var_names
+
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
@@ -87,6 +78,5 @@ class Sampler(BaseTransformer):
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
                 module=self.name)
         result = result.transpose(_get_time_indeces(x)[0], "horizon", ...)
-        if self.data_var_names:
-            return result.rename(dict(zip(x.data_vars.keys(), self.data_var_names)))
+
         return result

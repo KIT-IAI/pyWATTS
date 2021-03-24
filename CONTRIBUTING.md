@@ -51,4 +51,4 @@ Enhancement suggestions are tracked as [GitHub issues]
 
 ### Pull Requests
 
-Please choose the appropriate Pull Request template and follow the instruction inside it. Afterwards, verify that all checks are passed. Then a maintainer will review the PR.
+If your code is ready, please create a pull request and fill in the template. Afterwards, verify that all checks are passed. Then a maintainer will review the PR.

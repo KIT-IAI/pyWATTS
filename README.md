@@ -1,4 +1,7 @@
 ![Pipeline status](https://github.com/KIT-IAI/pyWATTS/workflows/Python%20application/badge.svg?branch=master)
+[![DOI](https://zenodo.org/badge/297579218.svg)](https://zenodo.org/badge/latestdoi/297579218)
+
+
 
 # pyWATTS
 

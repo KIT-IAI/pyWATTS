@@ -44,6 +44,14 @@ pywatts.core.exceptions.step\_creation\_exception module
    :undoc-members:
    :show-inheritance:
 
+pywatts.core.exceptions.util\_exception module
+----------------------------------------------
+
+.. automodule:: pywatts.core.exceptions.util_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.core.exceptions.wrong\_parameter\_exception module
 ----------------------------------------------------------
 

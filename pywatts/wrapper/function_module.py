@@ -9,7 +9,8 @@ from pywatts.core.filemanager import FileManager
 
 class FunctionModule(BaseTransformer):
     """
-    This module calls the function in its transform. It can be used, for executing own code in the pipeline
+    This module calls the function in its transform. It can be used, for executing own code in the pipeline. Note that
+    the wrapped function is called with the same keyword arguments as the module.
 
     :param name: name of the instance (FunctionModule)
     :type name: str
@@ -35,7 +36,7 @@ class FunctionModule(BaseTransformer):
         Does nothing:
         """
 
-    def transform(self, x: Optional[xr.Dataset]) -> xr.Dataset:
+    def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Call the function wrapped by this module on x.
 
@@ -44,13 +45,13 @@ class FunctionModule(BaseTransformer):
         :return: The transformed Dataset
         :rtype: xarray.Dataset
         """
-        return self.function(x)
+        return self.function(**kwargs)
 
     def save(self, fm: FileManager):
         """
         Saves the Conditional module to JSON file
 
-        :param fm: A FileManager, from which the path where the JSON file is saved is fetcheds
+        :param fm: A FileManager, from which the path where the JSON file is saved is fetches
         :type fm: FileManager
         :return: Dictionary with name, parameters, related module and class, and path to the file
         :rtype: Dict

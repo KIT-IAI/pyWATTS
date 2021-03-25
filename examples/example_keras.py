@@ -10,17 +10,14 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow.keras import layers, Model
 
 from pywatts.callbacks import CSVCallback, LinePlotCallback
-from pywatts.wrapper.keras_wrapper import KerasWrapper
 
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 
 # Import the pyWATTS pipeline and the required modules
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
-from pywatts.modules.clock_shift import ClockShift
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
+from pywatts.wrapper import SKLearnWrapper, KerasWrapper
+from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
 
 
 def get_keras_model():

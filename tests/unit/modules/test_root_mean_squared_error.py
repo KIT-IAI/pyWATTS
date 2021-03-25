@@ -19,7 +19,13 @@ class TestRMSECalculator(unittest.TestCase):
 
     def test_get_params(self):
         self.assertEqual(self.rmse_calculator.get_params(),
-                         {})
+                         {"offset" : 0})
+
+
+    def test_set_params(self):
+        self.rmse_calculator.set_params(offset=24)
+        self.assertEqual(self.rmse_calculator.get_params(),
+                     {"offset": 24})
 
     def test_transform(self):
         self.rmse_calculator.set_params()

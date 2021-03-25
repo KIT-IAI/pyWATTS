@@ -14,11 +14,8 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 # All modules required for the pipeline are imported
-from pywatts.modules.calendar_extraction import CalendarExtraction
-from pywatts.modules.clock_shift import ClockShift
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+from pywatts.wrapper import SKLearnWrapper
 
 # The main function is where the pipeline is created and run
 if __name__ == "__main__":
@@ -27,15 +24,10 @@ if __name__ == "__main__":
 
     # Extract dummy calender features, using holidays from Germany
     # NOTE: CalendarExtraction can't return multiple features.
-    calendar_month = CalendarExtraction(
-        encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["load_power_statistics"])
-    calendar_weekday = CalendarExtraction(
-        encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["load_transparency"])
-    calendar_weekend = CalendarExtraction(
-        encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["load_power_statistics"])
+    calendar = CalendarExtraction(continent="Europe", country="Germany", features=[CalendarFeature.month,
+                                                                                   CalendarFeature.weekday,
+                                                                                   CalendarFeature.weekend]
+                                  )(x=pipeline["load_power_statistics"])
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(
@@ -60,9 +52,7 @@ if __name__ == "__main__":
     )(
         power_lag1=shift_power_statistics,
         power_lag2=shift_power_statistics2,
-        cal_month=calendar_month,
-        cal_weekday=calendar_weekday,
-        call_weekend=calendar_weekend,
+        calendar=calendar,
         target=scale_power_statistics,
         callbacks=[LinePlotCallback('linear_regression')],
     )
@@ -73,8 +63,11 @@ if __name__ == "__main__":
         use_inverse_transform=True, callbacks=[LinePlotCallback('rescale')]
     )
 
-    # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], callbacks=[CSVCallback('RMSE')])
+    # Calculate the root mean squared error (RMSE) between the linear regression and the true values
+    # save it as csv file
+    rmse = RmseCalculator()(y_hat=inverse_power_scale,
+                            y=pipeline["load_power_statistics"],
+                            callbacks=[CSVCallback('RMSE')])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

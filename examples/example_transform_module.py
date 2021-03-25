@@ -8,7 +8,7 @@ from pywatts.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 
 # All modules required for the pipeline are imported
-from pywatts.wrapper.function_module import FunctionModule
+from pywatts.wrapper import FunctionModule
 
 
 def custom_multiplication(x: xr.Dataset):

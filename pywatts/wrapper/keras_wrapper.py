@@ -11,7 +11,15 @@ from pywatts.wrapper.dl_wrapper import DlWrapper
 
 class KerasWrapper(DlWrapper):
     """
-    Wrapper for Keras Models.
+    Wrapper class for keras models
+
+    :param model: The deep learning model
+    :param name: The name of the wrapper
+    :type name: str
+    :param fit_kwargs: The fit keyword arguments necessary for fitting the model
+    :type fit_kwars: dict
+    :param compile_kwargs: The compile keyword arguments necessary for compiling the model.
+    :type compile_kwargs: dict
     """
 
     def __init__(self, model: Union[tf.keras.Model, Tuple[tf.keras.Model, Dict[str, tf.keras.Model]]],
@@ -20,7 +28,11 @@ class KerasWrapper(DlWrapper):
         if isinstance(model, tuple):
             self.aux_models = model[1]
             model = model[0]
-        super().__init__(model, name, fit_kwargs, compile_kwargs)
+        super().__init__(model, name, fit_kwargs)
+        if compile_kwargs is None:
+            self.compile_kwargs = {}
+        else:
+            self.compile_kwargs = compile_kwargs
 
     def fit(self, **kwargs: xr.DataArray):
         """
@@ -106,3 +118,24 @@ class KerasWrapper(DlWrapper):
             module = cls(model, name=name, **params)
         module.is_fitted = load_information["is_fitted"]
         return module
+
+    def get_params(self) -> Dict[str, object]:
+        """
+        Returns the parameters of deep learning frameworks.
+        :return: A dict containing the fit keyword arguments and the compile keyword arguments
+        """
+        return {
+            "fit_kwargs": self.fit_kwargs,
+            "compile_kwargs": self.compile_kwargs
+        }
+
+    def set_params(self, fit_kwargs=None, compile_kwargs=None):
+        """
+        Set the parameters of the deep learning wrapper
+        :param fit_kwargs: keyword arguments for the fit method.
+        :param compile_kwargs: keyword arguments for the compile methods.
+        """
+        if fit_kwargs:
+            self.fit_kwargs = fit_kwargs
+        if compile_kwargs:
+            self.compile_kwargs = compile_kwargs

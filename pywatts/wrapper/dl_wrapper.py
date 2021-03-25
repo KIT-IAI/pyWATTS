@@ -21,15 +21,12 @@ class DlWrapper(BaseWrapper, ABC):
     :type compile_kwargs: dict
     """
 
-    def __init__(self, model, name, fit_kwargs=None, compile_kwargs=None):
+    def __init__(self, model, name, fit_kwargs=None):
         super().__init__(name)
         self.model = model
-        if compile_kwargs is None:
-            compile_kwargs = {}
         if fit_kwargs is None:
             fit_kwargs = {}
         self.fit_kwargs = fit_kwargs
-        self.compile_kwargs = compile_kwargs
         self.compiled = False
 
     @staticmethod
@@ -39,24 +36,3 @@ class DlWrapper(BaseWrapper, ABC):
             da = data[dv]
             result[dv] = da.values
         return result
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameters of deep learning frameworks.
-        :return: A dict containing the fit keyword arguments and the compile keyword arguments
-        """
-        return {
-            "fit_kwargs": self.fit_kwargs,
-            "compile_kwargs": self.compile_kwargs
-        }
-
-    def set_params(self, fit_kwargs=None, compile_kwargs=None):
-        """
-        Set the parameters of the deep learning wrapper
-        :param fit_kwargs: keyword arguments for the fit method.
-        :param compile_kwargs: keyword arguments for the compile methods.
-        """
-        if fit_kwargs:
-            self.fit_kwargs = fit_kwargs
-        if compile_kwargs:
-            self.compile_kwargs = compile_kwargs

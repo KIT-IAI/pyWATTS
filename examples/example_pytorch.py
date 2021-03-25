@@ -49,14 +49,18 @@ if __name__ == "__main__":
     shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1")(x=scale_power_statistics)
     shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2")(x=scale_power_statistics)
 
-    pytorch_wrapper = PyTorchWrapper(get_sequential_model(),
+    model = get_sequential_model()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+
+    pytorch_wrapper = PyTorchWrapper(model,
                                      fit_kwargs={"batch_size": 8, "epochs": 1},
-                                     compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]}) \
-            (
-            power_lag1=shift_power_statistics,
-            power_lag2=shift_power_statistics2,
-            target=scale_power_statistics
-        )
+                                     optimizer=optimizer,
+                                     loss_fn=torch.nn.MSELoss(reduction='sum'))\
+                      (
+                        power_lag1=shift_power_statistics,
+                        power_lag2=shift_power_statistics2,
+                        target=scale_power_statistics
+                      )
 
     inverse_power_scale = power_scaler(x=pytorch_wrapper,
                                        computation_mode=ComputationMode.Transform,
@@ -76,3 +80,6 @@ if __name__ == "__main__":
 
     pipeline.train(data)
     pipeline.to_folder("./pipe_pytorch")
+
+    pipeline2 = Pipeline.from_folder("./pipe_pytorch")
+    pipeline2.train(data)

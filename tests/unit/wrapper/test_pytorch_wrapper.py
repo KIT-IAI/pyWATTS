@@ -29,7 +29,9 @@ class TestPyTorchWrapper(unittest.TestCase):
         model = self.get_sequential_model()
         wrapper = PyTorchWrapper(model=model,
                                  fit_kwargs={"batch_size": 8, "epochs": 1},
-                                 compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]})
+                                 loss_fn=torch.nn.MSELoss(reduction='sum'),
+                                 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+                                 )
 
         self.assertEqual(wrapper.get_params()["fit_kwargs"]["batch_size"], 8)
         wrapper.set_params(fit_kwargs={"batch_size": 12, "epochs": 1}, )
@@ -39,7 +41,8 @@ class TestPyTorchWrapper(unittest.TestCase):
         model = self.get_sequential_model(d_in=1, d_out=1, h=5)
         wrapper = PyTorchWrapper(model=model,
                                  fit_kwargs={"batch_size": 8, "epochs": 1},
-                                 compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]})
+                                 loss_fn=torch.nn.MSELoss(reduction='sum'),
+                                 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4))
 
         time = pd.date_range('2000-01-01', freq='24H', periods=5)
         x = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})
@@ -51,7 +54,8 @@ class TestPyTorchWrapper(unittest.TestCase):
         model = self.get_sequential_model(d_in=1, d_out=1, h=5)
         wrapper = PyTorchWrapper(model=model,
                                  fit_kwargs={"batch_size": 8, "epochs": 1},
-                                 compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]})
+                                 loss_fn=torch.nn.MSELoss(reduction='sum'),
+                                 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4))
 
         time = pd.date_range('2000-01-01', freq='24H', periods=5)
         x = xr.DataArray([1, 2, 3, 4, 5], dims=["time"], coords={'time': time})

@@ -1,10 +1,8 @@
 import unittest
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.modules.rolling_mean import RollingMean, RollingMeanGroupBy
 
 

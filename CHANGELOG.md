@@ -8,6 +8,8 @@
   * Added integration tests to github actions by executing the examples in root directory ([#47](https://github.com/KIT-IAI/pyWATTS/issues/47))
   * Implementation of the profile neural network ([#71](https://github.com/KIT-IAI/pyWATTS/issues/47))
   * Imports from the init files for exception, modules, and wrapper. ([#27](https://github.com/KIT-IAI/pyWATTS/issues/27))
+  * Add rolling_variance, rolling_kurtosis, rolling_skewness. ([#28](https://github.com/KIT-IAI/pyWATTS/issues/28))
+  * Select the kind of groupby in the rolling function by an enum ([#28](https://github.com/KIT-IAI/pyWATTS/issues/28))
 
 ### Changed
 

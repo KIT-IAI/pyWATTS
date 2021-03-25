@@ -30,7 +30,7 @@ PyWATTS has the following requirements for modules:
 
 1. The modules have to inherit either from `BaseEstimator`` or BaseTransformer.
 2. The modules have have to implement `fit(...)`, `transform(...)`, `set_params(...)`, and `get_params(...)`.
-  Note that if a module does not need to be fitted, it can inherit from `BaseTransformer` and does not have to implement `fit(...)` by itself.
+   Note that if a module does not need to be fitted, it can inherit from `BaseTransformer` and does not have to implement `fit(...)` by itself.
 3. The first dimension of each data-array in the output time-series has to be a time index.
 
 Steps

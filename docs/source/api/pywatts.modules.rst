@@ -68,10 +68,42 @@ pywatts.modules.resample module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.rolling\_base module
+------------------------------------
+
+.. automodule:: pywatts.modules.rolling_base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.modules.rolling\_kurtosis module
+----------------------------------------
+
+.. automodule:: pywatts.modules.rolling_kurtosis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.rolling\_mean module
 ------------------------------------
 
 .. automodule:: pywatts.modules.rolling_mean
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.modules.rolling\_skewness module
+----------------------------------------
+
+.. automodule:: pywatts.modules.rolling_skewness
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.modules.rolling\_variance module
+----------------------------------------
+
+.. automodule:: pywatts.modules.rolling_variance
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,11 +1,10 @@
 import unittest
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.modules.rolling_mean import RollingMean, RollingMeanGroupBy
+from pywatts.modules.rolling_base import RollingGroupBy
+from pywatts.modules.rolling_mean import RollingMean
 
 
 class TestRollingMean(unittest.TestCase):
@@ -21,7 +20,7 @@ class TestRollingMean(unittest.TestCase):
             {
                 "window_size": 3,
                 "window_size_unit": "d",
-                "group_by": RollingMeanGroupBy.No,
+                "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe"
             }
@@ -33,7 +32,7 @@ class TestRollingMean(unittest.TestCase):
             {
                 "window_size": 3,
                 "window_size_unit": "d",
-                "group_by": RollingMeanGroupBy.No,
+                "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe"
             }
@@ -44,7 +43,7 @@ class TestRollingMean(unittest.TestCase):
             {
                 "window_size": 5,
                 "window_size_unit": "d",
-                "group_by": RollingMeanGroupBy.No,
+                "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe"
             }
@@ -62,7 +61,7 @@ class TestRollingMean(unittest.TestCase):
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_groupbyWeekendWeekday(self):
-        self.rolling_mean.set_params(group_by=RollingMeanGroupBy.WorkdayWeekend)
+        self.rolling_mean.set_params(group_by=RollingGroupBy.WorkdayWeekend)
         time = pd.date_range('2002-01-01', freq='24H', periods=7)
 
         ds = xr.DataArray([2, 3, 4, 5, 6, 7, 42], dims=["time"], coords={'time': time})
@@ -75,7 +74,7 @@ class TestRollingMean(unittest.TestCase):
 
     def test_transform_groupbyWeekendWeekdayAndHoliday(self):
         time = pd.date_range('2002-01-01', freq='24H', periods=7)
-        self.rolling_mean.set_params(window_size=4, group_by=RollingMeanGroupBy.WorkdayWeekendAndHoliday)
+        self.rolling_mean.set_params(window_size=4, group_by=RollingGroupBy.WorkdayWeekendAndHoliday)
 
         ds = xr.DataArray([2, 3, 4, 5, 6, 7, 42], dims=["time"], coords={'time': time})
 

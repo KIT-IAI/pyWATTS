@@ -94,7 +94,6 @@ class KerasWrapper(DlWrapper):
     def load(cls, load_information) -> "KerasWrapper":
         """
         Load the keras model and instantiate a new keraswrapper class containing the model.
-        :param path:  The path where the keras model is stored
         :param params:  The paramters which should be used for restoring the model.
         (Note: This models should be taken from the pipeline json file)
         :return: A wrapped keras model.

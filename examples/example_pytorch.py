@@ -12,15 +12,10 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 
-
 # Import the pyWATTS pipeline and the required modules
 from pywatts.modules.calendar_extraction import CalendarExtraction
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
-from pywatts.modules.clock_shift import ClockShift
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
-
-from pywatts.wrapper.pytorch_wrapper import PyTorchWrapper
+from pywatts.wrapper import SKLearnWrapper, PyTorchWrapper
+from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
 
 
 def get_sequential_model():
@@ -41,12 +36,6 @@ if __name__ == "__main__":
     pytorch_model = get_sequential_model()
 
     pipeline = Pipeline(path="../results")
-
-    # Extract dummy calender features, using holidays from Germany
-    calendar_features = CalendarExtraction(encoding="numerical", continent="Europe", country="Germany")\
-                        (
-                            x=pipeline["load_power_statistics"]
-                        )
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
@@ -78,7 +67,8 @@ if __name__ == "__main__":
                                        use_inverse_transform=True,
                                        callbacks=[LinePlotCallback('forecast')])
 
-    rmse_dl = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], callbacks=[CSVCallback('RMSE')])
+    rmse_dl = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"],
+                               callbacks=[CSVCallback('RMSE')])
 
     # Now, the pipeline is complete
     # so we can load data and train the model

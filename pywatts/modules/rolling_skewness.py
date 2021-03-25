@@ -1,25 +1,16 @@
-from enum import IntEnum
-from typing import Dict, Optional
-
-import xarray as xr
-
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.modules.rolling_base import RollingBase
-from pywatts.utils._workalendar_utils import _init_calendar
-from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 
 
-class RollingMean(RollingBase):
+class RollingSkewness(RollingBase):
     """
-     Module which calculates a rolling mean over a specific window size. Note, currently the smallest resolution of the
-     generated profile is one minute.
+     Module which calculates a rolling skewness over a specific window size. Note, currently the smallest resolution of
+     the generated profile is one minute.
 
-     For the documentation of the methods see :class:`pywatts.modules.rolling_base.RollingBase`.
+     For the documentation of the methods see  :class:`pywatts.modules.rolling_base.RollingBase`.
 
      :param name: Name of the new variable
      :type name: str
-     :param window_size: Window size for which to calculate the mean
+     :param window_size: Window size for which to calculate the skewness
      :type window_size: int
      :param window_size_unit: Unit of the window size (default: "d" [day])
      :type window_size_unit: str
@@ -35,4 +26,4 @@ class RollingMean(RollingBase):
     """
 
     def _get_rolling(self, df):
-        return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).mean()
+        return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).skew()

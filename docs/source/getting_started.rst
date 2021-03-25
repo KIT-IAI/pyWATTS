@@ -39,11 +39,8 @@ as any external Scikit-Learn modules we will be using.
     from pywatts.core.pipeline import Pipeline
     from pywatts.callbacks import CSVCallback, LinePlotCallback
     # All modules required for the pipeline are imported
-    from pywatts.modules.calendar_extraction import CalendarExtraction
-    from pywatts.modules.clock_shift import ClockShift
-    from pywatts.modules.linear_interpolation import LinearInterpolater
-    from pywatts.modules.root_mean_squared_error import RmseCalculator
-    from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+    from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+    from pywatts.wrapper import SKLearnWrapper
 
 With the modules imported, we can now work on building the pipeline.
 
@@ -73,14 +70,15 @@ Therefore, we use round brackets with the pipeline name inside and square bracke
 
 .. code-block:: python
 
-    calendar_features = CalendarExtraction(encoding="numerical",
-                                           continent="Europe",
-                                           country="Germany")(x=pipeline["load_power_statistics"])
+    calendar = CalendarExtraction(continent="Europe",
+                                  country="Germany",
+                                  features=[CalendarFeature.month, CalendarFeature.weekday, CalendarFeature.weekend]
+                                 )(x=pipeline["load_power_statistics"])
 
-When we define a ``CalendarExtraction`` module, we need to choose what encoding to use. In the case we select a
-numerical encoding which encodes time based features with standard integers. It is also possible to select sine
-encoding. Furthermore we choose the continent and the country that is used to calculate public holidays. This is
-particularly important for public holidays that only exist in certain parts of the world (e.g. Thanksgiving).
+When we define a ``CalendarExtraction`` module, we need to choose what encoding to use. In the case, we choose the
+continent and the country that is used to calculate public holidays. This is particularly important for public holidays
+that only exist in certain parts of the world (e.g. Thanksgiving). The extracted features are the numerical extracted
+month, the weekday, and the weekend.
 
 
 **WhiteLister**

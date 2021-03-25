@@ -12,15 +12,10 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 
-
 # Import the pyWATTS pipeline and the required modules
 from pywatts.modules.calendar_extraction import CalendarExtraction
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
-from pywatts.modules.clock_shift import ClockShift
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
-
-from pywatts.wrapper.pytorch_wrapper import PyTorchWrapper
+from pywatts.wrapper import SKLearnWrapper, PyTorchWrapper
+from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
 
 
 def get_sequential_model():
@@ -56,19 +51,20 @@ if __name__ == "__main__":
 
     pytorch_wrapper = PyTorchWrapper(get_sequential_model(),
                                      fit_kwargs={"batch_size": 8, "epochs": 1},
-                                     compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]})\
-                      (
-                        power_lag1=shift_power_statistics,
-                        power_lag2=shift_power_statistics2,
-                        target=scale_power_statistics
-                      )
+                                     compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]}) \
+            (
+            power_lag1=shift_power_statistics,
+            power_lag2=shift_power_statistics2,
+            target=scale_power_statistics
+        )
 
     inverse_power_scale = power_scaler(x=pytorch_wrapper,
                                        computation_mode=ComputationMode.Transform,
                                        use_inverse_transform=True,
                                        callbacks=[LinePlotCallback('forecast')])
 
-    rmse_dl = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"], callbacks=[CSVCallback('RMSE')])
+    rmse_dl = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"],
+                               callbacks=[CSVCallback('RMSE')])
 
     # Now, the pipeline is complete
     # so we can load data and train the model

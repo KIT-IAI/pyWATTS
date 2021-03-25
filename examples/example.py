@@ -14,11 +14,8 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 # All modules required for the pipeline are imported
-from pywatts.modules.calendar_extraction import CalendarExtraction, CalendarFeature
-from pywatts.modules.clock_shift import ClockShift
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+from pywatts.wrapper import SKLearnWrapper
 
 # The main function is where the pipeline is created and run
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ In the following, we implement one step ahead forecast, based on the last two va
 
 1. We need to import packages, which we use in the pipeline.
 
-.. code-block::
+.. code-block:: python
 
     # For reading the data
     import pandas as pd
@@ -45,10 +45,8 @@ In the following, we implement one step ahead forecast, based on the last two va
     from pywatts.core.computation_mode import ComputationMode
     from pywatts.core.pipeline import Pipeline
     from pywatts.callbacks import CSVCallback, LinePlotCallback
-    from pywatts.modules.clock_shift import ClockShift
-    from pywatts.modules.linear_interpolation import LinearInterpolater
-    from pywatts.modules.root_mean_squared_error import RmseCalculator
-    from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+    from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
+    from pywatts.wrapper import SKLearnWrapper
 
 
 2. We create a condition function for distinguishing between day time and night time. This

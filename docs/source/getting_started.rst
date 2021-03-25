@@ -39,11 +39,8 @@ as any external Scikit-Learn modules we will be using.
     from pywatts.core.pipeline import Pipeline
     from pywatts.callbacks import CSVCallback, LinePlotCallback
     # All modules required for the pipeline are imported
-    from pywatts.modules.calendar_extraction import CalendarExtraction, CalendarFeatures
-    from pywatts.modules.clock_shift import ClockShift
-    from pywatts.modules.linear_interpolation import LinearInterpolater
-    from pywatts.modules.root_mean_squared_error import RmseCalculator
-    from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+    from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+    from pywatts.wrapper import SKLearnWrapper
 
 With the modules imported, we can now work on building the pipeline.
 

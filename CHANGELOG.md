@@ -7,6 +7,7 @@
 
   * Added integration tests to github actions by executing the examples in root directory ([#47](https://github.com/KIT-IAI/pyWATTS/issues/47))
   * Implementation of the profile neural network ([#71](https://github.com/KIT-IAI/pyWATTS/issues/47))
+  * Imports from the init files for exception, modules, and wrapper. ([#27](https://github.com/KIT-IAI/pyWATTS/issues/27))
 
 ### Changed
 
@@ -21,6 +22,7 @@
   * CalendarExtraction: Remove encoding, for each encoding and suitable feature a new feature is created. 
     E.g. month_sine. Additionally further calendar features are added. E.g. monday, tuesday, .. and cos encodings. For 
     the different features, a enum type is defined.
+
 
 ### Deprecated
 

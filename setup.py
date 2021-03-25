@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="pywatts",
-    version="0.0.1.dev",
+    version="0.1.0",
     packages=setuptools.find_packages(),
 
     install_requires=['scikit-learn', 'cloudpickle', 'holidays', 'xarray', 'numpy', 'pandas', 'matplotlib',

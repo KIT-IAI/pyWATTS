@@ -15,7 +15,7 @@ Architecture
 The three Python objects of pyWATTS are
 
 * the pipeline,
-* the step, and
+* the step,and
 * the module.
 
 Module
@@ -28,10 +28,14 @@ For example, the CalendarExtraction module uses a time series as input and outpu
 
 PyWATTS has the following requirements for modules:
 
-1. The modules have to inherit either from `BaseEstimator`` or BaseTransformer.
+1. The modules have to inherit either from `BaseEstimator` or `BaseTransformer`.
 2. The modules have have to implement `fit(...)`, `transform(...)`, `set_params(...)`, and `get_params(...)`.
    Note that if a module does not need to be fitted, it can inherit from `BaseTransformer` and does not have to implement `fit(...)` by itself.
-3. The first dimension of each data-array in the output time-series has to be a time index.
+3. The modules has either to output a xarray DataArray or Dict that contains DataArrays. Note in the case of Dict,
+   the desired xarray has to specified if this module is passed as input to another module via square brackets. E.g.
+   ``input=keras_wrapper["target_one"]``. Moreover, each datarray needs a time dimension which should be the first
+   dimension of the DataArray.
+
 
 Steps
 .....
@@ -44,19 +48,22 @@ More specifically, steps
 
 * fetch the input data from the previous steps and handle the output.
 * are responsible for calling the correct transform method. In most cases, this is `transform`.
-  However, if a module provides `prob_transform` or `inverse_transform` then it is also possible to call them instead of `transform`.
-* are responsible for providing plots or CSV data of the corresponding modules.
+  However, if a module provides `prob_transform` or `inverse_transform` then it is also possible to call them instead of
+  `transform`.
+* are responsible for executing the callbacks.
 
 Moreover, using steps makes it possible that the same module instance is added multiple times to the pipeline.
 
 pyWATTS contains four kinds of steps:
 
-* The `StartStep` is the first step in the pipeline.
-* A `Step` wraps the modules and calls the transform method.
-* The `CollectStep`'s task is to collect the output of all previous steps and merge them into one dataset.
-  This step is necessary if the input of a module consists of multiple previous steps' output.
+* The `StartStep` is the first step in the pipeline. For each column, of the input data one start step is created that
+  contains one column
+* A `Step` wraps the modules and calls the transform method. Similiar `ProbabilisticStep` and `InverseStep` call the
+  `probabilistic_transform` or `inverse_transform`.
 * The `EitherOrStep` is necessary if only one of the previous steps has to provide an output.
   This can occur after a condition in the pipeline.
+* `ResultStep` is needed if the previous step provides a dict with multiple keys as output. It selects in the background,
+  the correct result for the successing step.
 
 Note that the user of the pipeline does not have to care about the steps.
 Inserting and creating the correct steps is done by the `StepFactory` that works in the background.
@@ -73,8 +80,9 @@ Therefore, the user interacts with this object for starting, storing, and reload
 Control Flow for adding Modules to a Pipeline
 ---------------------------------------------
 
-To add a module to a pipeline, the user has to call the module with a `Pipeline` or a list of `StepInformation`.
-Afterward, the module calls the `StepFactory` that determines what kind of steps are needed.
-For example, if this is the first module in the pipeline, then a `StartStep` has to be added before adding the step that wraps the corresponding module.
-Moreover, the `StepFactory` adds the dependencies to the newly created step. The dependencies are stored in the `StepInformation`.
+To add a module to a pipeline, the user has to call the module with the input the module needs. Then in the background
+the `StepFactory` is called and creates the needed steps.
+For example, if a module is called with ``x=pipeline["input"]``, then a `StartStep` is added before adding the
+step that wraps the corresponding module. This `StartStep` selects the column "input" from the input data.
+Moreover, the `StepFactory` adds the dependencies to the newly created step.
 Finally, the `StepFactory` adds the step to the pipeline and returns a new `StepInformation` to the module that in turn returns it to the user.

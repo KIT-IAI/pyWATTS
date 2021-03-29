@@ -1,6 +1,18 @@
 # Changelog
 
 
+## Unereleased - 2021-DD-MM
+
+### Added
+* Logger for modules is defined in Base  ([#77](https://github.com/KIT-IAI/pyWATTS/issues/77))
+
+### Changed
+
+### Deprecated
+
+### Fixed
+
+
 ## 0.1.0 - 2021-25-03
 
 ### Added

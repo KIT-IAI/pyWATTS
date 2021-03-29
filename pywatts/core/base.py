@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Union, Tuple, Callable, TYPE_CHECKING
-
+import logging
 import pandas as pd
 import xarray as xr
 
@@ -29,6 +29,7 @@ class Base(ABC):
     def __init__(self, name: str):
         self.name = name
         self.is_wrapper = False
+        self.logger = logging.getLogger(name)
 
         self.has_inverse_transform = False
         self.has_predict_proba = False

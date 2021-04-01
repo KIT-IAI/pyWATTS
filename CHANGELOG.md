@@ -11,6 +11,8 @@
 ### Deprecated
 
 ### Fixed
+* Missing call of _get_rolling in Rolling Base  ([#76](https://github.com/KIT-IAI/pyWATTS/issues/76))
+
 
 
 ## 0.1.0 - 2021-25-03

@@ -111,16 +111,12 @@ class RollingBase(BaseTransformer, ABC):
         elif self.group_by == RollingGroupBy.WorkdayWeekend:
             mask = df.index.map(
                 lambda element: element.minute + 1440 if element.weekday() >= 5 else element.hour).values
-            rolling = df.groupby(mask).rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed,
-                                                    on=df.index).mean().reset_index(0).drop("level_0",
-                                                                                            axis=1).sort_index()
+            rolling = self._get_rolling(df.groupby(mask)).reset_index(0).drop("level_0", axis=1).sort_index()
         elif self.group_by == RollingGroupBy.WorkdayWeekendAndHoliday:
             mask = df.index.map(lambda element:
                                 element.minute + 1440 if self.cal.is_holiday(element) or element.weekday() >= 5
                                 else element.hour).values
-            rolling = df.groupby(mask).rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed,
-                                                    on=df.index).mean().reset_index(0).drop("level_0",
-                                                                                            axis=1).sort_index()
+            rolling = self._get_rolling(df.groupby(mask)).reset_index(0).drop("level_0", axis=1).sort_index()
         else:
             raise WrongParameterException(
                 "GroupBy has to be RollingGroupBy.No, RollingGroupBy.WorkdayWeekend, "

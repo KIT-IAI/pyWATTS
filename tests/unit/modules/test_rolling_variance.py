@@ -62,3 +62,23 @@ class TestRollingVariance(unittest.TestCase):
         expected_result = xr.DataArray([0., 0, 0.5, 1., 1., 1., 1.], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
+
+    def test_transform_groupbyWeekend(self):
+        time = pd.date_range('2002-01-01', freq='24H', periods=7)
+        self.rolling_variance.set_params(group_by=RollingGroupBy.WorkdayWeekend)
+        da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
+
+        result = self.rolling_variance.transform(da)
+
+        expected_result = xr.DataArray([0., 0, 0.5, 1., 0, 0, 0], dims=["time"], coords={'time': time})
+        xr.testing.assert_equal(result, expected_result)
+
+    def test_transform_groupbyWeekendHoliday(self):
+        time = pd.date_range('2002-01-01', freq='24H', periods=7)
+        self.rolling_variance.set_params(group_by=RollingGroupBy.WorkdayWeekendAndHoliday)
+        da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
+
+        result = self.rolling_variance.transform(da)
+
+        expected_result = xr.DataArray([0., 0, 0, .5, 0, 0, 0], dims=["time"], coords={'time': time})
+        xr.testing.assert_equal(result, expected_result)

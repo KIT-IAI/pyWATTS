@@ -29,18 +29,18 @@ as any external Scikit-Learn modules we will be using.
 .. code-block:: python
 
    import matplotlib.pyplot as plt
-    # Other modules required for the pipeline are imported
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-    from sklearn.preprocessing import StandardScaler
+   # Other modules required for the pipeline are imported
+   import pandas as pd
+   from sklearn.linear_model import LinearRegression
+   from sklearn.preprocessing import StandardScaler
 
-    # From pyWATTS the pipeline is imported
-    from pywatts.core.computation_mode import ComputationMode
-    from pywatts.core.pipeline import Pipeline
-    from pywatts.callbacks import CSVCallback, LinePlotCallback
-    # All modules required for the pipeline are imported
-    from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
-    from pywatts.wrapper import SKLearnWrapper
+   # From pyWATTS the pipeline is imported
+   from pywatts.core.computation_mode import ComputationMode
+   from pywatts.core.pipeline import Pipeline
+   from pywatts.callbacks import CSVCallback, LinePlotCallback
+   # All modules required for the pipeline are imported
+   from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+   from pywatts.wrapper import SKLearnWrapper
 
 With the modules imported, we can now work on building the pipeline.
 

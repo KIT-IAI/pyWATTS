@@ -15,7 +15,6 @@ class TestStep(unittest.TestCase):
         self.module_mock = MagicMock()
         self.module_mock.name = "test"
         self.step_mock = MagicMock()
-        self.step_mock.stop = False
         self.step_mock.id = 2
 
     def tearDown(self) -> None:
@@ -105,7 +104,7 @@ class TestStep(unittest.TestCase):
     def test_transform_batch_with_existing_buffer(self, xr_mock, *args):
         # Check that data in batch learning are concatenated
         input_step = MagicMock()
-        input_step.stop = False
+        input_step._should_stop.return_value = False
         time = pd.date_range('2000-01-01', freq='1D', periods=7)
         time2 = pd.date_range('2000-01-14', freq='1D', periods=7)
         time3 = pd.date_range('2000-01-01', freq='1D', periods=14)
@@ -135,9 +134,9 @@ class TestStep(unittest.TestCase):
         # Tests if the get_result method calls correctly the previous step and the module
 
         input_step = MagicMock()
-        input_step.stop = False
         input_step_result_mock = MagicMock()
         input_step.get_result.return_value = input_step_result_mock
+        input_step._should_stop.return_value = False
 
         time = pd.date_range('2000-01-01', freq='1H', periods=7)
         self.module_mock.transform.return_value = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"],
@@ -263,11 +262,10 @@ class TestStep(unittest.TestCase):
         step = Step(MagicMock(), MagicMock(), MagicMock())
         step.buffer = MagicMock()
         step.computation_mode = ComputationMode.Transform
-        step.stop = True
         step.finished = True
         step.reset()
 
         self.assertIsNone(None)
         assert step.computation_mode == ComputationMode.Default
-        assert step.stop == False
+        assert step._should_stop(None, None) == False
         assert step.finished == False

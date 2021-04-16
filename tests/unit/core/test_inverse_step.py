@@ -8,6 +8,7 @@ from pywatts.core.inverse_step import InverseStep
 import pandas as pd
 import xarray as xr
 
+
 class TestInverseTransform(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -15,10 +16,11 @@ class TestInverseTransform(unittest.TestCase):
         self.input_step = MagicMock()
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
-        self.inverse_module.inverse_transform.return_value = xr.DataArray([[5, 5], [5, 5], [4, 5], [5, 4], [6, 5], [7, 6], [8, 7]],
-                     dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
-        self.input_step.stop = False
-        self.inverse_step = InverseStep(self.inverse_module, {"input" : self.input_step}, file_manager=MagicMock())
+        self.inverse_module.inverse_transform.return_value = xr.DataArray(
+            [[5, 5], [5, 5], [4, 5], [5, 4], [6, 5], [7, 6], [8, 7]],
+            dims=["time", "horizon"], coords={"time": time, "horizon": [0, 1]})
+        self.input_step._should_stop.return_value = False
+        self.inverse_step = InverseStep(self.inverse_module, {"input": self.input_step}, file_manager=MagicMock())
         self.inverse_step_result = MagicMock()
         self.input_step.get_result.return_value = self.inverse_step_result
 
@@ -34,11 +36,11 @@ class TestInverseTransform(unittest.TestCase):
         self.inverse_module.inverse_transform.assert_called_once_with(input=self.input_step.get_result())
 
     def test_get_result_stop(self):
-        self.input_step.stop = True
-        self.inverse_step.get_result(None,None)
+        self.input_step._should_stop.return_value = True
+        self.inverse_step.get_result(None, None)
 
         self.inverse_module.inverse_transform.assert_not_called()
-        self.assertTrue(self.inverse_step.stop)
+        self.assertTrue(self.inverse_step._should_stop(None, None))
 
     def test_transform_no_inverse_method(self):
         self.inverse_module.has_inverse_transform = False

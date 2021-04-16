@@ -37,7 +37,6 @@ class BaseStep(ABC):
         self.name = "BaseStep"
 
         self.id = -1
-        self.stop = False
         self.finished = False
         self.last = True
         self._current_end = None
@@ -62,10 +61,9 @@ class BaseStep(ABC):
         :type return_all: bool
         :return: The resulting data or None if no data are calculated
         """
-        self.stop = False
+
         # Check if step should be executed.
         if self._should_stop(start, end):
-            self.stop = True
             return None
 
         # Trigger fit and transform if necessary
@@ -191,14 +189,14 @@ class BaseStep(ABC):
     def _get_target(self, start, batch):
         return None
 
-    def _should_stop(self, start, end):
+    def _should_stop(self, start, end) -> bool:
         # Fetch input and target data
         input_step = self._get_input(start, end)
         target_step = self._get_target(start, end)
 
         return (self.condition is not None and not self.condition(input_step, target_step)) or \
-               (self.input_steps and any(map(lambda x: x.stop, self.input_steps.values()))) or \
-               (self.targets and any(map(lambda x: x.stop, self.targets.values())))
+               (len(self.input_steps) > 0 and any(map(lambda x: x._should_stop(start, end), self.input_steps.values()))) or \
+               (len(self.targets) > 0 and any(map(lambda x: x._should_stop(start, end), self.targets.values())))
 
     def reset(self):
         """
@@ -206,7 +204,6 @@ class BaseStep(ABC):
         """
         self.buffer = {}
         self.finished = False
-        self.stop = False
         self.computation_mode = self._original_compuation_mode
 
     def set_computation_mode(self, computation_mode: ComputationMode):

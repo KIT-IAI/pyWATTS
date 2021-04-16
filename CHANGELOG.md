@@ -8,7 +8,7 @@
 * Add parameters to RMSECalculator so that it can caluclate a sliding rmse too. ([#23](https://github.com/KIT-IAI/pyWATTS/issues/28))
 
 ### Changed
-
+* Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))
 ### Deprecated
 
 ### Fixed

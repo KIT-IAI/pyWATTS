@@ -13,7 +13,7 @@ class TestProbabilisticStep(unittest.TestCase):
         self.probabilistic_module = MagicMock()
         self.input_step = MagicMock()
         self.input_step.get_result.return_value = MagicMock(), False
-        self.input_step.stop = False
+        self.input_step._should_stop.return_value = False
         self.probabilistic_step = ProbablisticStep(self.probabilistic_module, {"x": self.input_step},
                                                    file_manager=MagicMock())
 
@@ -29,12 +29,12 @@ class TestProbabilisticStep(unittest.TestCase):
         self.probabilistic_module.predict_proba.assert_called_once_with(input_mock)
 
     def test_get_result_stop(self):
-        self.input_step.stop = True
+        self.input_step._should_stop.return_value = True
 
         self.probabilistic_step.get_result(pd.Timestamp("2000.01.01"), pd.Timestamp("2000.01.02"))
 
         self.probabilistic_module.predict_proba.assert_not_called()
-        self.assertTrue(self.probabilistic_step.stop)
+        self.assertTrue(self.probabilistic_step._should_stop(pd.Timestamp("2000.01.01"), pd.Timestamp("2000.01.02")))
 
     def test_transform_no_prob_method(self):
         self.probabilistic_module.has_predict_proba = False

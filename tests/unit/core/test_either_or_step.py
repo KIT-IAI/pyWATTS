@@ -9,12 +9,10 @@ import pandas as pd
 class TestEitherOrStep(unittest.TestCase):
     def setUp(self) -> None:
         self.step_one = MagicMock()
-        self.step_one.stop = True
         self.step_one.id = 1
         self.step_two = MagicMock()
         self.result_mock_step_2 = MagicMock()
         self.result_mock_step_1 = MagicMock()
-        self.step_two.stop = False
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
         self.da2 = xr.DataArray([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]],

@@ -13,7 +13,7 @@
 
 ### Fixed
 * Missing call of _get_rolling in Rolling Base  ([#76](https://github.com/KIT-IAI/pyWATTS/issues/76))
-
+* Import of pytorchWrapper via wrapper.__init__
 
 
 ## 0.1.0 - 2021-25-03

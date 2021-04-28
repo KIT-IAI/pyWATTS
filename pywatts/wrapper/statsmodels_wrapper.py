@@ -1,8 +1,10 @@
-import pickle
-from typing import Dict
+import inspect
+from typing import Dict, Type
 
 import numpy as np
 import xarray as xr
+from statsmodels.iolib import load_pickle
+from statsmodels.tsa.base.tsa_model import TimeSeriesModel
 
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces, numpy_to_xarray
@@ -14,7 +16,7 @@ class StatsmodelsWrapper(BaseWrapper):
     Wrapper for statsmodels modules.
 
     :param module: The statsmodels module to wrap
-    :type module: sm.tsa.base.tsa_model.TimeSeriesModel
+    :type module: Type[statsmodels.tsa.base.tsa_model.TimeSeriesModel]
     :param name: The name of the module
     :type name: str
     :param module_kwargs: The module keyword arguments necessary for creating the statsmodel module
@@ -23,24 +25,24 @@ class StatsmodelsWrapper(BaseWrapper):
     :type fit_kwargs: dict
     :param predict_kwargs: The optional predict keyword arguments for predicting with the model (except start and end)
     :type predict_kwargs: dict
-    :param model_params: The fitted model parameters
     :type xr.Dataset
     """
 
-    def __init__(self, module, name: str = None, module_kwargs=None,
-                 fit_kwargs=None, predict_kwargs=None, model_params=None):
+    def __init__(self, module: Type[TimeSeriesModel], name: str = None, module_kwargs=None,
+                 fit_kwargs=None, predict_kwargs=None):
         if name is None:
-            name = module.__class__.__name__
+            name = module.__name__
         super().__init__(name)
         if fit_kwargs is None:
             fit_kwargs = {}
         if predict_kwargs is None:
             predict_kwargs = {}
-        self.module = module
+        self.module = module  # TODO fix typing error
+        if not module_kwargs:
+            module_kwargs = {}
         self.module_kwargs = module_kwargs
         self.fit_kwargs = fit_kwargs
         self.predict_kwargs = predict_kwargs
-        self.model_params = model_params
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -54,17 +56,15 @@ class StatsmodelsWrapper(BaseWrapper):
             "module_kwargs": self.module_kwargs,
             "fit_kwargs": self.fit_kwargs,
             "predict_kwargs": self.predict_kwargs,
-            "model_params": self.model_params
         }
 
-    def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None, model_params=None):
+    def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None):
         """
         Set the parameters of the statsmodels wrapper
 
         :param module_kwargs: keyword arguments for the statsmodel module.
         :param fit_kwargs: keyword arguments for the fit method.
         :param predict_kwargs: keyword arguments for the predict method.
-        :param model_params: parameters of the fitted model
         """
         if module_kwargs:
             self.module_kwargs = module_kwargs
@@ -72,10 +72,8 @@ class StatsmodelsWrapper(BaseWrapper):
             self.fit_kwargs = fit_kwargs
         if predict_kwargs:
             self.predict_kwargs = predict_kwargs
-        if model_params:
-            self.model_params = model_params
 
-    def fit(self, **kwargs :xr.DataArray):
+    def fit(self, **kwargs: xr.DataArray):
         """
         Fits the statsmodels module
 
@@ -89,11 +87,17 @@ class StatsmodelsWrapper(BaseWrapper):
             else:
                 x.append(value.values.reshape(-1))
 
-        self.model = self.module(endog=np.stack(y, axis=-1),exog=np.stack(x, axis=-1), **self.module_kwargs).fit(**self.fit_kwargs)
+        # TODO handle exog since not all tsa_models have exog -> AR
+        if "exog" in inspect.signature(self.module).parameters or "kwargs" in inspect.signature(
+                self.module).parameters:
+            self.model = self.module(endog=np.stack(y, axis=-1), exog=np.stack(x, axis=-1), **self.module_kwargs).fit(
+                **self.fit_kwargs)
+        else:
+            self.model = self.module(endog=np.stack(y, axis=-1), **self.module_kwargs).fit(**self.fit_kwargs)
 
         self.is_fitted = True
 
-    def transform(self,**kwargs: xr.DataArray) -> xr.DataArray:
+    def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Predicts the result with the wrapped statsmodels module
 
@@ -106,7 +110,22 @@ class StatsmodelsWrapper(BaseWrapper):
         for key, value in kwargs.items():
             x.append(value.values.reshape(-1))
 
-        prediction = self.model.forecast(len(time_data), exog=np.stack(x, axis=-1), **self.predict_kwargs)[0]
+        if hasattr(self.model, "forecast"):
+            if "exog" in inspect.signature(self.model.forecast).parameters or "kwargs" in inspect.signature(
+                    self.model.forecast).parameters:
+                prediction = self.model.forecast(len(time_data), exog=np.stack(x, axis=-1), **self.predict_kwargs)[0]
+
+            else:
+                prediction = self.model.forecast(len(time_data), **self.predict_kwargs)[0]
+        # elif hasattr(self.model, "predict"):
+        #     if "exog" in inspect.signature(self.model.predict).parameters:
+        #         prediction = self.model.predict(len(time_data), exog=np.stack(x, axis=-1), **self.predict_kwargs)[0]
+        #
+        #     else:
+        #         prediction = self.model.predict(0, len(time_data), **self.predict_kwargs)[0]
+        else:
+            raise Exception(f"{self.module.__class__.__name__} has not forecast or predict method...")
+
         return numpy_to_xarray(prediction, list(kwargs.values())[0], self.name)
 
     def save(self, fm: FileManager):
@@ -119,10 +138,15 @@ class StatsmodelsWrapper(BaseWrapper):
         :rtype: Dict
         """
         json = super().save(fm)
-        file_path = fm.get_path(f'{self.name}.pickle')
-        with open(file_path, 'wb') as outfile:
-            pickle.dump(obj=self.module, file=outfile)
-        json.update({"statsmodels_module": file_path})
+        if self.is_fitted:
+            model_file_path = fm.get_path(f"{self.name}_fitted_model.pickle")
+            self.model.save(model_file_path)
+            json.update({"statsmodel_model": model_file_path})
+        json.update({
+            "sm_class": self.module.__name__,
+            "sm_module": self.module.__module__,
+
+        })
         return json
 
     @classmethod
@@ -141,8 +165,9 @@ class StatsmodelsWrapper(BaseWrapper):
             For more details about pickling see https://docs.python.org/3/library/pickle.html
         """
         name = load_information["name"]
-        with open(load_information["statsmodels_module"], 'rb') as pickle_file:
-            module = pickle.load(pickle_file)
-        module = cls(module=module, name=name)
+        mod = __import__(load_information["sm_module"], fromlist=load_information["sm_class"])
+        module = cls(module=getattr(mod, load_information["sm_class"]), name=name, **load_information["params"])
         module.is_fitted = load_information["is_fitted"]
+        if module.is_fitted:
+            module.model = load_pickle(load_information["statsmodel_model"])
         return module

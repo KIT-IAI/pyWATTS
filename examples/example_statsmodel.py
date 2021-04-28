@@ -9,7 +9,11 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 # From pyWATTS the pipeline is imported
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.ar_model import AR, AutoReg
+from statsmodels.tsa.arima_model import ARIMA, ARMA
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.vector_ar.var_model import VAR
 
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
@@ -26,7 +30,7 @@ from pywatts.wrapper.statsmodels_wrapper import StatsmodelsWrapper
 
 if __name__ == "__main__":
     # Create a pipeline
-    pipeline = Pipeline(path="../results")
+    pipeline = Pipeline(path="../results/statsmodel")
 
     # Extract dummy calender features, using holidays from Germany
     # NOTE: CalendarExtraction can't return multiple features.
@@ -59,14 +63,18 @@ if __name__ == "__main__":
     # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
     #       It is also possible to implement a join/collect class
     regressor_power_statistics = StatsmodelsWrapper(
-        module=ARIMA, module_kwargs={"order": (2, 0, 0)}
+        module=ARIMA,
+        module_kwargs={
+         #   "lags":2,
+            "order": (2, 0, 0)
+        }
     )(
         power_lag1=shift_power_statistics,
         power_lag2=shift_power_statistics2,
         cal_month=calendar_month,
         cal_weekday=calendar_weekday,
         call_weekend=calendar_weekend,
-        target=scale_power_statistics, callbacks=[LinePlotCallback('linear_regression')],
+        target=scale_power_statistics, callbacks=[LinePlotCallback('ARIMA')],
     )
 
     # Rescale the predictions to be on the original time scale
@@ -93,11 +101,11 @@ if __name__ == "__main__":
     data = pipeline.test(data=test)
 
     # Save the pipeline to a folder
-    pipeline.to_folder("./pipe_getting_started")
+    pipeline.to_folder("./pipe_statsmodel")
 
     print("Execute second pipeline")
     # Load the pipeline as a new instance
-    pipeline2 = Pipeline.from_folder("./pipe_getting_started", file_manager_path="../pipeline2_results")
+    pipeline2 = Pipeline.from_folder("./pipe_statsmodel", file_manager_path="../pipeline2_results/statsmodel")
     #       WARNING
     #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
     #       Consequently, load only pipelines you trust with from_folder.

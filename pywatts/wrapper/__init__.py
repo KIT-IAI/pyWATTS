@@ -5,4 +5,5 @@ try:
 except ModuleNotFoundError:
     pass
 
+from pywatts.wrapper.sm_time_series_model_wrapper import SmTimeSeriesModelWrapper
 from pywatts.wrapper.function_module import FunctionModule

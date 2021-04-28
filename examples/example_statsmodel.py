@@ -3,46 +3,27 @@
 # guide in the pyWATTS documentation.
 # -----------------------------------------------------------
 
-import matplotlib.pyplot as plt
 # Other modules required for the pipeline are imported
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+from statsmodels.tsa.arima_model import ARIMA
 
-# From pyWATTS the pipeline is imported
-from statsmodels.tsa.ar_model import AR, AutoReg
-from statsmodels.tsa.arima_model import ARIMA, ARMA
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
-from statsmodels.tsa.statespace.sarimax import SARIMAX
-from statsmodels.tsa.vector_ar.var_model import VAR
-
+from pywatts.callbacks import CSVCallback, LinePlotCallback
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
-# All modules required for the pipeline are imported
-from pywatts.modules.calendar_extraction import CalendarExtraction
-from pywatts.modules.clock_shift import ClockShift
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
-# The main function is where the pipeline is created and run
-from pywatts.wrapper.statsmodels_wrapper import StatsmodelsWrapper
+# All modules required for the pipeline are imported
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+from pywatts.wrapper import SKLearnWrapper, SmTimeSeriesModelWrapper
 
 if __name__ == "__main__":
     # Create a pipeline
     pipeline = Pipeline(path="../results/statsmodel")
 
     # Extract dummy calender features, using holidays from Germany
-    # NOTE: CalendarExtraction can't return multiple features.
-    calendar_month = CalendarExtraction(
-        encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["load_power_statistics"])
-    calendar_weekday = CalendarExtraction(
-        encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["load_transparency"])
-    calendar_weekend = CalendarExtraction(
-        encoding="numerical", continent="Europe", country="Germany"
-    )(x=pipeline["load_power_statistics"])
+    cal_features = CalendarExtraction(features=[CalendarFeature.hour, CalendarFeature.weekday, CalendarFeature.month],
+                                      continent="Europe", country="Germany"
+                                      )(x=pipeline["load_power_statistics"])
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(
@@ -59,21 +40,16 @@ if __name__ == "__main__":
     shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
                                          )(x=scale_power_statistics)
 
-    # Create a linear regression that uses the lagged values to predict the current value
-    # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
-    #       It is also possible to implement a join/collect class
-    regressor_power_statistics = StatsmodelsWrapper(
+    # Create a statsmodel that uses the lagged values to predict the current value
+    regressor_power_statistics = SmTimeSeriesModelWrapper(
         module=ARIMA,
         module_kwargs={
-         #   "lags":2,
             "order": (2, 0, 0)
         }
     )(
         power_lag1=shift_power_statistics,
         power_lag2=shift_power_statistics2,
-        cal_month=calendar_month,
-        cal_weekday=calendar_weekday,
-        call_weekend=calendar_weekend,
+        calendar=cal_features,
         target=scale_power_statistics, callbacks=[LinePlotCallback('ARIMA')],
     )
 

@@ -1,20 +1,17 @@
-import os
 import unittest
 from typing import Optional
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
-import xarray as xr
-import pandas as pd
 import numpy as np
+import pandas as pd
+import xarray as xr
 from statsmodels.tsa.arima_model import ARIMA
 
-from pywatts.wrapper.statsmodels_wrapper import StatsmodelsWrapper
+from pywatts.wrapper.sm_time_series_model_wrapper import SmTimeSeriesModelWrapper
 
-stored_module = {'class': 'StatsmodelsWrapper',
+stored_module = {'class': 'SmTimeSeriesModelWrapper',
                  'is_fitted': False,
-                 'module': 'pywatts.wrapper.statsmodels_wrapper',
-                 'sm_module': 'statsmodels.tsa.arima_model',
-                 'sm_class': "ARIMA",
+                 'module': 'pywatts.wrapper.sm_time_series_model_wrapper',
                  'name': 'ARIMA',
                  'params': {
                      "module_kwargs": {
@@ -25,18 +22,19 @@ stored_module = {'class': 'StatsmodelsWrapper',
                      },
                      "predict_kwargs": {
                          "dynamic": True
-                     },
-                 }
+                     }},
+                 'sm_class': 'ARIMA',
+                 'sm_module': 'statsmodels.tsa.arima_model'
                  }
 
 
-class TestStatsmodelsWrapper(unittest.TestCase):
+class TestSmTimeSeriesModelWrapper(unittest.TestCase):
 
     def setUp(self) -> None:
         self.statsmodels_mock = MagicMock()
-        self.statsmodels_wrapper = StatsmodelsWrapper(name="wrapper", module=self.statsmodels_mock,
-                                                      module_kwargs={"lags": [1, 2]},
-                                                      fit_kwargs={}, predict_kwargs={})
+        self.statsmodels_wrapper = SmTimeSeriesModelWrapper(name="wrapper", module=self.statsmodels_mock,
+                                                            module_kwargs={"lags": [1, 2]},
+                                                            fit_kwargs={}, predict_kwargs={})
 
         self.model_mock = MagicMock()
         self.fitted_model = MagicMock()
@@ -44,7 +42,7 @@ class TestStatsmodelsWrapper(unittest.TestCase):
         self.statsmodels_mock.return_value = self.model_mock
 
     def tearDown(self) -> None:
-        self.statsmodels_wrapper: Optional[StatsmodelsWrapper] = None
+        self.statsmodels_wrapper: Optional[SmTimeSeriesModelWrapper] = None
         self.statsmodels_mock = None
 
     def test_get_params(self):
@@ -75,7 +73,7 @@ class TestStatsmodelsWrapper(unittest.TestCase):
         self.statsmodels_wrapper.set_params(module_kwargs={"lags": [1, 2]}, fit_kwargs={}, predict_kwargs={})
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         target = xr.DataArray([2, 2, 4, 4, 5, 8, 6], dims=["time"], coords={'time': time})
-        exog = xr.DataArray([1, 2, 3, 4, 5, 8, 9], dims=["time"], coords={'time': time})
+        exog = xr.DataArray([[1], [2], [3], [4], [5], [8], [9]], dims=["time", "dims"], coords={'time': time})
         self.statsmodels_wrapper.fit(target=target, exog=exog)
 
         # assert fit is called
@@ -113,23 +111,22 @@ class TestStatsmodelsWrapper(unittest.TestCase):
 
     def test_save(self):
         fm_mock = MagicMock()
-        self.statsmodels_wrapper = StatsmodelsWrapper(ARIMA, module_kwargs={"lags": [1, 2]},
-                                                      fit_kwargs={}, predict_kwargs={})
+        self.statsmodels_wrapper = SmTimeSeriesModelWrapper(ARIMA, module_kwargs={"lags": [1, 2]},
+                                                            fit_kwargs={}, predict_kwargs={})
         json = self.statsmodels_wrapper.save(fm_mock)
 
-        self.assertEqual(json, {'class': 'StatsmodelsWrapper',
+        self.assertEqual(json, {'class': 'SmTimeSeriesModelWrapper',
                                 'is_fitted': False,
-                                'module': 'pywatts.wrapper.statsmodels_wrapper',
-                                'sm_module': 'statsmodels.tsa.arima_model',
-                                'sm_class': "ARIMA",
+                                'module': 'pywatts.wrapper.sm_time_series_model_wrapper',
                                 'name': 'ARIMA',
                                 'params': {'fit_kwargs': {},
                                            'module_kwargs': {'lags': [1, 2]},
                                            'predict_kwargs': {}},
-                                })
+                                'sm_class': 'ARIMA',
+                                'sm_module': 'statsmodels.tsa.arima_model'})
 
     def test_load(self):
-        new_statsmodels_wrapper = StatsmodelsWrapper.load(stored_module)
+        new_statsmodels_wrapper = SmTimeSeriesModelWrapper.load(stored_module)
 
         self.assertEqual(ARIMA, new_statsmodels_wrapper.module)
         self.assertEqual(new_statsmodels_wrapper.get_params(),

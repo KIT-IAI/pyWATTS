@@ -11,12 +11,11 @@ from pywatts.utils._xarray_time_series_utils import _get_time_indeces, numpy_to_
 from pywatts.wrapper.base_wrapper import BaseWrapper
 
 
-class StatsmodelsWrapper(BaseWrapper):
+class SmTimeSeriesModelWrapper(BaseWrapper):
     """
     Wrapper for statsmodels modules.
 
-    :param module: The statsmodels module to wrap
-    :type module: Type[statsmodels.tsa.base.tsa_model.TimeSeriesModel]
+    :param module: The statsmodels module to wrap. Not this module should not be initialised.
     :param name: The name of the module
     :type name: str
     :param module_kwargs: The module keyword arguments necessary for creating the statsmodel module
@@ -25,7 +24,6 @@ class StatsmodelsWrapper(BaseWrapper):
     :type fit_kwargs: dict
     :param predict_kwargs: The optional predict keyword arguments for predicting with the model (except start and end)
     :type predict_kwargs: dict
-    :type xr.Dataset
     """
 
     def __init__(self, module: Type[TimeSeriesModel], name: str = None, module_kwargs=None,
@@ -37,7 +35,7 @@ class StatsmodelsWrapper(BaseWrapper):
             fit_kwargs = {}
         if predict_kwargs is None:
             predict_kwargs = {}
-        self.module = module  # TODO fix typing error
+        self.module = module
         if not module_kwargs:
             module_kwargs = {}
         self.module_kwargs = module_kwargs
@@ -50,7 +48,7 @@ class StatsmodelsWrapper(BaseWrapper):
 
         :return: A dict containing the module keyword arguments, the fit keyword arguments, the predict keyword
         arguments and the fitted model parameters
-        :rtype: dict
+        :rtype: Dict
         """
         return {
             "module_kwargs": self.module_kwargs,
@@ -63,8 +61,11 @@ class StatsmodelsWrapper(BaseWrapper):
         Set the parameters of the statsmodels wrapper
 
         :param module_kwargs: keyword arguments for the statsmodel module.
+        :type module_kwargs: Dict
         :param fit_kwargs: keyword arguments for the fit method.
+        :type fit_kwargs: Dict
         :param predict_kwargs: keyword arguments for the predict method.
+        :type predict_kwargs: Dict
         """
         if module_kwargs:
             self.module_kwargs = module_kwargs
@@ -77,7 +78,8 @@ class StatsmodelsWrapper(BaseWrapper):
         """
         Fits the statsmodels module
 
-        :param kwargs: The input and the target data
+        :param kwargs: A dict of input arrays
+        :type kwargs: xr.DataArray
         """
         x = []
         y = []
@@ -85,12 +87,11 @@ class StatsmodelsWrapper(BaseWrapper):
             if key.startswith("target"):
                 y.append(value.values.reshape(-1))
             else:
-                x.append(value.values.reshape(-1))
+                x.append(value.values)
 
-        # TODO handle exog since not all tsa_models have exog -> AR
         if "exog" in inspect.signature(self.module).parameters or "kwargs" in inspect.signature(
                 self.module).parameters:
-            self.model = self.module(endog=np.stack(y, axis=-1), exog=np.stack(x, axis=-1), **self.module_kwargs).fit(
+            self.model = self.module(endog=np.stack(y, axis=-1), exog=np.concatenate(x, axis=-1), **self.module_kwargs).fit(
                 **self.fit_kwargs)
         else:
             self.model = self.module(endog=np.stack(y, axis=-1), **self.module_kwargs).fit(**self.fit_kwargs)
@@ -101,30 +102,26 @@ class StatsmodelsWrapper(BaseWrapper):
         """
         Predicts the result with the wrapped statsmodels module
 
-        :param x: the input dataarray
+        :param kwargs: A dict of input arrays
+        :type kwargs: xr.DataArray
         :return: the transformed dataarray
+        :rtype: xr.DataArray
         """
         time_data = list(kwargs.values())[0][_get_time_indeces(kwargs)[0]]
 
         x = []
         for key, value in kwargs.items():
-            x.append(value.values.reshape(-1))
+            x.append(value.values)
 
         if hasattr(self.model, "forecast"):
             if "exog" in inspect.signature(self.model.forecast).parameters or "kwargs" in inspect.signature(
                     self.model.forecast).parameters:
-                prediction = self.model.forecast(len(time_data), exog=np.stack(x, axis=-1), **self.predict_kwargs)[0]
+                prediction = self.model.forecast(len(time_data), exog=np.concatenate(x, axis=-1), **self.predict_kwargs)[0]
 
             else:
                 prediction = self.model.forecast(len(time_data), **self.predict_kwargs)[0]
-        # elif hasattr(self.model, "predict"):
-        #     if "exog" in inspect.signature(self.model.predict).parameters:
-        #         prediction = self.model.predict(len(time_data), exog=np.stack(x, axis=-1), **self.predict_kwargs)[0]
-        #
-        #     else:
-        #         prediction = self.model.predict(0, len(time_data), **self.predict_kwargs)[0]
         else:
-            raise Exception(f"{self.module.__class__.__name__} has not forecast or predict method...")
+            raise Exception(f"{self.module.__class__.__name__} has not forecast method...")
 
         return numpy_to_xarray(prediction, list(kwargs.values())[0], self.name)
 
@@ -134,7 +131,7 @@ class StatsmodelsWrapper(BaseWrapper):
 
         :param fm: FileManager for getting the path
         :type fm: FileManager
-        :return: Dictionary with additional information
+        :return: Dictionary with all information for restoting the module
         :rtype: Dict
         """
         json = super().save(fm)
@@ -150,14 +147,14 @@ class StatsmodelsWrapper(BaseWrapper):
         return json
 
     @classmethod
-    def load(cls, load_information) -> 'StatsmodelsWrapper':
+    def load(cls, load_information) -> 'SmTimeSeriesModelWrapper':
         """
         Loads a statsmodels wrapper
 
         :param load_information: Information for reloading the StatsmodelsWrapper
         :type load_information: Dict
         :return: The reloaded StatsmodelsWrapper
-        :rtype: StatsmodelsWrapper
+        :rtype: SmTimeSeriesModelWrapper
 
         .. warning::
             This method use pickle for loading the module. Note that this is not safe.

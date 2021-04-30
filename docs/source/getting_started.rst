@@ -141,7 +141,7 @@ Here, for example, we have set the ``fit_intercept`` parameter to true. Furtherm
 a linear regression can have more than one input and also requires a target for fitting. Therefore, we include
 all of the inputs by keyword-arguments. Note that all keyword-arguments that start with target are considered as target
 variables by pyWATTS. So pyWATTS aims to train a linear regression using ``shift_power_statistics,
-shift_power_statistics2,  calendar=calendar,`` as input to predict
+shift_power_statistics2,  calendar,`` as input to predict
 ``scale_power_statistics.``
 
 **Rescaling**

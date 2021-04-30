@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import warnings
+import xarray as xr
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, TYPE_CHECKING
 
@@ -29,10 +30,15 @@ class BaseSummary(Base, ABC):
         """
 
     @abstractmethod
-    def transform(self, **kwargs: Dict[str: xr.DataArray]) -> str:
+    def transform(self, file_manager: FileManager, *args, **kwargs: xr.DataArray) -> str:
         """
-        Dummy method of fit, which does nothing
-        :return:
+        Transform method. Here the summary should be calculated.
+        :param file_manager: The filemanager, it can be used to store data that corresponds to the summary as a file.
+        :type: file_manager: FileManager
+        :param kwargs: The input data for which a summary should be calculated.
+        :type kwargs: xr.DataArray
+        :return: A markdown formatted string that contains the summary.
+        :rtype: str
         """
 
     def save(self, fm: FileManager) -> Dict:
@@ -42,7 +48,7 @@ class BaseSummary(Base, ABC):
         :param fm: the filemanager which can be used by the module for saving information about the module.
         :type fm: FileManager
         :return: A dictionary containing the information needed for restoring the module
-        :rtype:Dict
+        :rtype: Dict
         """
         return {"params": self.get_params(),
                 "name": self.name,
@@ -78,7 +84,8 @@ class BaseSummary(Base, ABC):
         :rtype: SummaryInformation
         """
 
-        non_supported_kwargs = ["use_inverse_transform", "train_if", "callbacks", "condition", "computation_mode", "batch_size"]
+        non_supported_kwargs = ["use_inverse_transform", "train_if", "callbacks", "condition", "computation_mode",
+                                "batch_size"]
 
         for kwa in non_supported_kwargs:
             if kwa in kwargs:

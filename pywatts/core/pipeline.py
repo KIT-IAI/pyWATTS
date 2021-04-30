@@ -109,9 +109,6 @@ class Pipeline(BaseTransformer):
                 res = step.get_result(self.counter, end, return_all=True)
                 for key, value in res.items():
                     result = self._add_to_result(i, key, value, result)
-            else:
-                step.get_result(self.counter, end, return_all=True)
-
         return result
 
     def _add_to_result(self, i, key, res, result):
@@ -405,7 +402,7 @@ class Pipeline(BaseTransformer):
     def create_summary(self, summary_steps: List[SummaryStep]):
         summary = ""
         for step in summary_steps:
-            summary += "#" + step.name + step.get_summary(as_string=True) + "\n"
+            summary += "#" + step.name + step.get_summary() + "\n"
 
         with open(self.file_manager.get_path("summary.md"), "w") as file:
             file.write(summary)

@@ -29,11 +29,9 @@ class SummaryStep(Step):
         self.name = module.name
         self.file_manager = file_manager
         self.module = module
-        self.result_string = ""
 
     def _transform(self, input_step):
-        result_string = self.module.transform(**input_step)
-        self.result_string = result_string
+        return self.module.transform(file_manager=self.file_manager, **input_step)
 
     @classmethod
     def load(cls, stored_step: dict, inputs, targets, module, file_manager):
@@ -54,15 +52,7 @@ class SummaryStep(Step):
         step.file_manager = file_manager
         return step
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False):
-        self._compute(start, end)
-
-    def get_summary(self, as_string=False):
-        if as_string:
-            return self.result_string
-        return self.buffer
-
-    def _compute(self, start, end):
-        input_data = self._get_input(start, end)
-        self._transform(input_data)
+    def get_summary(self):
+        # TODO Docs
+        input_data = self._get_input(None, None)
+        return self._transform(input_data)

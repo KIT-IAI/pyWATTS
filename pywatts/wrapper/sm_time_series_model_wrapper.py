@@ -14,7 +14,8 @@ from pywatts.wrapper.base_wrapper import BaseWrapper
 
 class SmTimeSeriesModelWrapper(BaseWrapper):
     """
-    Wrapper for statsmodels modules.
+    Wrapper for statsmodels modules. When adding this module to the pipeline, all inputs that starts with target are
+    handled as endogenous variables and all other as exogenous variables.
 
     :param module: The statsmodels module to wrap. Not this module should not be initialised.
     :param name: The name of the module
@@ -86,7 +87,8 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         x = list(map(lambda _x: _x.values, x.values()))
         y = list(map(lambda _y: _y.values.reshape(-1), y.values()))
 
-        if "exog" in inspect.signature(self.module).parameters or "kwargs" in inspect.signature(
+        # Check if the statsmodel accepts exogenous variables
+        if len(x) > 0 and "exog" in inspect.signature(self.module).parameters or "kwargs" in inspect.signature(
                 self.module).parameters:
             self.model = self.module(endog=np.stack(y, axis=-1), exog=np.concatenate(x, axis=-1),
                                      **self.module_kwargs).fit(

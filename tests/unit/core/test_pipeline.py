@@ -543,5 +543,5 @@ class TestPipeline(unittest.TestCase):
 
         ds = xr.Dataset({'foo': foo, "target": target, "target2": target2})
 
-        result = self.pipeline.train(ds)
+        result, summary = self.pipeline.train(ds)
         self.assertAlmostEqual(result["RmseCalculator"].values[0, 0], 0.0)

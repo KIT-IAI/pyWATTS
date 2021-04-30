@@ -5,6 +5,7 @@ import xarray as xr
 
 from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
+from pywatts.core.base_summary import BaseSummary
 from pywatts.core.either_or_step import EitherOrStep
 from pywatts.core.exceptions.step_creation_exception import StepCreationException
 from pywatts.core.inverse_step import InverseStep
@@ -12,8 +13,9 @@ from pywatts.core.pipeline import Pipeline
 from pywatts.core.pipeline_step import PipelineStep
 from pywatts.core.probabilistic_step import ProbablisticStep
 from pywatts.core.step import Step
-from pywatts.core.step_information import StepInformation
+from pywatts.core.step_information import StepInformation, SummaryInformation
 from pywatts.callbacks import BaseCallback
+from pywatts.core.summary_step import SummaryStep
 
 
 class StepFactory:
@@ -170,3 +172,32 @@ class StepFactory:
                 raise StepCreationException(f"A step can only be part of one pipeline. Assure that all inputs {kwargs}"
                                             f"are part of the same pipeline.")
         return pipeline
+
+
+    def create_summary(self,
+                    module: BaseSummary,
+                    kwargs: Dict[str, Union[StepInformation, Tuple[StepInformation, ...]]],
+                    ) -> SummaryInformation:
+        arguments = inspect.signature(module.transform).parameters.keys()
+
+        if "kwargs" not in arguments and not isinstance(module, Pipeline):
+            for argument in arguments:
+                if argument not in kwargs.keys():
+                    raise StepCreationException(
+                        f"The module {module.name} miss {argument} as input. The module needs {arguments} as input. "
+                        f"{kwargs} are given as input."
+                        f"Add {argument}=<desired_input> when adding {module.name} to the pipeline.",
+                        module
+                    )
+
+        # TODO needs to check that inputs are unambigious -> I.e. check that each input has only one output
+        pipeline = self._check_ins(kwargs)
+        input_steps, target_steps = self._split_input_target_steps(kwargs, pipeline)
+
+        step = SummaryStep(module, input_steps, pipeline.file_manager,)
+
+        step_id = pipeline.add(module=step,
+                               input_ids=[step.id for step in input_steps.values()],
+                               target_ids=[step.id for step in target_steps.values()])
+
+        return SummaryInformation(step, pipeline)

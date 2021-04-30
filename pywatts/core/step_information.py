@@ -1,5 +1,6 @@
-from pywatts.core.base_step import BaseStep
+from typing import TYPE_CHECKING
 
+from pywatts.core.base_step import BaseStep
 
 class StepInformation:
     """
@@ -23,3 +24,9 @@ class StepInformation:
             return StepInformation(result_step, self.pipeline)
         else:
             return self
+
+
+class SummaryInformation:
+    def __init__(self, step, pipeline):
+        self.step = step
+        self.pipeline = pipeline

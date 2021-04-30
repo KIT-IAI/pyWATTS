@@ -81,24 +81,6 @@ that only exist in certain parts of the world (e.g. Thanksgiving). The extracted
 month, the weekday, and the weekend.
 
 
-**WhiteLister**
-
-The next element we add is a ``WhiteLister``:
-
-.. code-block:: python
-
-    white_lister_power_statistics = WhiteLister(target="load_power_statistics",
-                                                name="filter_power")(pipeline,
-                                                                     plot=True)
-
-The ``WhiteLister`` allows us to select specific time-series (columns) from the original CSV file.
-In the example shown above, we select Germany's load data as recorded by the *power statistics*
-source. Since our pipeline is no longer empty, we have to add the ``WhiteLister`` in the correct
-place. However, in this example, we want to take the input data of the pipeline as the input
-for the ``WhiteLister``. Therefore, we include ``pipeline`` again in the brackets. Furthermore, we have the option to select
-``plot=true``. This generates and saves a plot of the selected time series in the results folder specified
-at the creation of the pipeline.
-
 **Linear Interpolation**
 
 The next model we include deals with missing values by filling them through linear interpolation.
@@ -151,9 +133,9 @@ We also use the SciKit-learn wrapper for linear regression. The implementation i
 
     regressor_power_statistics = SKLearnWrapper(module=LinearRegression(fit_intercept=True))(shift1=shift_power_statistics,
                                                                                              shift2=shift_power_statistics2,
-                                                                                             month=calendar_month,
-                                                                                             weeday=calendar_weekday,
-                                                                                             weekend=calendar_weekend],
+                                                                                             month=CalendarFeature.month,
+                                                                                             weekday=CalendarFeature.weekday,
+                                                                                             weekend=CalendarFeature.weekend],
                                                                                              target_power=scale_power_statistics)
 
 First we see that standard SciKit-learn parameters can be adjusted directly inside the SciKit-learn constructor.

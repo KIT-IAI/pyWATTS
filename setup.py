@@ -6,7 +6,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=['scikit-learn', 'cloudpickle', 'holidays', 'xarray', 'numpy', 'pandas', 'matplotlib',
-                      'tensorflow', 'workalendar'],
+                      'tensorflow', 'workalendar',  'statsmodels'],
     extras_require={
         'dev': [
             "pytest",

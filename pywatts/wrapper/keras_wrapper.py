@@ -5,6 +5,7 @@ import tensorflow as tf
 import xarray as xr
 
 from pywatts.core.filemanager import FileManager
+from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces, xarray_to_numpy, numpy_to_xarray
 from pywatts.wrapper.dl_wrapper import DlWrapper
 
@@ -40,13 +41,7 @@ class KerasWrapper(DlWrapper):
         :param x: The input data
         :param y: The target data
         """
-        x = dict()
-        y = dict()
-        for key, value in kwargs.items():
-            if key.startswith("target"):
-                y[key] = value.values
-            else:
-                x[key] = value.values
+        x, y = split_kwargs(kwargs)
 
         self.targets = list(y.keys())
 

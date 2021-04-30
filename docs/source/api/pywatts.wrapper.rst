@@ -52,6 +52,14 @@ pywatts.wrapper.sklearn\_wrapper module
    :undoc-members:
    :show-inheritance:
 
+pywatts.wrapper.sm\_time\_series\_model\_wrapper module
+-------------------------------------------------------
+
+.. automodule:: pywatts.wrapper.sm_time_series_model_wrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

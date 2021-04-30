@@ -7,6 +7,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Dataset, DataLoader
 
 from pywatts.core.filemanager import FileManager
+from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import numpy_to_xarray, xarray_to_numpy
 from pywatts.wrapper.dl_wrapper import DlWrapper
 
@@ -48,13 +49,8 @@ class PyTorchWrapper(DlWrapper):
         """
         Calls the compile and the fit method of the wrapped pytorch module.
         """
-        x = dict()
-        y = dict()
-        for key, value in kwargs.items():
-            if key.startswith("target"):
-                y[key] = value
-            else:
-                x[key] = value
+        x, y = split_kwargs(kwargs)
+
         # check if gpu is available
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)

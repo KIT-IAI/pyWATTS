@@ -9,6 +9,7 @@ from sklearn.base import TransformerMixin
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
 from pywatts.core.filemanager import FileManager
+from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.wrapper.base_wrapper import BaseWrapper
 
 
@@ -55,13 +56,7 @@ class SKLearnWrapper(BaseWrapper):
         :param x: input data
         :param y: target data
         """
-        inputs = dict()
-        targets = dict()
-        for key, value in kwargs.items():
-            if key.startswith("target"):
-                targets[key] = value
-            else:
-                inputs[key] = value
+        inputs, targets = split_kwargs(kwargs)
         self.targets = list(targets.keys())
         x = self._dataset_to_sklearn_input(inputs)
         target = self._dataset_to_sklearn_input(targets)

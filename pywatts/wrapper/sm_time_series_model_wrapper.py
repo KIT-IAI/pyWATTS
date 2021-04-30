@@ -7,6 +7,7 @@ from statsmodels.iolib import load_pickle
 from statsmodels.tsa.base.tsa_model import TimeSeriesModel
 
 from pywatts.core.filemanager import FileManager
+from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces, numpy_to_xarray
 from pywatts.wrapper.base_wrapper import BaseWrapper
 
@@ -81,17 +82,14 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         :param kwargs: A dict of input arrays
         :type kwargs: xr.DataArray
         """
-        x = []
-        y = []
-        for key, value in kwargs.items():
-            if key.startswith("target"):
-                y.append(value.values.reshape(-1))
-            else:
-                x.append(value.values)
+        x, y = split_kwargs(kwargs)
+        x = list(map(lambda _x: _x.values, x.values()))
+        y = list(map(lambda _y: _y.values.reshape(-1), y.values()))
 
         if "exog" in inspect.signature(self.module).parameters or "kwargs" in inspect.signature(
                 self.module).parameters:
-            self.model = self.module(endog=np.stack(y, axis=-1), exog=np.concatenate(x, axis=-1), **self.module_kwargs).fit(
+            self.model = self.module(endog=np.stack(y, axis=-1), exog=np.concatenate(x, axis=-1),
+                                     **self.module_kwargs).fit(
                 **self.fit_kwargs)
         else:
             self.model = self.module(endog=np.stack(y, axis=-1), **self.module_kwargs).fit(**self.fit_kwargs)
@@ -116,7 +114,8 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         if hasattr(self.model, "forecast"):
             if "exog" in inspect.signature(self.model.forecast).parameters or "kwargs" in inspect.signature(
                     self.model.forecast).parameters:
-                prediction = self.model.forecast(len(time_data), exog=np.concatenate(x, axis=-1), **self.predict_kwargs)[0]
+                prediction = \
+                    self.model.forecast(len(time_data), exog=np.concatenate(x, axis=-1), **self.predict_kwargs)[0]
 
             else:
                 prediction = self.model.forecast(len(time_data), **self.predict_kwargs)[0]
@@ -141,8 +140,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
             json.update({"statsmodel_model": model_file_path})
         json.update({
             "sm_class": self.module.__name__,
-            "sm_module": self.module.__module__,
-
+            "sm_module": self.module.__module__
         })
         return json
 

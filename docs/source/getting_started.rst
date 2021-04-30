@@ -133,9 +133,7 @@ We also use the SciKit-learn wrapper for linear regression. The implementation i
 
     regressor_power_statistics = SKLearnWrapper(module=LinearRegression(fit_intercept=True))(shift1=shift_power_statistics,
                                                                                              shift2=shift_power_statistics2,
-                                                                                             month=CalendarFeature.month,
-                                                                                             weekday=CalendarFeature.weekday,
-                                                                                             weekend=CalendarFeature.weekend],
+                                                                                             calendar=calendar,
                                                                                              target_power=scale_power_statistics)
 
 First we see that standard SciKit-learn parameters can be adjusted directly inside the SciKit-learn constructor.
@@ -143,7 +141,7 @@ Here, for example, we have set the ``fit_intercept`` parameter to true. Furtherm
 a linear regression can have more than one input and also requires a target for fitting. Therefore, we include
 all of the inputs by keyword-arguments. Note that all keyword-arguments that start with target are considered as target
 variables by pyWATTS. So pyWATTS aims to train a linear regression using ``shift_power_statistics,
-shift_power_statistics2, calendar_month, calendar_weekday, calendar_weekend`` as input to predict
+shift_power_statistics2,  calendar=calendar,`` as input to predict
 ``scale_power_statistics.``
 
 **Rescaling**

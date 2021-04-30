@@ -36,7 +36,7 @@ class SummaryStep(Step):
     @classmethod
     def load(cls, stored_step: dict, inputs, targets, module, file_manager):
         """
-        Load a stored step.
+        Load a stored step. # TODO Typing
 
         :param stored_step: Informations about the stored step
         :param inputs: The input step of the stored step
@@ -44,15 +44,28 @@ class SummaryStep(Step):
         :param module: The module wrapped by this step
         :return: Step
         """
-        step = cls(module, inputs, targets)
+        step = cls(module, inputs, file_manager)
         step.inputs = inputs
         step.id = stored_step["id"]
         step.name = stored_step["name"]
-        step.last = stored_step["last"]
         step.file_manager = file_manager
         return step
 
-    def get_summary(self):
-        # TODO Docs
+    def get_json(self, fm: FileManager):
+        return {
+            "target_ids": {step.id: key for key, step in self.targets.items()},
+            "input_ids": {step.id: key for key, step in self.input_steps.items()},
+            "id": self.id,
+            "module": self.__module__,
+            "class": self.__class__.__name__,
+            "name": self.name,
+        }
+
+    def get_summary(self) -> str:
+        """
+        Calculates a summary for the input data.
+        :return: The summary as markdown formatted string
+        :rtype: Str
+        """
         input_data = self._get_input(None, None)
         return self._transform(input_data)

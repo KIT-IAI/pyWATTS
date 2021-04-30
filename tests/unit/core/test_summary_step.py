@@ -37,7 +37,28 @@ class TestSummaryStep(unittest.TestCase):
         self.assertEqual(result, "#I AM MARKDOWN")
 
     def test_load(self):
-        self.fail()
+        stored_step = {
+            "target_ids": {},
+            "input_ids": {2  : "input"},
+            "id": -1,
+            "module": "pywatts.core.summary_step",
+            "class": "SummaryStep",
+            "name": "test"}
+
+        summary = SummaryStep.load(stored_step,{"input":self.step_mock}, {}, self.module_mock, self.fm_mock)
+        self.assertEqual(len(summary.input_steps), 1)
+        self.assertEqual(summary.input_steps["input"], self.step_mock)
+        self.assertEqual(summary.module, self.module_mock)
+        self.assertEqual(summary.file_manager, self.fm_mock)
 
     def test_store(self):
-        self.fail()
+        fm_mock = MagicMock()
+        json = self.summary.get_json(fm_mock)
+
+        self.assertEqual(json, {
+            "target_ids": {},
+            "input_ids": {2  : "input"},
+            "id": -1,
+            "module": "pywatts.core.summary_step",
+            "class": "SummaryStep",
+            "name": "test"}, json)

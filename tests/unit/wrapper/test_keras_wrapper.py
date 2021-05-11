@@ -37,7 +37,8 @@ stored_model = {
             "batch_size": 512,
             "epochs": 1
         }
-    }
+    },
+    "targets": []
 }
 
 
@@ -159,7 +160,8 @@ class TestKerasWrapper(unittest.TestCase):
                                 'model': os.path.join("new_path", "to_somewhere", "KerasWrapper.h5"),
                                 'module': 'pywatts.wrapper.keras_wrapper',
                                 'name': 'KerasWrapper',
-                                'params': {'compile_kwargs': {"test": "arg1"}, 'fit_kwargs': {"42": 24}}
+                                'params': {'compile_kwargs': {"test": "arg1"}, 'fit_kwargs': {"42": 24}},
+                                "targets":[]
                                 })
 
     @patch('pywatts.wrapper.keras_wrapper.tf.keras.models.load_model')

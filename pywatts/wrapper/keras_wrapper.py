@@ -26,6 +26,7 @@ class KerasWrapper(DlWrapper):
     def __init__(self, model: Union[tf.keras.Model, Tuple[tf.keras.Model, Dict[str, tf.keras.Model]]],
                  name: str = "KerasWrapper", fit_kwargs=None, compile_kwargs=None):
         self.aux_models = {}
+        self.targets = []
         if isinstance(model, tuple):
             self.aux_models = model[1]
             model = model[0]
@@ -73,14 +74,17 @@ class KerasWrapper(DlWrapper):
         :return: The path where the model is stored.
         """
         json = super().save(fm)
-        self.model.save(filepath=fm.get_path(f"{self.name}.h5"))
+        json["targets"] = self.targets
+        model_path = fm.get_path(f"{self.name}.h5")
+        self.model.save(filepath=model_path)
         aux_models = []
         for name, aux_model in self.aux_models.items():
-            aux_model.save(filepath=fm.get_path(f"{self.name}_{name}.h5"))
-            aux_models.append((name, fm.get_path(f"{self.name}_{name}.h5")))
+            aux_model_path = fm.get_path(f"{self.name}_{name}.h5")
+            aux_model.save(filepath=aux_model_path)
+            aux_models.append((name, aux_model_path))
         json.update({
             "aux_models": aux_models,
-            "model": fm.get_path(f"{self.name}.h5")
+            "model": model_path
         })
 
         return json
@@ -112,6 +116,8 @@ class KerasWrapper(DlWrapper):
         else:
             module = cls(model, name=name, **params)
         module.is_fitted = load_information["is_fitted"]
+
+        module.targets = load_information["targets"]
         return module
 
     def get_params(self) -> Dict[str, object]:

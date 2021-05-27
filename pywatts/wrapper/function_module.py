@@ -3,24 +3,33 @@ from typing import Optional, Dict, Callable
 import cloudpickle
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
+from pywatts.core.base import BaseEstimator
 from pywatts.core.filemanager import FileManager
 
 
-class FunctionModule(BaseTransformer):
+class FunctionModule(BaseEstimator):
     """
-    This module calls the function in its transform. It can be used, for executing own code in the pipeline. Note that
-    the wrapped function is called with the same keyword arguments as the module.
+    This module calls the function in its transform and optional fit method.
+    It can be used, for executing own code in the pipeline.
+    Note that the wrapped function is called with the same keyword arguments as the module.
 
+    :param transform_method: The function which should be executed in the transform step.
+    :type transform_method: Callable
+    :param fit_method: The function which should be executed in the fit step.
+    :type fit_method: Callable
     :param name: name of the instance (FunctionModule)
     :type name: str
-    :param function: The function which should be executed in the transform step.
-    :type function: Callable
     """
 
-    def __init__(self, function: Callable, name: str = "FunctionModule"):
+    def __init__(self, transform_method: Callable, fit_method: Optional[Callable] = None,
+                 name: str = "FunctionModule"):
         super().__init__(name)
-        self.function = function
+        if fit_method is None:
+            self.is_fitted = True
+            self.fit_method = fit_method
+        else:
+            self.fit_method = fit_method
+        self.transform_method = transform_method
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -36,16 +45,26 @@ class FunctionModule(BaseTransformer):
         Does nothing:
         """
 
+    def fit(self, **kwargs: xr.DataArray) -> xr.DataArray:
+        """
+        Call the fit_method if available wrapped by this module on x.
+
+        :param kwargs: The input arrays
+        :type kwargs: xr.DataArray
+        """
+        if self.fit_method is not None:
+            self.fit_method(**kwargs)
+
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
-        Call the function wrapped by this module on x.
+        Call the transform_method wrapped by this module on x.
 
-        :param x: The input xrarray dataset
-        :type x: xarray.Dataset
-        :return: The transformed Dataset
-        :rtype: xarray.Dataset
+        :param x: The input arrays
+        :type x: xarray.DataArray
+        :return: The transformed DataArray
+        :rtype: xarray.DataArray
         """
-        return self.function(**kwargs)
+        return self.transform_method(**kwargs)
 
     def save(self, fm: FileManager):
         """

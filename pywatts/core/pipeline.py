@@ -45,13 +45,16 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: str = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
         super().__init__(name)
         self.batch = batch
         self.counter = None
         self.start_steps = dict()
         self.id_to_step: Dict[int, BaseStep] = {}
-        self.file_manager = FileManager(path)
+        if path is None:
+            self.file_manager = None
+        else:
+            self.file_manager = FileManager(path)
 
     def transform(self, **x: xr.DataArray) -> xr.DataArray:
         """

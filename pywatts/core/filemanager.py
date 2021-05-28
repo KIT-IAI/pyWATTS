@@ -23,6 +23,7 @@ class FileManager:
     """
 
     def __init__(self, path, time_mode=True):
+        self.basic_path = path
         self.time_mode = time_mode
         if time_mode:
             self.path = os.path.join(path, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))

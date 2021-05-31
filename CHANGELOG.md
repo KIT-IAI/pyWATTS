@@ -13,6 +13,7 @@
 ### Deprecated
 
 ### Fixed
+* Converts the input for the keras model in the kerasWrapper from xr.Dataarray to np.array ([#97](https://github.com/KIT-IAI/pyWATTS/issues/97))
 * Missing call of _get_rolling in Rolling Base  ([#76](https://github.com/KIT-IAI/pyWATTS/issues/76))
 * Fix save and load of keras Wrapper  ([#91](https://github.com/KIT-IAI/pyWATTS/issues/91))
 * Import of pytorchWrapper via wrapper.__init__

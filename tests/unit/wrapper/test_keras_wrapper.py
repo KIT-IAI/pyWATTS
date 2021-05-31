@@ -66,6 +66,9 @@ class TestKerasWrapper(unittest.TestCase):
         self.keras_mock.fit.assert_called_once()
         args = self.keras_mock.fit.call_args
 
+        self.assertEqual(type(args[1]["x"]["data"]), np.ndarray)
+        self.assertEqual(type(args[1]["y"]["target"]), np.ndarray)
+
         np.testing.assert_equal(args[1]["x"]["data"],
                                 np.array([[2, 0], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7]]))
         np.testing.assert_equal(args[1]["y"]["target"],

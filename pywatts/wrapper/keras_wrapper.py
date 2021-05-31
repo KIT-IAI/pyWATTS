@@ -43,7 +43,8 @@ class KerasWrapper(DlWrapper):
         :param y: The target data
         """
         x, y = split_kwargs(kwargs)
-
+        x = {name_x: value_x.values for name_x, value_x in x.items()}
+        y = {name_y: value_y.values for name_y, value_y in y.items()}
         self.targets = list(y.keys())
 
         if not self.compiled:

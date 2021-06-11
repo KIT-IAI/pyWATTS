@@ -45,13 +45,16 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: str = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
         super().__init__(name)
         self.batch = batch
         self.counter = None
         self.start_steps = dict()
         self.id_to_step: Dict[int, BaseStep] = {}
-        self.file_manager = FileManager(path)
+        if path is None:
+            self.file_manager = None
+        else:
+            self.file_manager = FileManager(path)
 
     def transform(self, **x: xr.DataArray) -> xr.DataArray:
         """
@@ -307,7 +310,7 @@ class Pipeline(BaseTransformer):
             "version": 1,
             "modules": modules_for_storing,
             "steps": steps_for_storing,
-            "path": self.file_manager.basic_path,
+            "path": self.file_manager.basic_path if self.file_manager else None,
             "batch": str(self.batch) if self.batch else None,
         }
         file_path = save_file_manager.get_path('pipeline.json')

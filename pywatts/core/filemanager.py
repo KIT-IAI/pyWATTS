@@ -24,13 +24,20 @@ class FileManager:
 
     def __init__(self, path, time_mode=True):
         self.basic_path = path
+        self.time_mode = time_mode
         if time_mode:
             self.path = os.path.join(path, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
-            os.makedirs(self.path)
         else:
             self.path = path
-            os.makedirs(self.path, exist_ok=True)
 
+    def _create_path_dirs(self):
+        """
+        Creates all directories needed to write files to the directory at self.path
+        """
+        if self.time_mode:
+            os.makedirs(self.path, exist_ok=False)
+        else:
+            os.makedirs(self.path, exist_ok=True)
         logger.info("Created folder %s", self.path)
 
     def get_path(self, filename: str, path=None):
@@ -43,6 +50,9 @@ class FileManager:
         :param path: Optional path extension to the file.
         :return: The path, where the results should be stored.
         """
+        if not os.path.exists(self.path):
+            self._create_path_dirs()
+
         if filename.split(".")[-1] not in ALLOWED_FILES:
             message = f"{filename.split('.')[-1]} is not an allowed file type. Allowed types are {ALLOWED_FILES}."
             logger.error(message)

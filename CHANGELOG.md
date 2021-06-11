@@ -6,7 +6,8 @@
 ### Added
 * Logger for modules is defined in Base  ([#77](https://github.com/KIT-IAI/pyWATTS/issues/77))
 * Add parameters to RMSECalculator so that it can caluclate a sliding rmse too. ([#23](https://github.com/KIT-IAI/pyWATTS/issues/23))
-* StatsmodelTimeSeriesModelWrapper.  ([#29](https://github.com/KIT-IAI/pyWATTS/issues/29)) 
+* StatsmodelTimeSeriesModelWrapper.  ([#29](https://github.com/KIT-IAI/pyWATTS/issues/29))
+* Optional pipeline path and less aggressive FileManager directory creation ([#94](https://github.com/KIT-IAI/pyWATTS/issues/94)) 
 * Add fit_method parameter to FunctionModule ([#93](https://github.com/KIT-IAI/pyWATTS/issues/93))
 
 ### Changed

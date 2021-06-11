@@ -8,6 +8,7 @@
 * Add parameters to RMSECalculator so that it can caluclate a sliding rmse too. ([#23](https://github.com/KIT-IAI/pyWATTS/issues/23))
 * StatsmodelTimeSeriesModelWrapper.  ([#29](https://github.com/KIT-IAI/pyWATTS/issues/29))
 * Optional pipeline path and less aggressive FileManager directory creation ([#94](https://github.com/KIT-IAI/pyWATTS/issues/94)) 
+* Add fit_method parameter to FunctionModule ([#93](https://github.com/KIT-IAI/pyWATTS/issues/93))
 
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))
@@ -15,6 +16,7 @@
 ### Deprecated
 
 ### Fixed
+* Converts the input for the keras model in the kerasWrapper from xr.Dataarray to np.array ([#97](https://github.com/KIT-IAI/pyWATTS/issues/97))
 * Missing call of _get_rolling in Rolling Base  ([#76](https://github.com/KIT-IAI/pyWATTS/issues/76))
 * Fix save and load of keras Wrapper  ([#91](https://github.com/KIT-IAI/pyWATTS/issues/91))
 * Import of pytorchWrapper via wrapper.__init__

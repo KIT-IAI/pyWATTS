@@ -310,7 +310,7 @@ class Pipeline(BaseTransformer):
             "version": 1,
             "modules": modules_for_storing,
             "steps": steps_for_storing,
-            "path": self.file_manager.basic_path,
+            "path": self.file_manager.basic_path if self.file_manager else None,
             "batch": str(self.batch) if self.batch else None,
         }
         file_path = save_file_manager.get_path('pipeline.json')

@@ -48,8 +48,7 @@ class BaseStep(ABC):
         self.training_time = SummaryObjectList(self.name + " Training Time", category=SummaryCategory.FitTime)
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,                  return_all=False):
         """
         This method is responsible for providing the result of this step.
         Therefore,

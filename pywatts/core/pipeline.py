@@ -185,8 +185,7 @@ class Pipeline(BaseTransformer):
             data = data.to_xarray()
 
         if isinstance(data, xr.Dataset):
-            return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary(
-                list(filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values())))
+            return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary()
 
         elif isinstance(data, dict):
             for key in data:
@@ -196,10 +195,9 @@ class Pipeline(BaseTransformer):
                         "Make sure to pass Dict[str, xr.DataArray].",
                         self.name
                     )
-            return self.transform(**data), self.create_summary(
-                list(filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values())))
+            return self.transform(**data), self.create_summary()
 
-        
+
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",
             "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
@@ -399,10 +397,15 @@ class Pipeline(BaseTransformer):
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
         return self.start_steps[item][-1]
 
-    def create_summary(self, summary_steps: List[SummaryStep]):
-        summary = ""
-        for step in summary_steps:
+    def create_summary(self):
+        summary = "# Summary steps\n"
+        for step in filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values()):
+            assert isinstance(step, SummaryStep)
             summary += "#" + step.name + step.get_summary() + "\n"
+
+        summary += "# Training Time\n"
+        for step in self.id_to_step.values():
+            summary += f"  * {step.name}: {step.training_time}"
 
         with open(self.file_manager.get_path("summary.md"), "w") as file:
             file.write(summary)

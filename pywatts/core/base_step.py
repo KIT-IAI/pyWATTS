@@ -41,9 +41,9 @@ class BaseStep(ABC):
         self.last = True
         self._current_end = None
         self.buffer: Dict[str, xr.DataArray] = {}
+        self.training_time = None
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,                  return_all=False):
         """
         This method is responsible for providing the result of this step.
         Therefore,

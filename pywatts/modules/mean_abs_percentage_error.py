@@ -54,15 +54,20 @@ class MapeCalculator(BaseTransformer):
         :return: The calculated MAPE
         :rtype: xr.DataArray
         """
-        t = y.values
+        usable_size = y.values.nonzero()[0][y.values.nonzero()[0] >= self.offset].size
+        t = np.where(y.values != 0, y.values, np.nan)   # we want to divide by t => replace 0s by nan
         mape = []
         predictions = []
         if kwargs == {}:
             error_msg = ("No predictions are provided as input for the MAPE Calculator. " +
                          "You should add the predictions by a seperate key word arguments if you add the " +
-                         "MapeCalculator to the pipeline.")
+                         "MAPE Calculator to the pipeline.")
             logger.error(error_msg)
             raise InputNotAvailable(error_msg)
+        if usable_size != t.size:
+            percent = (1 - usable_size / (t.size - self.offset)) * 100
+            error_msg = "MAPE ignores y zero values ({:.3f}% of given data)".format(percent)
+            logger.info(error_msg)
 
         for key, y_hat in kwargs.items():
             p = y_hat.values
@@ -71,11 +76,11 @@ class MapeCalculator(BaseTransformer):
             if self.rolling:
                 time = y[_get_time_indeces(y)[0]][self.offset:]
                 p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
-                _mape = pd.DataFrame(p_[self.offset:] - t_[self.offset:]).rolling(
-                    self.window).apply(lambda x: np.mean(np.abs(x))).values
+                _mape = pd.DataFrame((p_[self.offset:] - t_[self.offset:])/t_[self.offset:]).rolling(
+                    self.window).apply(lambda x: np.nanmean(np.abs(x))).values
             else:
                 time = [y.indexes[_get_time_indeces(y)[0]][-1]]
-                _mape = [np.mean(np.abs(p[self.offset:] - t[self.offset:]))]
+                _mape = [np.nanmean(np.abs((p[self.offset:] - t[self.offset:])/t[self.offset:]))]
             mape.append(_mape)
         return xr.DataArray(np.stack(mape).swapaxes(0, 1).reshape((-1, len(predictions))),
                             coords={"time": time, "predictions": predictions},
@@ -83,7 +88,7 @@ class MapeCalculator(BaseTransformer):
 
     def set_params(self, offset: Optional[int] = None, rolling: Optional[bool] = None, window: Optional[int] = None):
         """
-        Set parameters of the MapeCalculator.
+        Set parameters of the MAPE calculator.
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the MAPE.
         :type offset: int

@@ -40,10 +40,10 @@ class TestMaeCalculator(unittest.TestCase):
                                                      pred1=test_data['predictCol1'],
                                                      pred2=test_data['predictCol2'])
         expected_result = xr.DataArray(np.array([[np.nan, np.nan, np.nan],
-                                                 [0.0, 3, 5.5],
-                                                 [0.0, 2.5, 4],
-                                                 [0.0, 1.5, 3],
-                                                 [0.0, 2, 2]]),
+                                                 [0.0, 2, 4],
+                                                 [np.nan, np.nan, np.nan],
+                                                 [np.nan, np.nan, np.nan],
+                                                 [0.0, 1, 7 / 4]]),
                                        coords={"time": time, "predictions": ["gt", "pred1", "pred2"]},
                                        dims=["time", "predictions"])
 
@@ -66,7 +66,7 @@ class TestMaeCalculator(unittest.TestCase):
                                                      pred1=test_data['predictCol1'],
                                                      pred2=test_data['predictCol2'])
 
-        expected_result = xr.DataArray(np.array([[0.0, 2.6, 3.6]]),
+        expected_result = xr.DataArray(np.array([[0.0, 3 / 2, 23 / 8]]),
                                        coords={"time": result_time, "predictions": ["gt", "pred1", "pred2"]},
                                        dims=["time", "predictions"])
 
@@ -87,5 +87,5 @@ class TestMaeCalculator(unittest.TestCase):
             self.mape_calculator.transform(y=test_data['testCol'])
 
         self.assertEqual(e_info.value.message,
-                         "No predictions are provided as input for the MAE Calculator. You should add the predictions "
-                         "by a seperate key word arguments if you add the MaeCalculator to the pipeline.")
+                         "No predictions are provided as input for the MAPE Calculator. You should add the predictions "
+                         "by a seperate key word arguments if you add the MAPE Calculator to the pipeline.")

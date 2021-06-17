@@ -1,6 +1,5 @@
 import logging
-import pandas as pd
-from typing import Dict, Optional
+from typing import Dict
 
 from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
@@ -36,7 +35,7 @@ class SummaryStep(Step):
     @classmethod
     def load(cls, stored_step: dict, inputs, targets, module, file_manager):
         """
-        Load a stored step. # TODO Typing
+        Load a stored step.
 
         :param stored_step: Informations about the stored step
         :param inputs: The input step of the stored step
@@ -45,7 +44,7 @@ class SummaryStep(Step):
         :return: Step
         """
         step = cls(module, inputs, file_manager)
-        step.inputs = inputs
+        step.inputs_steps = inputs
         step.id = stored_step["id"]
         step.name = stored_step["name"]
         step.file_manager = file_manager

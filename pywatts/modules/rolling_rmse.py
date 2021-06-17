@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -41,8 +41,8 @@ class RollingRMSE(BaseTransformer):
         """
         Set the parameter for the RollingRMSE.
 
-        :param window_size: Determine the window size if a rolling rmse should be calculated. Ignored if rolling is set to
-                   False. Default 24
+        :param window_size: Determine the window size if a rolling rmse should be calculated.
+                            Ignored if rolling is set to False. Default 24
         :type window_size: int
         :param window_size_unit: Determine the unit of the window size. Default Day (d)"
         :type window_size_unit: str

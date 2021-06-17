@@ -2,16 +2,17 @@
 from __future__ import annotations
 
 import warnings
-import xarray as xr
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING
+
+import xarray as xr
 
 from pywatts.core.base import Base
 from pywatts.core.filemanager import FileManager
 from pywatts.core.step_information import SummaryInformation
 
 if TYPE_CHECKING:
-    from pywatts.core.step_factory import StepInformation
+    pass
 
 
 class BaseSummary(Base, ABC):
@@ -30,7 +31,7 @@ class BaseSummary(Base, ABC):
         """
 
     @abstractmethod
-    def transform(self, file_manager: FileManager, *args, **kwargs: xr.DataArray) -> str:
+    def transform(self, file_manager: FileManager, **kwargs: xr.DataArray) -> str:
         """
         Transform method. Here the summary should be calculated.
         :param file_manager: The filemanager, it can be used to store data that corresponds to the summary as a file.

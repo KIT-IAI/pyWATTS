@@ -28,7 +28,7 @@ class TestRMSE(unittest.TestCase):
 
     def test_transform_with_filter(self):
         filter_mock = MagicMock()
-        rmse = RMSE(filter=filter_mock)
+        rmse = RMSE(filter_method=filter_mock)
 
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
@@ -90,7 +90,7 @@ class TestRMSE(unittest.TestCase):
         fm_mock.get_path.return_value = "filter_path"
         filter_mock = MagicMock()
 
-        rmse = RMSE(name="NAME", filter=filter_mock)
+        rmse = RMSE(name="NAME", filter_method=filter_mock)
 
         json = rmse.save(fm_mock)
 
@@ -116,5 +116,5 @@ class TestRMSE(unittest.TestCase):
         cloudpickle_mock.load.assert_called_once_with(open_mock().__enter__.return_value)
 
         self.assertEqual(rmse.name, "NAME")
-        self.assertEqual(rmse.filter, filter_mock)
+        self.assertEqual(rmse.filter_method, filter_mock)
         self.assertEqual(rmse.get_params(), {"offset": 24})

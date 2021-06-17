@@ -234,6 +234,7 @@ For a common understanding of the various terms used in this framework, see the 
 | BaseEstimator   | A module that has to be fitted must inherit from BaseEstimator. Such a module is also called Estimator.|
 | BaseTransformer | A module that only transforms data must inherit from BaseTransformer. Such a module is also called Transformer.|
 | Wrapper         | A wrapper is a special type of module that wraps models and methods of external libraries, such as sklearn.|  
+| Summary         | A summary is an element of the pipeline. In contrast to the module it calculates one value for summarizing the time series instead of transforming it into a new.
 | Step            | A step manages the execution of a single module, such as fetching the input, checking condition, and providing outputs.
 
 ## Current Development Status

@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from pywatts.core.base_step import BaseStep
 
 class StepInformation:

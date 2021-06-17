@@ -52,34 +52,35 @@ class TestRollingMean(unittest.TestCase):
     def test_transform_groupbyNo(self):
         time = pd.date_range('2002-01-01', freq='24H', periods=7)
 
-        ds = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"] , coords={'time': time})
+        ds = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
 
         result = self.rolling_mean.transform(ds)
 
-        expected_result = xr.DataArray([0. , 2. , 2.5, 3. , 4. , 5. , 6. ], dims=["time"] , coords={'time': time})
+        expected_result = xr.DataArray([0., 2., 2.5, 3., 4., 5., 6.], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_groupbyWeekendWeekday(self):
         self.rolling_mean.set_params(group_by=RollingGroupBy.WorkdayWeekend)
-        time = pd.date_range('2002-01-01', freq='24H', periods=7)
+        time = pd.date_range('2002-01-01', freq='12H', periods=14)
 
-        ds = xr.DataArray([2, 3, 4, 5, 6, 7, 42], dims=["time"], coords={'time': time})
+        ds = xr.DataArray([2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 42, 42], dims=["time"], coords={'time': time})
 
         result = self.rolling_mean.transform(ds)
 
-        expected_result = xr.DataArray([0., 2., 2.5, 3., 0., 6., 5.], dims=["time"], coords={'time': time})
+        expected_result = xr.DataArray([0., 0., 2., 2., 2.5, 2.5, 3., 3., 0., 0., 6., 6., 5., 5.], dims=["time"],
+                                       coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_groupbyWeekendWeekdayAndHoliday(self):
-        time = pd.date_range('2002-01-01', freq='24H', periods=7)
+        time = pd.date_range('2002-01-01', freq='12H', periods=14)
         self.rolling_mean.set_params(window_size=4, group_by=RollingGroupBy.WorkdayWeekendAndHoliday)
 
-        ds = xr.DataArray([2, 3, 4, 5, 6, 7, 42], dims=["time"], coords={'time': time})
+        ds = xr.DataArray([2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 42, 42], dims=["time"], coords={'time': time})
 
         result = self.rolling_mean.transform(ds)
 
-        expected_result = xr.DataArray([0., 0., 3, 3.5, 2., 6., 4.5], dims=["time"], coords={'time': time})
+        expected_result = xr.DataArray([0., 0., 0., 0., 3, 3, 3.5, 3.5, 2, 2., 6.,6,4.5, 4.5], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)

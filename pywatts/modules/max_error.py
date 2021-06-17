@@ -19,9 +19,9 @@ class MaxCalculator(BaseTransformer):
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the max
                        error, Default 0
         :type offset: int
-        :param rolling: Flag that determines if a rolling mae should be used. Default False
+        :param rolling: Flag that determines if a rolling max should be used. Default False
         :type rolling: bool
-        :param window: Determine the window size if a rolling mae should be calculated. Ignored if rolling is set to
+        :param window: Determine the window size if a rolling max should be calculated. Ignored if rolling is set to
                        False. Default 24
         :type window: int
 
@@ -58,9 +58,9 @@ class MaxCalculator(BaseTransformer):
         max_err = []
         predictions = []
         if kwargs == {}:
-            error_msg = ("No predictions are provided as input for the MAE Calculator. " +
+            error_msg = ("No predictions are provided as input for the MaxCalculator. " +
                          "You should add the predictions by a seperate key word arguments if you add the " +
-                         "MaeCalculator to the pipeline.")
+                         "MaxCalculator to the pipeline.")
             logger.error(error_msg)
             raise InputNotAvailable(error_msg)
 
@@ -89,7 +89,7 @@ class MaxCalculator(BaseTransformer):
         :type offset: int
         :param rolling: Flag that determines if a rolling max should be used.
         :type rolling: bool
-        :param window: Determine the window size if a rolling MAE should be calculated. Ignored if rolling is set to
+        :param window: Determine the window size if a rolling max should be calculated. Ignored if rolling is set to
                        False.
         :type window: int
         """

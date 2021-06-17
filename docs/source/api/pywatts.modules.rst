@@ -92,6 +92,14 @@ pywatts.modules.rolling\_mean module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.rolling\_rmse module
+------------------------------------
+
+.. automodule:: pywatts.modules.rolling_rmse
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.rolling\_skewness module
 ----------------------------------------
 

@@ -48,10 +48,10 @@ class MaeCalculator(BaseTransformer):
         """
         Calculates the MAE based on the predefined target and predictions variables.
 
-        :param x: the input dataset
-        :type x: Optional[xr.DataArray]
+        :param y: the input dataset
+        :type y: Optional[xr.DataArray]
 
-        :return: The calculated RMSE
+        :return: The calculated MAE
         :rtype: xr.DataArray
         """
         t = y.values
@@ -83,7 +83,7 @@ class MaeCalculator(BaseTransformer):
 
     def set_params(self, offset: Optional[int] = None, rolling: Optional[bool] = None, window: Optional[int] = None):
         """
-        Set parameters of the RMSECalculator.
+        Set parameters of the MAE calculator.
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the MAE.
         :type offset: int

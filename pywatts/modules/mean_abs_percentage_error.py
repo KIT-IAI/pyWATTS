@@ -48,8 +48,8 @@ class MapeCalculator(BaseTransformer):
         """
         Calculates the MAPE based on the predefined target and predictions variables.
 
-        :param x: the input dataset
-        :type x: Optional[xr.DataArray]
+        :param y: the input dataset
+        :type y: Optional[xr.DataArray]
 
         :return: The calculated MAPE
         :rtype: xr.DataArray

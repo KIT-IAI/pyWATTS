@@ -33,7 +33,7 @@ class TestSummaryStep(unittest.TestCase):
         result = self.summary.get_summary()
 
         self.step_mock.get_result.assert_called_once_with(None, None)
-        self.module_mock.transform.assert_called_once_with(self.fm_mock, input=self.result_mock)
+        self.module_mock.transform.assert_called_once_with(file_manager=self.fm_mock, input=self.result_mock)
         self.assertEqual(result, "#I AM MARKDOWN")
 
     def test_load(self):

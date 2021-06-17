@@ -23,7 +23,7 @@ class RMSE(BaseSummary):
     :type filter: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]
     """
 
-    def __init__(self, name: str = "RmseCalculator",
+    def __init__(self, name: str = "RMSE",
                  filter: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]] = None, offset: int = 0):
         super().__init__(name)
         self.offset = offset

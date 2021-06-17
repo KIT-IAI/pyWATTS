@@ -35,9 +35,9 @@ class MaeCalculator(BaseTransformer):
 
     def get_params(self) -> Dict[str, object]:
         """
-        Returns a dict of parameters used in the RMSE Calculator.
+        Returns a dict of parameters used in the MAE calculator.
 
-        :return: Parameters set for the RMSE calculator
+        :return: Parameters set for the MAE calculator
         :rtype: Dict[str, object]
         """
         return {"offset": self.offset,
@@ -55,7 +55,7 @@ class MaeCalculator(BaseTransformer):
         :rtype: xr.DataArray
         """
         t = y.values
-        rmse = []
+        mae = []
         predictions = []
         if kwargs == {}:
             error_msg = ("No predictions are provided as input for the MAE Calculator. " +
@@ -71,13 +71,13 @@ class MaeCalculator(BaseTransformer):
             if self.rolling:
                 time = y[_get_time_indeces(y)[0]][self.offset:]
                 p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
-                _rmse = pd.DataFrame(p_[self.offset:] - t_[self.offset:]).rolling(
+                _mae = pd.DataFrame(p_[self.offset:] - t_[self.offset:]).rolling(
                     self.window).apply(lambda x: np.mean(np.abs(x))).values
             else:
                 time = [y.indexes[_get_time_indeces(y)[0]][-1]]
-                _rmse = [np.mean(np.abs(p[self.offset:] - t[self.offset:]))]
-            rmse.append(_rmse)
-        return xr.DataArray(np.stack(rmse).swapaxes(0, 1).reshape((-1, len(predictions))),
+                _mae = [np.mean(np.abs(p[self.offset:] - t[self.offset:]))]
+            mae.append(_mae)
+        return xr.DataArray(np.stack(mae).swapaxes(0, 1).reshape((-1, len(predictions))),
                             coords={"time": time, "predictions": predictions},
                             dims=["time", "predictions"])
 
@@ -85,11 +85,11 @@ class MaeCalculator(BaseTransformer):
         """
         Set parameters of the RMSECalculator.
 
-        :param offset: Offset, which determines the number of ignored values in the beginning for calculating the RMSE.
+        :param offset: Offset, which determines the number of ignored values in the beginning for calculating the MAE.
         :type offset: int
-        :param rolling: Flag that determines if a rolling rmse should be used.
+        :param rolling: Flag that determines if a rolling MAE should be used.
         :type rolling: bool
-        :param window: Determine the window size if a rolling rmse should be calculated. Ignored if rolling is set to
+        :param window: Determine the window size if a rolling MAE should be calculated. Ignored if rolling is set to
                        False.
         :type window: int
         """

@@ -109,3 +109,20 @@ The simplest way of writing own modules is to make use of the template.py. Never
    xarray datasets.
 
 After completing these two steps, you can use your created module in your pipeline.
+
+
+# How can I get results?
+Currently, there are four possibilities to get the results of a pyWATTS pipeline.
+
+1. Pipeline.train and pipeline.test returns a xarray Dataset and a summary string:
+
+   * The dataset contains the results of all steps without successing steps.
+   * The summary string contains all information of summary modules and the training
+
+2. If you have a step information, you get its buffer with:
+
+    step_information.step.buffer
+
+3. With callbacks you can perform operations on the output of steps including, writing them into a file.
+4. You can use summary modules for example for calculating metrics. The results are the saved in summardy.md which is
+   placed in the pipelines results folder.

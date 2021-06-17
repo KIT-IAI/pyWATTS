@@ -10,26 +10,24 @@ from pywatts.modules.root_mean_squared_error import RmseCalculator
 import numpy as np
 
 
-class TestRMSECalculator(unittest.TestCase):
+class TestRollingRMSE(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.rmse_calculator = RollingRMSE()
+        self.rolling_rmse = RollingRMSE()
 
     def tearDown(self) -> None:
-        self.rmse_calculator = None
+        self.rolling_rmse = None
 
     def test_get_params(self):
-        self.assertEqual(self.rmse_calculator.get_params(),
-                         {'offset': 0, 'rolling': False, 'window': 24})
+        self.assertEqual(self.rolling_rmse.get_params(), {'window_size': 24, 'window_size_unit': "d"})
 
     def test_set_params(self):
-        self.rmse_calculator.set_params(offset=24, rolling=True, window=2)
-        self.assertEqual(self.rmse_calculator.get_params(),
-                         {'offset': 24, 'rolling': True, 'window': 2})
+        self.rolling_rmse.set_params(window_size=2, window_size_unit="m")
+        self.assertEqual(self.rolling_rmse.get_params(),
+                         {"window_size": 2, "window_size_unit": "m"})
 
-    def test_transform_rolling(self):
-        self.fail()
-        self.rmse.set_params(rolling=True, window=2)
+    def test_transform(self):
+        self.rolling_rmse.set_params(window_size=2, window_size_unit="h")
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
                                '2015-06-03 04:00:00'])
@@ -38,10 +36,10 @@ class TestRMSECalculator(unittest.TestCase):
                                 "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2])),
                                 "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1])), "time": time})
 
-        test_result = self.rmse.transform(y=test_data['testCol'], gt=test_data['testCol'],
-                                          pred1=test_data['predictCol1'],
-                                          pred2=test_data['predictCol2'])
-        expected_result = xr.DataArray(np.array([[np.nan, np.nan, np.nan],
+        test_result = self.rolling_rmse.transform(y=test_data['testCol'], gt=test_data['testCol'],
+                                                  pred1=test_data['predictCol1'],
+                                                  pred2=test_data['predictCol2'])
+        expected_result = xr.DataArray(np.array([[0.0, 4, 6],
                                                  [0.0, np.sqrt(10), np.sqrt(30.5)],
                                                  [0.0, np.sqrt(6.5), np.sqrt(17)],
                                                  [0.0, np.sqrt(4.5), 3],
@@ -51,13 +49,7 @@ class TestRMSECalculator(unittest.TestCase):
 
         xr.testing.assert_allclose(test_result, expected_result)
 
-    def test_transform(self):
-       self.fail()
-
     def test_transform_without_predictions(self):
-        self.fail()
-        self.rmse.set_params()
-
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
                                '2015-06-03 04:00:00'])
@@ -67,8 +59,8 @@ class TestRMSECalculator(unittest.TestCase):
                                 "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1])), "time": time})
 
         with pytest.raises(InputNotAvailable) as e_info:
-            self.rmse.transform(y=test_data['testCol'])
+            self.rolling_rmse.transform(y=test_data['testCol'])
 
         self.assertEqual(e_info.value.message,
-                         "No predictions are provided as input for the RMSE Calculator. You should add the predictions "
-                         "by a seperate key word arguments if you add the RMSECalculator to the pipeline.")
+                         "No predictions are provided as input for the RollingRMSE. You should add the predictions by a"
+                         " seperate key word arguments if you add the RollingRMSE to the pipeline.")

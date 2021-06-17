@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Tuple
 
 import numpy as np
 import xarray as xr
@@ -9,6 +9,7 @@ from pywatts.core.exceptions.input_not_available import InputNotAvailable
 from pywatts.core.filemanager import FileManager
 
 logger = logging.getLogger(__name__)
+import cloudpickle
 
 
 class RMSE(BaseSummary):
@@ -18,9 +19,12 @@ class RMSE(BaseSummary):
     :param offset: Offset, which determines the number of ignored values in the beginning for calculating the RMSE.
                    Default 0
     :type offset: int
+    :param filter: Filter which should performed on the data before calculating the RMSE.
+    :type filter: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]
     """
 
-    def __init__(self, name: str = "RmseCalculator", filter:Callable=None, offset:int=0):
+    def __init__(self, name: str = "RmseCalculator",
+                 filter: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]] = None, offset: int = 0):
         super().__init__(name)
         self.offset = offset
         self.filter = filter
@@ -34,7 +38,7 @@ class RMSE(BaseSummary):
         """
         return {"offset": self.offset}
 
-    def transform(self, file_manager:FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> str:
+    def transform(self, file_manager: FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> str:
         """
         Calculates the RMSE based on the predefined target and predictions variables.
 
@@ -47,12 +51,10 @@ class RMSE(BaseSummary):
         t = y.values
         summary = ""
         if kwargs == {}:
-            logger.error("No predictions are provided as input for the RMSE Calculator. "
-                         "You should add the predictions by a seperate key word arguments if you add the RMSECalculator "
-                         "to the pipeline.")
-            raise InputNotAvailable("No predictions are provided as input for the RMSE Calculator. "
-                                    "You should add the predictions by a seperate key word arguments if you add the RMSECalculator "
-                                    "to the pipeline.")
+            error_message = "No predictions are provided as input for the RMSE.  You should add the predictions by a " \
+                            "seperate key word arguments if you add the RMSE to the pipeline."
+            logger.error(error_message)
+            raise InputNotAvailable(error_message)
 
         for key, y_hat in kwargs.items():
             p = y_hat.values
@@ -74,3 +76,22 @@ class RMSE(BaseSummary):
         """
         if offset:
             self.offset = offset
+
+    def save(self, fm: FileManager) -> Dict:
+        json = super().save(fm)
+        if self.filter is not None:
+            filter_path = fm.get_path(f"{self.name}_filter.pickle")
+            with open(filter_path, 'wb') as outfile:
+                cloudpickle.dump(self.filter, outfile)
+            json["filter"] = filter_path
+        return json
+
+    @classmethod
+    def load(cls, load_information: Dict):
+        params = load_information["params"]
+        name = load_information["name"]
+        filter = None
+        if "filter" in load_information:
+            with open(load_information["filter"], 'rb') as pickle_file:
+                filter = cloudpickle.load(pickle_file)
+        return cls(name=name, filter=filter, **params)

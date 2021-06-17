@@ -38,13 +38,12 @@ class RollingBase(BaseTransformer, ABC):
      :type closed: str
     """
 
-    def __init__(self, name: str = "RollingMean", window_size=24 * 7, window_size_unit="d",
+    def __init__(self, name: str = None, window_size=24 * 7, window_size_unit="d",
                  group_by: RollingGroupBy = RollingGroupBy.No, continent: str = "Europe",
                  country: str = "Germany", closed="left"):
 
-        super().__init__(name)
+        super().__init__(name if name is not None else self.__class__.__name__)
         self.window_size = window_size
-        self.window_size_unit = "d"
         self.group_by = group_by
         self.window_size_unit = window_size_unit
         self.country = country
@@ -109,13 +108,12 @@ class RollingBase(BaseTransformer, ABC):
         if self.group_by == RollingGroupBy.No:
             rolling = self._get_rolling(df)
         elif self.group_by == RollingGroupBy.WorkdayWeekend:
-            mask = df.index.map(
-                lambda element: element.minute + 1440 if element.weekday() >= 5 else element.hour).values
+            mask = df.index.map(lambda
+                                    element: element.minute + element.hour * 60 + 1440 if element.weekday() >= 5 else element.minute + element.hour * 60).values
             rolling = self._get_rolling(df.groupby(mask)).reset_index(0).drop("level_0", axis=1).sort_index()
         elif self.group_by == RollingGroupBy.WorkdayWeekendAndHoliday:
-            mask = df.index.map(lambda element:
-                                element.minute + 1440 if self.cal.is_holiday(element) or element.weekday() >= 5
-                                else element.hour).values
+            mask = df.index.map(lambda element: element.minute + element.hour * 60 + 1440 if self.cal.is_holiday(
+                element) or element.weekday() >= 5 else element.minute + element.hour * 60).values
             rolling = self._get_rolling(df.groupby(mask)).reset_index(0).drop("level_0", axis=1).sort_index()
         else:
             raise WrongParameterException(

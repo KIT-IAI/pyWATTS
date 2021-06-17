@@ -401,11 +401,11 @@ class Pipeline(BaseTransformer):
         summary = "# Summary steps\n"
         for step in filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values()):
             assert isinstance(step, SummaryStep)
-            summary += "#" + step.name + step.get_summary() + "\n"
+            summary += "#" + step.name + "\n" + step.get_summary() + "\n"
 
         summary += "# Training Time\n"
         for step in self.id_to_step.values():
-            summary += f"  * {step.name}: {step.training_time}"
+            summary += f"  * {step.name}: {step.training_time}\n"
 
         with open(self.file_manager.get_path("summary.md"), "w") as file:
             file.write(summary)

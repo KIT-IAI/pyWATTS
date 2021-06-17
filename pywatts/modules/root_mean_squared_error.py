@@ -27,11 +27,16 @@ class RmseCalculator(BaseTransformer):
 
     """
 
-    def __init__(self, name: str = "RmseCalculator", offset: int = 0, rolling: bool = False, window: int = 24):
+    def __init__(self, name: str = "RmseCalculator", filter:Callable=None, offset:int=0, rolling:bool=False, window:int=24):
         super().__init__(name)
         self.offset = offset
         self.rolling = rolling
         self.window = window
+        self.filter = filter
+        if not rolling:
+            DeprecationWarning("If you do not need a rolling RMSE, you should use the RMSESummary module.")
+        else:
+            DeprecationWarning("If you need a rolling RMSE  you should use the RollingRMSE module.")
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -69,9 +74,13 @@ class RmseCalculator(BaseTransformer):
             p = y_hat.values
             predictions.append(key)
             if self.rolling:
-                time = y[_get_time_indeces(y)[0]][self.offset:]
-                p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
-                _rmse = pd.DataFrame((p_[self.offset:] - t_[self.offset:]) ** 2).rolling(
+                if self.filter:
+                    p_, t_ = self.filter(p, t)
+                    time = y[_get_time_indeces(y)[0]][-len(p_) + self.offset:]
+                else:
+                    time = y[_get_time_indeces(y)[0]][self.offset:]
+                    p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
+                _rmse = pd.DataFrame(np.mean((p_[self.offset:] - t_[self.offset:]) ** 2, axis=-1)).rolling(
                     self.window).apply(lambda x: np.sqrt(np.mean(x))).values
             else:
                 time = [y.indexes[_get_time_indeces(y)[0]][-1]]

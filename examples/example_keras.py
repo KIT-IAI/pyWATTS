@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 from tensorflow.keras import layers, Model
 
-from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.callbacks import LinePlotCallback
 
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode

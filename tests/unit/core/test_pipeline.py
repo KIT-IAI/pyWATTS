@@ -545,3 +545,10 @@ class TestPipeline(unittest.TestCase):
 
         result, summary = self.pipeline.train(ds)
         self.assertAlmostEqual(result["RmseCalculator"].values[0, 0], 0.0)
+
+
+    def test_execution_with_summary_step(self):
+        self.fail()
+
+    def test_create_summary(self):
+        self.fail()

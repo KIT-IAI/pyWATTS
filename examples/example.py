@@ -3,18 +3,18 @@
 # guide in the pyWATTS documentation.
 # -----------------------------------------------------------
 
-import matplotlib.pyplot as plt
 # Other modules required for the pipeline are imported
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 
 # From pyWATTS the pipeline is imported
+from pywatts.callbacks import LinePlotCallback
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
 # All modules required for the pipeline are imported
-from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater
+from pywatts.summaries import RMSE
 from pywatts.wrapper import SKLearnWrapper
 
 # The main function is where the pipeline is created and run

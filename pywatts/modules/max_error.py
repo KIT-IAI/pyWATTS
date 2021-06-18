@@ -72,10 +72,10 @@ class MaxCalculator(BaseTransformer):
                 time = y[_get_time_indeces(y)[0]][self.offset:]
                 p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
                 _max_err = pd.DataFrame(p_[self.offset:] - t_[self.offset:]).rolling(
-                    self.window).apply(lambda x: np.mean(np.abs(x))).values
+                    self.window).apply(lambda x: np.max(np.abs(x))).values
             else:
                 time = [y.indexes[_get_time_indeces(y)[0]][-1]]
-                _max_err = [np.mean(np.abs(p[self.offset:] - t[self.offset:]))]
+                _max_err = [np.max(np.abs(p[self.offset:] - t[self.offset:]))]
             max_err.append(_max_err)
         return xr.DataArray(np.stack(max_err).swapaxes(0, 1).reshape((-1, len(predictions))),
                             coords={"time": time, "predictions": predictions},

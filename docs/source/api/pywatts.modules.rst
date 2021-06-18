@@ -139,3 +139,11 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+
+pywatts.modules.mean\_absolute\_error module
+--------------------------------------------
+
+.. automodule:: pywatts.modules.mean_absolute_error
+    :members:
+    :undoc-members:
+    :show-inheritance:

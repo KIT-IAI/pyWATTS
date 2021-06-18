@@ -5,14 +5,14 @@ import xarray as xr
 import pandas as pd
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
 
-from pywatts.modules.max_error import MaxCalculator
+from pywatts.modules.max_error import MaxErrCalculator
 import numpy as np
 
 
-class TestMaxCalculator(unittest.TestCase):
+class TestMaxErrCalculator(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.max_calculator = MaxCalculator()
+        self.max_calculator = MaxErrCalculator()
 
     def tearDown(self) -> None:
         self.max_calculator = None
@@ -87,5 +87,5 @@ class TestMaxCalculator(unittest.TestCase):
             self.max_calculator.transform(y=test_data['testCol'])
 
         self.assertEqual(e_info.value.message,
-                         "No predictions are provided as input for the MaxCalculator. You should add the predictions "
-                         "by a seperate key word arguments if you add the MaxCalculator to the pipeline.")
+                         "No predictions are provided as input for the MaxErrCalculator. You should add the predictions"
+                         " by a separate key word arguments if you add the MaxErrCalculator to the pipeline.")

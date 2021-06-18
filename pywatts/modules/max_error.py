@@ -12,9 +12,9 @@ from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 logger = logging.getLogger(__name__)
 
 
-class MaxCalculator(BaseTransformer):
+class MaxErrCalculator(BaseTransformer):
     """
-        Module to calculate the max Error
+        Module to calculate the max absolute Error
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the max
                        error, Default 0
@@ -27,7 +27,7 @@ class MaxCalculator(BaseTransformer):
 
         """
 
-    def __init__(self, name: str = "MaxCalculator", offset: int = 0, rolling: bool = False, window: int = 24):
+    def __init__(self, name: str = "MaxErrCalculator", offset: int = 0, rolling: bool = False, window: int = 24):
         super().__init__(name)
         self.offset = offset
         self.rolling = rolling
@@ -35,9 +35,9 @@ class MaxCalculator(BaseTransformer):
 
     def get_params(self) -> Dict[str, object]:
         """
-        Returns a dict of parameters used in the max calculator.
+        Returns a dict of parameters used in the MaxErrCalculator.
 
-        :return: Parameters set for the max calculator
+        :return: Parameters set for the MaxErrCalculator
         :rtype: Dict[str, object]
         """
         return {"offset": self.offset,
@@ -58,9 +58,9 @@ class MaxCalculator(BaseTransformer):
         max_err = []
         predictions = []
         if kwargs == {}:
-            error_msg = ("No predictions are provided as input for the MaxCalculator. " +
-                         "You should add the predictions by a seperate key word arguments if you add the " +
-                         "MaxCalculator to the pipeline.")
+            error_msg = ("No predictions are provided as input for the MaxErrCalculator. " +
+                         "You should add the predictions by a separate key word arguments if you add the " +
+                         "MaxErrCalculator to the pipeline.")
             logger.error(error_msg)
             raise InputNotAvailable(error_msg)
 
@@ -83,7 +83,7 @@ class MaxCalculator(BaseTransformer):
 
     def set_params(self, offset: Optional[int] = None, rolling: Optional[bool] = None, window: Optional[int] = None):
         """
-        Set parameters of the max calculator.
+        Set parameters of the MaxErrCalculator.
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the max.
         :type offset: int

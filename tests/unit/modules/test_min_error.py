@@ -5,14 +5,14 @@ import xarray as xr
 import pandas as pd
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
 
-from pywatts.modules.min_error import MinCalculator
+from pywatts.modules.min_error import MinErrCalculator
 import numpy as np
 
 
-class TestMinCalculator(unittest.TestCase):
+class TestMinErrCalculator(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.min_calculator = MinCalculator()
+        self.min_calculator = MinErrCalculator()
 
     def tearDown(self) -> None:
         self.min_calculator = None
@@ -87,5 +87,5 @@ class TestMinCalculator(unittest.TestCase):
             self.min_calculator.transform(y=test_data['testCol'])
 
         self.assertEqual(e_info.value.message,
-                         "No predictions are provided as input for the MinCalculator. You should add the predictions "
-                         "by a seperate key word arguments if you add the MinCalculator to the pipeline.")
+                         "No predictions are provided as input for the MinErrCalculator. You should add the predictions"
+                         " by a separate key word arguments if you add the MinErrCalculator to the pipeline.")

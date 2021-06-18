@@ -12,9 +12,9 @@ from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 logger = logging.getLogger(__name__)
 
 
-class MinCalculator(BaseTransformer):
+class MinErrCalculator(BaseTransformer):
     """
-        Module to calculate the min Error
+        Module to calculate the min absolute Error
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the min
                        error, Default 0
@@ -27,7 +27,7 @@ class MinCalculator(BaseTransformer):
 
         """
 
-    def __init__(self, name: str = "MinCalculator", offset: int = 0, rolling: bool = False, window: int = 24):
+    def __init__(self, name: str = "MinErrCalculator", offset: int = 0, rolling: bool = False, window: int = 24):
         super().__init__(name)
         self.offset = offset
         self.rolling = rolling
@@ -35,9 +35,9 @@ class MinCalculator(BaseTransformer):
 
     def get_params(self) -> Dict[str, object]:
         """
-        Returns a dict of parameters used in the min calculator.
+        Returns a dict of parameters used in the MinErrCalculator.
 
-        :return: Parameters set for the min calculator
+        :return: Parameters set for the MinErrCalculator
         :rtype: Dict[str, object]
         """
         return {"offset": self.offset,
@@ -58,9 +58,9 @@ class MinCalculator(BaseTransformer):
         min_err = []
         predictions = []
         if kwargs == {}:
-            error_msg = ("No predictions are provided as input for the MinCalculator. " +
-                         "You should add the predictions by a seperate key word arguments if you add the " +
-                         "MinCalculator to the pipeline.")
+            error_msg = ("No predictions are provided as input for the MinErrCalculator. " +
+                         "You should add the predictions by a separate key word arguments if you add the " +
+                         "MinErrCalculator to the pipeline.")
             logger.error(error_msg)
             raise InputNotAvailable(error_msg)
 
@@ -83,7 +83,7 @@ class MinCalculator(BaseTransformer):
 
     def set_params(self, offset: Optional[int] = None, rolling: Optional[bool] = None, window: Optional[int] = None):
         """
-        Set parameters of the min calculator.
+        Set parameters of the MinErrCalculator.
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the min.
         :type offset: int

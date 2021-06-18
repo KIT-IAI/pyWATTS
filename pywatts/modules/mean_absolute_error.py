@@ -59,7 +59,7 @@ class MaeCalculator(BaseTransformer):
         predictions = []
         if kwargs == {}:
             error_msg = ("No predictions are provided as input for the MAE Calculator. " +
-                         "You should add the predictions by a seperate key word arguments if you add the " +
+                         "You should add the predictions by a separate key word arguments if you add the " +
                          "MaeCalculator to the pipeline.")
             logger.error(error_msg)
             raise InputNotAvailable(error_msg)

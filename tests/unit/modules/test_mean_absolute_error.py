@@ -88,4 +88,4 @@ class TestMaeCalculator(unittest.TestCase):
 
         self.assertEqual(e_info.value.message,
                          "No predictions are provided as input for the MAE Calculator. You should add the predictions "
-                         "by a seperate key word arguments if you add the MaeCalculator to the pipeline.")
+                         "by a separate key word arguments if you add the MaeCalculator to the pipeline.")

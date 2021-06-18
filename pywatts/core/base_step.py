@@ -25,7 +25,7 @@ class BaseStep(ABC):
     :type computation_mode: ComputationMode
     """
 
-    def __init__(self,  input_steps: Optional[Dict[str, "BaseStep"]]=None,
+    def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None,
                  targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
                  computation_mode=ComputationMode.Default):
         self._original_compuation_mode = computation_mode
@@ -33,6 +33,7 @@ class BaseStep(ABC):
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
+        self.cached_result = None
 
         self.name = "BaseStep"
 
@@ -62,7 +63,6 @@ class BaseStep(ABC):
         :type return_all: bool
         :return: The resulting data or None if no data are calculated
         """
-
         # Check if step should be executed.
         if self._should_stop(start, end):
             return None
@@ -70,7 +70,7 @@ class BaseStep(ABC):
         # Trigger fit and transform if necessary
         if not self.finished:
             if not self.buffer or not self._current_end or end > self._current_end:
-                self._compute(start, end)
+                self.cached_result = self._compute(start, end), start, end
                 self._current_end = end
             if not end:
                 self.finished = True
@@ -78,6 +78,9 @@ class BaseStep(ABC):
                 self.finished = not self.further_elements(end)
             self._callbacks()
 
+        if self.cached_result and (self.cached_result[1] == start and self.cached_result[2] == end):
+            return self.cached_result[0] if return_all else self.cached_result[0][
+                buffer_element] if buffer_element is not None else list(self.cached_result[0].values())[0]
         return self._pack_data(start, end, buffer_element, return_all=return_all)
 
     def _compute(self, start, end):
@@ -109,14 +112,15 @@ class BaseStep(ABC):
         if end and start and end > start:
             index = list(self.buffer.values())[0].indexes[time_index[0]]
             start = max(index[0], start.to_numpy())
+            # After sel copy is not needed, since it returns a new array.
             if buffer_element is not None:
-                return self.buffer.copy()[buffer_element].sel(
+                return self.buffer[buffer_element].sel(
                     **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
             elif return_all:
-                return {key: b.copy().sel(**{time_index[0]: index[(index >= start) & (index < end.to_numpy())]}) for
+                return {key: b.sel(**{time_index[0]: index[(index >= start) & (index < end.to_numpy())]}) for
                         key, b in self.buffer.items()}
             else:
-                return list(self.buffer.copy().values())[0].sel(
+                return list(self.buffer.values())[0].sel(
                     **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
         else:
             self.finished = True
@@ -149,6 +153,7 @@ class BaseStep(ABC):
             dim = _get_time_indeces(result)[0]
             for key in self.buffer.keys():
                 self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
+        return result
 
     def get_json(self, fm: FileManager) -> Dict:
         """
@@ -192,6 +197,8 @@ class BaseStep(ABC):
 
     def _should_stop(self, start, end) -> bool:
         # Fetch input and target data
+        if end is not None and self._current_end is not None and end <= self._current_end:
+            return False
         input_step = self._get_input(start, end)
         target_step = self._get_target(start, end)
 

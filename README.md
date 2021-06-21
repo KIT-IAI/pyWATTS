@@ -265,6 +265,4 @@ Exploitation".
 # Citation
 If you use this framework in a scientific publication please cite the corresponding paper:
 
-If you use this model please cite the corresponding paper:
-
 >Heidrich, Benedikt, A. Bartschat, Marian Turowski, Oliver Neumann, Kaleb Phipps, Stefan Meisenbacher, Kai Schmieder, Nicole Ludwig, R. Mikut and V. Hagenmeyer. “pyWATTS: Python Workflow Automation Tool for Time Series.” (2021). ). arXiv:2106.10157. http://arxiv.org/abs/2106.10157

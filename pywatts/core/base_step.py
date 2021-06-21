@@ -82,7 +82,6 @@ class BaseStep(ABC):
                 self.finished = True
             else:
                 self.finished = not self.further_elements(end)
-
             # Only call callbacks if the step is finished
             if self.finished:
                 self._callbacks()

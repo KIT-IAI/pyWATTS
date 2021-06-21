@@ -30,4 +30,4 @@ class InverseStep(Step):
             raise KindOfTransformDoesNotExistException(f"The module {self.module.name} has no inverse transform",
                                                        KindOfTransform.INVERSE_TRANSFORM)
 
-        self._post_transform(self.module.inverse_transform(**input_step))
+        return self._post_transform(self.module.inverse_transform(**input_step))

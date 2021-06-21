@@ -30,8 +30,7 @@ class EitherOrStep(BaseStep):
         for in_step in input_step:
             if in_step is not None:
                 # This buffer is never changed in this step. Consequently, no copy is necessary..
-                self._post_transform(in_step)
-                return
+                return self._post_transform(in_step)
 
     @classmethod
     def load(cls, stored_step: dict, inputs, targets, module, file_manager):

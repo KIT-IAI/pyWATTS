@@ -8,6 +8,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+import numpy as np
 
 
 class TrendExtraction(BaseTransformer):
@@ -79,8 +80,7 @@ class TrendExtraction(BaseTransformer):
         indexes = self.indexes
         if not indexes:
             indexes = _get_time_indeces(x)
-        trend = x.shift({index: self.period for index in indexes}, fill_value=0)
-        for i in range(2, self.length + 1):
-            trend = xr.concat([trend,
-                               x.shift({index: self.period * i for index in indexes}, fill_value=0)], dim="length")
+        trends = [x.shift({index: self.period * i for index in indexes}, fill_value=0) for i in
+                  range(1, self.length + 1)]
+        trend = xr.DataArray(np.stack(trends, axis=-1), dims=(*x.dims, "length"), coords=x.coords)
         return trend.transpose(_get_time_indeces(x)[0], "length", ...)

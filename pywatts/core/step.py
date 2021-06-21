@@ -78,8 +78,7 @@ class Step(BaseStep):
             logger.error(message)
             raise NotFittedException(message, self.name, self.module.name)
         result = self.module.transform(**input_step)
-        self._post_transform(result)
-        return result
+        return self._post_transform(result)
 
     @classmethod
     def load(cls, stored_step: Dict, inputs, targets, module, file_manager):
@@ -135,7 +134,7 @@ class Step(BaseStep):
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 
-        self._transform(input_data)
+        return self._transform(input_data)
 
     def _get_target(self, start, batch):
         return {

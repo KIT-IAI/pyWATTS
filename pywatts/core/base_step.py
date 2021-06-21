@@ -33,7 +33,7 @@ class BaseStep(ABC):
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
-        self.cached_result = None
+        self.cached_result = None, None, None
 
         self.name = "BaseStep"
 
@@ -68,7 +68,7 @@ class BaseStep(ABC):
             return None
 
         # Trigger fit and transform if necessary
-        if not self.finished:
+        if not self.finished and not (end is not None and self._current_end is not None and end <= self._current_end):
             if not self.buffer or not self._current_end or end > self._current_end:
                 self.cached_result = self._compute(start, end), start, end
                 self._current_end = end
@@ -76,14 +76,16 @@ class BaseStep(ABC):
                 self.finished = True
             else:
                 self.finished = not self.further_elements(end)
-            self._callbacks()
+            # Only call callbacks if the step is finished
+            if self.finished:
+                self._callbacks()
 
-        if self.cached_result and (self.cached_result[1] == start and self.cached_result[2] == end):
+        if self.cached_result[0] is not None and self.cached_result[1] == start and self.cached_result[2] == end:
             return self.cached_result[0] if return_all else self.cached_result[0][
                 buffer_element] if buffer_element is not None else list(self.cached_result[0].values())[0]
         return self._pack_data(start, end, buffer_element, return_all=return_all)
 
-    def _compute(self, start, end):
+    def _compute(self, start, end) -> Dict[str, xr.DataArray]:
         pass
 
     def further_elements(self, counter: pd.Timestamp) -> bool:
@@ -197,15 +199,13 @@ class BaseStep(ABC):
 
     def _should_stop(self, start, end) -> bool:
         # Fetch input and target data
-        if end is not None and self._current_end is not None and end <= self._current_end:
-            return False
-        input_step = self._get_input(start, end)
-        target_step = self._get_target(start, end)
+        input_result = self._get_input(start, end)
+        target_result = self._get_target(start, end)
 
-        return (self.condition is not None and not self.condition(input_step, target_step)) or \
-               (len(self.input_steps) > 0 and
-                any(map(lambda x: x._should_stop(start, end), self.input_steps.values()))) or \
-               (len(self.targets) > 0 and any(map(lambda x: x._should_stop(start, end), self.targets.values())))
+        return (self.condition is not None and not self.condition(input_result, target_result)) or \
+               (input_result is not None and len(input_result) > 0 and
+                any(map(lambda x: x is None, input_result.values()))) or \
+               (target_result is not None and len(target_result) > 0 and any(map(lambda x: x is None, target_result.values())))
 
     def reset(self):
         """

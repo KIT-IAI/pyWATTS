@@ -36,7 +36,7 @@ class TestInverseTransform(unittest.TestCase):
         self.inverse_module.inverse_transform.assert_called_once_with(input=self.input_step.get_result())
 
     def test_get_result_stop(self):
-        self.input_step._should_stop.return_value = True
+        self.input_step.get_result.return_value = None
         self.inverse_step.get_result(None, None)
 
         self.inverse_module.inverse_transform.assert_not_called()

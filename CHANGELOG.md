@@ -9,6 +9,7 @@
 * StatsmodelTimeSeriesModelWrapper.  ([#29](https://github.com/KIT-IAI/pyWATTS/issues/29))
 * Optional pipeline path and less aggressive FileManager directory creation ([#94](https://github.com/KIT-IAI/pyWATTS/issues/94)) 
 * Add fit_method parameter to FunctionModule ([#93](https://github.com/KIT-IAI/pyWATTS/issues/93))
+* Add MAECalculator as another error measure. ([#99](https://github.com/KIT-IAI/pyWATTS/issues/99))
 
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))

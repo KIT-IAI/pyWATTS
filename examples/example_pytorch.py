@@ -4,18 +4,17 @@
 # -----------------------------------------------------------
 
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 import torch
-
-# From pyWATTS the pipeline is imported
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
+from sklearn.preprocessing import StandardScaler
 
 # Import the pyWATTS pipeline and the required modules
-from pywatts.modules.calendar_extraction import CalendarExtraction
+
+from pywatts.callbacks import LinePlotCallback
+from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.pipeline import Pipeline
+from pywatts.modules import ClockShift, LinearInterpolater
+from pywatts.summaries import RMSE
 from pywatts.wrapper import SKLearnWrapper, PyTorchWrapper
-from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
 
 
 def get_sequential_model():
@@ -67,8 +66,7 @@ if __name__ == "__main__":
                                        use_inverse_transform=True,
                                        callbacks=[LinePlotCallback('forecast')])
 
-    rmse_dl = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"],
-                               callbacks=[CSVCallback('RMSE')])
+    rmse_dl = RMSE()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"])
 
     # Now, the pipeline is complete
     # so we can load data and train the model

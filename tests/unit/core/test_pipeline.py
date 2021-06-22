@@ -13,6 +13,7 @@ from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
 from pywatts.modules.missing_value_detection import MissingValueDetector
 from pywatts.modules.root_mean_squared_error import RmseCalculator
+from pywatts.summaries import RMSE
 from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 pipeline_json = {'id': 1,
@@ -75,6 +76,7 @@ class TestPipeline(unittest.TestCase):
 
     @patch("pywatts.core.pipeline.FileManager")
     def setUp(self, fm_mock) -> None:
+        self.fm_mock = fm_mock()
         self.pipeline = Pipeline()
 
     def tearDown(self) -> None:
@@ -514,7 +516,7 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.add(module=first_step)
         self.pipeline.add(module=second_step)
 
-        self.pipeline.train(pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2]},
+        result, summary = self.pipeline.train(pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2]},
                                          index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
@@ -526,13 +528,17 @@ class TestPipeline(unittest.TestCase):
 
         first_step.reset.assert_called_once()
         second_step.reset.assert_called_once()
+        xr.testing.assert_equal(result["second"], da)
 
-    def test_horizon_greater_one_regression(self):
+    @patch("builtins.open", new_callable=mock_open)
+    def test_horizon_greater_one_regression_inclusive_summary_file(self, open_mock):
         lin_reg = LinearRegression()
+        self.fm_mock.get_path.return_value = "summary_path"
+
 
         multi_regressor = SKLearnWrapper(lin_reg)(foo=self.pipeline["foo"], target=self.pipeline["target"],
                                                   target2=self.pipeline["target2"])
-        RmseCalculator()(y=self.pipeline["target"], prediction=multi_regressor["target"])
+        RMSE()(y=self.pipeline["target"], prediction=multi_regressor["target"])
 
         time = pd.date_range('2000-01-01', freq='24H', periods=5)
 
@@ -543,5 +549,13 @@ class TestPipeline(unittest.TestCase):
 
         ds = xr.Dataset({'foo': foo, "target": target, "target2": target2})
 
-        result = self.pipeline.train(ds)
-        self.assertAlmostEqual(result["RmseCalculator"].values[0, 0], 0.0)
+        result, summary = self.pipeline.train(ds)
+
+        self.assertTrue("Training Time" in summary)
+        self.assertTrue("RMSE" in summary)
+
+        self.fm_mock.get_path.assert_called_once_with("summary.md")
+        open_mock().__enter__.return_value.write.assert_called_once_with(summary)
+
+        # Note last element in the pipeline is a SummaryModule. Therefore, the result here is empty.
+        self.assertEqual(result, {})

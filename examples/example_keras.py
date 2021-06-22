@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 from tensorflow.keras import layers, Model
 
-from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.callbacks import LinePlotCallback
 
 # From pyWATTS the pipeline is imported
 from pywatts.core.computation_mode import ComputationMode
@@ -17,7 +17,8 @@ from pywatts.core.pipeline import Pipeline
 
 # Import the pyWATTS pipeline and the required modules
 from pywatts.wrapper import SKLearnWrapper, KerasWrapper
-from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
+from pywatts.modules import ClockShift, LinearInterpolater
+from pywatts.summaries import RMSE
 
 
 def get_keras_model():
@@ -70,8 +71,7 @@ if __name__ == "__main__":
                                           use_inverse_transform=True,
                                           callbacks=[LinePlotCallback("prediction")])
 
-    rmse_dl = RmseCalculator()(keras_model=inverse_power_scale_dl, y=pipeline["load_power_statistics"],
-                               callbacks=[CSVCallback('RMSE')])
+    rmse_dl = RMSE()(keras_model=inverse_power_scale_dl, y=pipeline["load_power_statistics"])
 
     # Now, the pipeline is complete
     # so we can load data and train the model

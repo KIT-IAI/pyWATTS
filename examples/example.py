@@ -3,18 +3,18 @@
 # guide in the pyWATTS documentation.
 # -----------------------------------------------------------
 
-import matplotlib.pyplot as plt
 # Other modules required for the pipeline are imported
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 
 # From pyWATTS the pipeline is imported
+from pywatts.callbacks import LinePlotCallback
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
 # All modules required for the pipeline are imported
-from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater
+from pywatts.summaries import RMSE
 from pywatts.wrapper import SKLearnWrapper
 
 # The main function is where the pipeline is created and run
@@ -65,9 +65,7 @@ if __name__ == "__main__":
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values
     # save it as csv file
-    rmse = RmseCalculator()(y_hat=inverse_power_scale,
-                            y=pipeline["load_power_statistics"],
-                            callbacks=[CSVCallback('RMSE')])
+    rmse = RMSE()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

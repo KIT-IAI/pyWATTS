@@ -42,7 +42,7 @@ class Base(ABC):
         """
 
     @abstractmethod
-    def set_params(self, *args, **kwargs):
+    def set_params(self, **kwargs):
         """
         Set params
         :return:
@@ -68,7 +68,7 @@ class Base(ABC):
         :return: The transformed input
         """
 
-    def inverse_transform(self, *kwargs: Dict[str: xr.DataArray]) -> xr.DataArray:
+    def inverse_transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Performs the inverse transformation if available.
         Note for developers of modules: if this method is implemented the flag "self.has_inverse_transform" must be set

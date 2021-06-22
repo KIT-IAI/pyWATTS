@@ -9,12 +9,19 @@
 * StatsmodelTimeSeriesModelWrapper.  ([#29](https://github.com/KIT-IAI/pyWATTS/issues/29))
 * Optional pipeline path and less aggressive FileManager directory creation ([#94](https://github.com/KIT-IAI/pyWATTS/issues/94)) 
 * Add fit_method parameter to FunctionModule ([#93](https://github.com/KIT-IAI/pyWATTS/issues/93))
+* SummaryFunctionality ([#34](https://github.com/KIT-IAI/pyWATTS/issues/34))
+  * BaseSummary Module, from which summary module should inherit.
+  * SummaryStep, which handles the execution of the summary module.
+  * RMSESummary and RollingRMSE as consequence of the usage of summary modules.
+  * Time needed by the fit method is recorded by the summary. (Part of the summary.md)
+  * Section about how to get results of a pyWATTS pipeline.
 * Add MAECalculator as another error measure. ([#99](https://github.com/KIT-IAI/pyWATTS/issues/99))
 
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))
 
 ### Deprecated
+* Usage of RMSECalculator. Will be removed in version 0.3. Calculation of metrics should be a summary and not a module. ([#34](https://github.com/KIT-IAI/pyWATTS/issues/34))
 
 ### Fixed
 * Converts the input for the keras model in the kerasWrapper from xr.Dataarray to np.array ([#97](https://github.com/KIT-IAI/pyWATTS/issues/97))

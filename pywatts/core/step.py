@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Optional, Dict, Union, Callable, List
 
 import cloudpickle
@@ -123,12 +124,14 @@ class Step(BaseStep):
         if self.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform, ComputationMode.Train] and (
                 not self.train_if or self.train_if(input_data, target)):
             # Fetch input_data and target data
+            start_time = time.time()
             if self.batch_size:
                 input_batch = self._get_input(end - self.batch_size, end)
                 target_batch = self._get_target(end - self.batch_size, end)
                 self._fit(input_batch, target_batch)
             else:
                 self._fit(input_data, target)
+            self.training_time = time.time() - start_time
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 

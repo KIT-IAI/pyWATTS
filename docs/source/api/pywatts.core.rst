@@ -28,6 +28,14 @@ pywatts.core.base\_step module
    :undoc-members:
    :show-inheritance:
 
+pywatts.core.base\_summary module
+---------------------------------
+
+.. automodule:: pywatts.core.base_summary
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.core.computation\_mode module
 -------------------------------------
 
@@ -120,6 +128,14 @@ pywatts.core.step\_information module
 -------------------------------------
 
 .. automodule:: pywatts.core.step_information
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.core.summary\_step module
+---------------------------------
+
+.. automodule:: pywatts.core.summary_step
    :members:
    :undoc-members:
    :show-inheritance:

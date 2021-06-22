@@ -21,6 +21,7 @@ from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
 from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts.core.summary_step import SummaryStep
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
@@ -104,10 +105,10 @@ class Pipeline(BaseTransformer):
         end = None if not self.batch else self.counter + self.batch
         result = dict()
         for i, step in enumerate(inputs):
-            res = step.get_result(self.counter, end, return_all=True)
-            for key, value in res.items():
-                result = self._add_to_result(i, key, value, result)
-
+            if not isinstance(step, SummaryStep):
+                res = step.get_result(self.counter, end, return_all=True)
+                for key, value in res.items():
+                    result = self._add_to_result(i, key, value, result)
         return result
 
     def _add_to_result(self, i, key, res, result):
@@ -184,7 +185,8 @@ class Pipeline(BaseTransformer):
             data = data.to_xarray()
 
         if isinstance(data, xr.Dataset):
-            return self.transform(**{key: data[key] for key in data.data_vars})
+            return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary()
+
         elif isinstance(data, dict):
             for key in data:
                 if not isinstance(data[key], xr.DataArray):
@@ -193,8 +195,9 @@ class Pipeline(BaseTransformer):
                         "Make sure to pass Dict[str, xr.DataArray].",
                         self.name
                     )
-            return self.transform(**data)
-        
+            return self.transform(**data), self.create_summary()
+
+
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",
             "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
@@ -393,3 +396,17 @@ class Pipeline(BaseTransformer):
             self.start_steps[item] = start_step, StepInformation(step=start_step, pipeline=self)
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
         return self.start_steps[item][-1]
+
+    def create_summary(self):
+        summary = "# Summary steps\n"
+        for step in filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values()):
+            assert isinstance(step, SummaryStep)
+            summary += "#" + step.name + "\n" + step.get_summary() + "\n"
+
+        summary += "# Training Time\n"
+        for step in self.id_to_step.values():
+            summary += f"  * {step.name}: {step.training_time}\n"
+
+        with open(self.file_manager.get_path("summary.md"), "w") as file:
+            file.write(summary)
+        return summary

@@ -41,6 +41,7 @@ class BaseStep(ABC):
         self.last = True
         self._current_end = None
         self.buffer: Dict[str, xr.DataArray] = {}
+        self.training_time = None
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
                    return_all=False):
@@ -195,7 +196,8 @@ class BaseStep(ABC):
         target_step = self._get_target(start, end)
 
         return (self.condition is not None and not self.condition(input_step, target_step)) or \
-               (len(self.input_steps) > 0 and any(map(lambda x: x._should_stop(start, end), self.input_steps.values()))) or \
+               (len(self.input_steps) > 0 and
+                any(map(lambda x: x._should_stop(start, end), self.input_steps.values()))) or \
                (len(self.targets) > 0 and any(map(lambda x: x._should_stop(start, end), self.targets.values())))
 
     def reset(self):

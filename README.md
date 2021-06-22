@@ -262,3 +262,8 @@ This project is supported by the Helmholtz Association under the Joint Initiativ
 of the Research Field Energy" and the Helmholtz AI Corporation Unit Energy as well as by the German Research Foundation
 (DFG) Research Training Group 2153 "Energy Status Data: Informatics Methods for its Collection, Analysis and
 Exploitation".
+
+# Citation
+If you use this framework in a scientific publication please cite the corresponding paper:
+
+>Heidrich, Benedikt, A. Bartschat, Marian Turowski, Oliver Neumann, Kaleb Phipps, Stefan Meisenbacher, Kai Schmieder, Nicole Ludwig, R. Mikut and V. Hagenmeyer. “pyWATTS: Python Workflow Automation Tool for Time Series.” (2021). ). arXiv:2106.10157. http://arxiv.org/abs/2106.10157

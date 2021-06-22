@@ -15,7 +15,8 @@
   * RMSESummary and RollingRMSE as consequence of the usage of summary modules.
   * Time needed by the fit method is recorded by the summary. (Part of the summary.md)
   * Section about how to get results of a pyWATTS pipeline.
-    
+* Add MAECalculator as another error measure. ([#99](https://github.com/KIT-IAI/pyWATTS/issues/99))
+
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))
 

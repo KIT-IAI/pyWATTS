@@ -102,7 +102,7 @@ class Step(BaseStep):
         else:
             train_if = None
         callbacks = []
-        for callback_path in  stored_step["callbacks"]:
+        for callback_path in stored_step["callbacks"]:
             with open(callback_path, 'rb') as pickle_file:
                 callback = cloudpickle.load(pickle_file)
             callback.set_filemanager(file_manager)

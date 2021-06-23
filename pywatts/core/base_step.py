@@ -67,7 +67,7 @@ class BaseStep(ABC):
         if self._should_stop(start, end):
             return None
 
-        # Trigger fit and transform if necessary
+        # Only execute the module if the step is not finished and the results are not yet calculated
         if not self.finished and not (end is not None and self._current_end is not None and end <= self._current_end):
             if not self.buffer or not self._current_end or end > self._current_end:
                 self.cached_result = self._compute(start, end), start, end
@@ -76,10 +76,12 @@ class BaseStep(ABC):
                 self.finished = True
             else:
                 self.finished = not self.further_elements(end)
+
             # Only call callbacks if the step is finished
             if self.finished:
                 self._callbacks()
 
+        # Check if the cached results fits to the request, if yes return it.
         if self.cached_result[0] is not None and self.cached_result[1] == start and self.cached_result[2] == end:
             return self.cached_result[0] if return_all else self.cached_result[0][
                 buffer_element] if buffer_element is not None else list(self.cached_result[0].values())[0]
@@ -202,10 +204,13 @@ class BaseStep(ABC):
         input_result = self._get_input(start, end)
         target_result = self._get_target(start, end)
 
+        # Check if either the condition is True or some of the previous steps stopped (return_value is None)
         return (self.condition is not None and not self.condition(input_result, target_result)) or \
-               (input_result is not None and len(input_result) > 0 and
-                any(map(lambda x: x is None, input_result.values()))) or \
-               (target_result is not None and len(target_result) > 0 and any(map(lambda x: x is None, target_result.values())))
+                self._input_stopped(input_result) or self._input_stopped(target_result)
+
+    @staticmethod
+    def _input_stopped(input_data):
+        return (input_data is not None and len(input_data) > 0 and any(map(lambda x: x is None, input_data.values())))
 
     def reset(self):
         """

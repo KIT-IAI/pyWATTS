@@ -144,7 +144,7 @@ class Base(ABC):
                  condition: Optional[Callable] = None,
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
-                 train_if: Optional[Union[Callable, bool]] = None,
+                 train_if: Optional[Union[ConditionObject]] = None,
                  lag: Optional[int] = pd.Timedelta(hours=0),
                  retrain_batch: Optional[int] = pd.Timedelta(hours=24),
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
@@ -250,3 +250,34 @@ class BaseEstimator(Base, ABC):
         module = super().__class__.load(load_information)
         module.is_fitted = load_information["is_fitted"]
         return module
+
+
+class ConditionObject(object):
+    """
+    This module contains a function which returns either True or False. The input of this function is the output of one
+    or more modules.
+
+    A condition object can be passed to the train_if function of steps
+    """
+
+    # TODO Should this inherit from base?
+    # TODO Should this be abstract and the user can implement its own ConditionObjects?
+    #  Since sometimes a state is necessary, e.g. when doing drift detection
+
+    # TODO should we have something analog like a step for a condition object?
+
+    def __init__(self, name):
+        #self.function = function
+        self.name = name
+
+    def save(self):
+        pass
+
+    def load(self):
+        pass
+
+    def evaluate(self, start:pd.Timestamp, end:pd.Timestamp) -> bool:
+        pass
+
+    def __call__(self, **kwargs: StepInformation):
+        pass

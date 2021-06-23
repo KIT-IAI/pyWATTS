@@ -204,6 +204,12 @@ class BaseStep(ABC):
     def _get_target(self, start, batch):
         return None
 
+    def refit(self, start: pd.Timestamp, end: pd.Timestamp):
+        """
+        Refits the module if necessary and needed. Dummy Method
+        """
+        pass
+
     def _should_stop(self, start, end) -> bool:
         # Fetch input and target data
         input_result = self._get_input(start, end)

@@ -1,5 +1,6 @@
 import logging
 import time
+import pandas as pd
 from typing import Optional, Dict, Union, Callable, List
 
 import cloudpickle
@@ -128,6 +129,17 @@ class Step(BaseStep):
         step.last = stored_step["last"]
 
         return step
+
+    def refit(self, start: pd.Timestamp, end: pd.Timestamp):
+        if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
+           if self.train_if and self.train_if.evaluate(start, end):
+               # TODO The time should be stored in a variable for the summary
+               # TODO should the same data be used for refitting and for calling the train_if condition?
+               # TODO The timedelta should be a parameter which could be set for each step.
+               refit_input = self._get_input(end - pd.Timedelta("60d"), end)
+               refit_target = self._get_target(end - pd.Timedelta("60d"), end)
+               self.module.refit(**refit_input, **refit_target)
+
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)

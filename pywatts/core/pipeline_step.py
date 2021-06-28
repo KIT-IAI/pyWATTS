@@ -1,8 +1,13 @@
+import logging
+
+from pywatts.core.base import BaseEstimator
 from pywatts.core.run_setting import RunSetting
 from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.exceptions import NotFittedException
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
 
+logger = logging.getLogger(__name__)
 
 class PipelineStep(Step):
     """
@@ -52,3 +57,14 @@ class PipelineStep(Step):
         super().reset()
         for step in self.module.id_to_step.values():
             step.reset()
+
+    def _transform(self, input_step):
+        if isinstance(self.module, BaseEstimator) and not self.module.is_fitted:
+            message = f"Try to call transform in {self.name} on not fitted module {self.module.name}"
+            logger.error(message)
+            raise NotFittedException(message, self.name, self.module.name)
+        result = self.module.transform(**input_step)
+        if self.refit_summary is None:
+            self.refit_summary = f"# {self.name} Refit Summary:\n"
+        self.refit_summary += (self.module.create_summary())
+        return self._post_transform(result)

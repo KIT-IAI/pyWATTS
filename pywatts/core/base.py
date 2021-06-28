@@ -33,6 +33,7 @@ class Base(ABC):
 
         self.has_inverse_transform = False
         self.has_predict_proba = False
+        # TODO each module needs a function for returning how much past values it needs for executing the transformation.
 
     @abstractmethod
     def get_params(self) -> Dict[str, object]:
@@ -191,7 +192,7 @@ class Base(ABC):
         """
 
         from pywatts.core.step_factory import StepFactory
-
+        # TODO should condition be also a condition object?
         return StepFactory().create_step(self, kwargs=kwargs,
                                          use_inverse_transform=use_inverse_transform,
                                          use_predict_proba=use_prob_transform,

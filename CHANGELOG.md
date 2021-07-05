@@ -32,6 +32,7 @@
 * Fix save and load of keras Wrapper  ([#91](https://github.com/KIT-IAI/pyWATTS/issues/91))
 * Import of pytorchWrapper via wrapper.__init__
 * Fix the mask for weekends and public holidays in rolling_base  ([#107](https://github.com/KIT-IAI/pyWATTS/issues/107))
+* Fix the extracted time index in rolling RMSE  ([#124](https://github.com/KIT-IAI/pyWATTS/issues/124))
 * Use raise from if an exception is raise because an other is raised before for retaining the original stack trace  ([#107](https://github.com/KIT-IAI/pyWATTS/issues/123))
 
 

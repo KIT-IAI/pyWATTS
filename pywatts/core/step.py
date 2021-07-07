@@ -68,6 +68,7 @@ class Step(BaseStep):
         self.lag = lag
         self.train_if = train_if
         self.result_steps: Dict[str, ResultStep] = {}
+        self.retrain_batch = retrain_batch
 
     def _fit(self, inputs: Dict[str, BaseStep], target_step):
         # Fit the encapsulate module, if the input and the target is not stopped.
@@ -132,18 +133,19 @@ class Step(BaseStep):
 
     def refit(self, start: pd.Timestamp, end: pd.Timestamp):
         if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
-           if self.train_if and self.train_if.evaluate(start, end):
-               # TODO test if future values are leaked here...
-               # TODO The time should be stored in a variable for the summary
-               # TODO should the same data be used for refitting and for calling the train_if condition?
-               # TODO The timedelta should be a parameter which could be set for each step.
-               # TODO The position of the refit should be logged.
+            if self.train_if and self.train_if.evaluate(start, end):
+                # TODO test if future values are leaked here...
+                # TODO The time should be stored in a variable for the summary
+                # TODO should the same data be used for refitting and for calling the train_if condition?
+                # TODO The timedelta should be a parameter which could be set for each step.
+                # TODO The position of the refit should be logged.
 
-               refit_input = self._get_input(end - pd.Timedelta("60d"), end)
-               refit_target = self._get_target(end - pd.Timedelta("60d"), end)
-               start_time = time.time()
-               self.module.refit(**refit_input, **refit_target)
-               self.refit_summary += f" * Refit at position {end} takes {time.time() - start_time}\n"
+                refit_input = self._get_input(end - self.retrain_batch, end)
+                refit_target = self._get_target(end - self.retrain_batch, end)
+                start_time = time.time()
+                summary = self.module.refit(**refit_input, **refit_target)
+                self.refit_summary += f" * Refit at position {end} takes {time.time() - start_time}\n" + (
+                    summary if summary is not None else "")
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)

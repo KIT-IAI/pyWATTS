@@ -148,7 +148,7 @@ class Pipeline(BaseTransformer):
 
         # TODO built the graph which should be drawn by starting with the last steps...
 
-    def test(self, data: Union[pd.DataFrame, xr.Dataset]):
+    def test(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False):
         """
         Executes all modules in the pipeline in the correct order. This method call only transform on every module
         if the ComputationMode is Default. I.e. if no computationMode is specified during the addition of the module to
@@ -159,9 +159,9 @@ class Pipeline(BaseTransformer):
         :return: The result of all end points of the pipeline
         :rtype: Dict[xr.DataArray]
         """
-        return self._run(data, ComputationMode.Transform)
+        return self._run(data, ComputationMode.Transform, summary)
 
-    def train(self, data: Union[pd.DataFrame, xr.Dataset]):
+    def train(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False):
         """
         Executes all modules in the pipeline in the correct order. This method calls fit and transform on each module
         if the ComputationMode is Default. I.e. if no computationMode is specified during the addition of the module to
@@ -173,9 +173,9 @@ class Pipeline(BaseTransformer):
         :rtype: Dict[xr.DataArray]
         """
 
-        return self._run(data, ComputationMode.FitTransform)
+        return self._run(data, ComputationMode.FitTransform, summary)
 
-    def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode):
+    def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode, summary: bool):
 
         for step in self.id_to_step.values():
             step.reset()
@@ -185,7 +185,10 @@ class Pipeline(BaseTransformer):
             data = data.to_xarray()
 
         if isinstance(data, xr.Dataset):
-            return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary()
+            if summary:
+                return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary()
+            else:
+                return self.transform(**{key: data[key] for key in data.data_vars})
 
         elif isinstance(data, dict):
             for key in data:
@@ -195,7 +198,10 @@ class Pipeline(BaseTransformer):
                         "Make sure to pass Dict[str, xr.DataArray].",
                         self.name
                     )
-            return self.transform(**data), self.create_summary()
+            if summary:
+                return self.transform(**data), self.create_summary()
+            else:
+                return self.transform(**data)
 
 
         raise WrongParameterException(

@@ -346,8 +346,9 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.set_params(pd.Timedelta("24h"))
         self.pipeline.add(module=first_step)
 
-        self.pipeline.test(pd.DataFrame({"test": [1, 2, 2, 3], "test2": [2, 2, 2, 2]},
-                                        index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=4))))
+        data = pd.DataFrame({"test": [1, 2, 2, 3], "test2": [2, 2, 2, 2]},
+                            index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=4)))
+        self.pipeline.test(data)
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
         calls = [
@@ -516,8 +517,9 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.add(module=first_step)
         self.pipeline.add(module=second_step)
 
-        result, summary = self.pipeline.train(pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2]},
-                                         index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
+        data = pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2]},
+                            index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5)))
+        result, summary = self.pipeline.train(data, summary=True)
 
         first_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
         second_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
@@ -549,7 +551,7 @@ class TestPipeline(unittest.TestCase):
 
         ds = xr.Dataset({'foo': foo, "target": target, "target2": target2})
 
-        result, summary = self.pipeline.train(ds)
+        result, summary = self.pipeline.train(ds, summary=True)
 
         self.assertTrue("Training Time" in summary)
         self.assertTrue("RMSE" in summary)

@@ -48,7 +48,7 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+    def __init__(self, path: Optional[str] = ".", batch=pd.Timedelta(hours=0), name="Pipeline"):
         super().__init__(name)
         self.batch = batch
         self.counter = None

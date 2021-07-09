@@ -59,7 +59,7 @@ class Step(BaseStep):
                  retrain_batch=pd.Timedelta(hours=24),
                  lag=pd.Timedelta(hours=24)):
         super().__init__(input_steps, targets, condition=condition,
-                         computation_mode=computation_mode, name=module.name)
+                         computation_mode=computation_mode, name=module.name, lag=lag)
         self.file_manager = file_manager
         self.module = module
         self.retrain_batch = retrain_batch
@@ -134,12 +134,7 @@ class Step(BaseStep):
     def refit(self, start: pd.Timestamp, end: pd.Timestamp):
         if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
             if self.train_if and self.train_if.evaluate(start, end):
-                # TODO test if future values are leaked here...
-                # TODO The time should be stored in a variable for the summary
                 # TODO should the same data be used for refitting and for calling the train_if condition?
-                # TODO The timedelta should be a parameter which could be set for each step.
-                # TODO The position of the refit should be logged.
-
                 refit_input = self._get_input(end - self.retrain_batch, end)
                 refit_target = self._get_target(end - self.retrain_batch, end)
                 start_time = time.time()

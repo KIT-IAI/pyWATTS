@@ -268,7 +268,7 @@ class ConditionObject(object):
     # TODO should we have something analog like a step for a condition object?
 
     def __init__(self, name):
-        #self.function = function
+        # self.function = function
         self.name = name
 
     def save(self):
@@ -277,7 +277,7 @@ class ConditionObject(object):
     def load(self):
         pass
 
-    def evaluate(self, start:pd.Timestamp, end:pd.Timestamp) -> bool:
+    def evaluate(self, start: pd.Timestamp, end: pd.Timestamp) -> bool:
         pass
 
     def __call__(self, **kwargs: StepInformation):

@@ -61,7 +61,6 @@ def create_test_pipeline(modules):
                                                            computation_mode=ComputationMode.Transform,
                                                            callbacks=[LinePlotCallback('LinearRegression')])
 
-    # TODO what kind of RMSE has to be used here?
     #   * Rolling would not work, since the complete RMSE should be calculated for each Time Point
     #   * Summary do not work, since summaries are only executed once
     #   Is the current solution useful?

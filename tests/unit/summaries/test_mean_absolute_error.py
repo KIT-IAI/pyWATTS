@@ -51,6 +51,7 @@ class TestMAE(unittest.TestCase):
         expected_result = '  * pred1: 2.6\n'
 
         self.assertEqual(test_result, expected_result)
+
     def test_transform(self):
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',

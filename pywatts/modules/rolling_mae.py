@@ -9,26 +9,26 @@ from pywatts.core.exceptions.input_not_available import InputNotAvailable
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 
-class RollingRMSE(BaseTransformer):
+class RollingMAE(BaseTransformer):
     """
-    Module to calculate the Rolling Root Mean Squared Error (RMSE)
-    :param window_size: Determine the window size of the rolling rmse. Default 24
+    Module to calculate the Rolling Mean Absolute Error (MAE)
+    :param window_size: Determine the window size for the rolling mae. Default 24
     :type window_size: int
     :param window_size_unit: Determine the unit of the window size. Default Day (d)"
     :type window_size_unit: str
 
     """
 
-    def __init__(self, name: str = "RollingRMSE", window_size=24, window_size_unit="d"):
+    def __init__(self, name: str = "RollingMAE", window_size=24, window_size_unit="d"):
         super().__init__(name)
         self.window_size_unit = window_size_unit
         self.window_size = window_size
 
     def get_params(self) -> Dict[str, object]:
         """
-        Returns a dict of parameters used in the RollingRMSE.
+        Returns a dict of parameters used in the RollingMAE.
 
-        :return: Parameters set for the RollingRMSE
+        :return: Parameters set for the RollingMAE
         :rtype: Dict[str, object]
         """
         return {
@@ -38,9 +38,9 @@ class RollingRMSE(BaseTransformer):
 
     def set_params(self, window_size=None, window_size_unit=None):
         """
-        Set the parameter for the RollingRMSE.
+        Set the parameter for the RollingMAE.
 
-        :param window_size: Determine the window size if a rolling rmse should be calculated.
+        :param window_size: Determine the window size if a rolling mae should be calculated.
                             Ignored if rolling is set to False. Default 24
         :type window_size: int
         :param window_size_unit: Determine the unit of the window size. Default Day (d)"
@@ -54,18 +54,18 @@ class RollingRMSE(BaseTransformer):
 
     def transform(self, y: xr.DataArray, **kwargs: xr.DataArray) -> xr.DataArray:
         """
-        Calculates the RMSE based on the predefined target and predictions variables.
+        Calculates the MAE based on the predefined target and predictions variables.
 
         :param x: the input dataset
         :type x: Optional[xr.DataArray]
 
-        :return: The calculated RMSE
+        :return: The calculated MAE
         :rtype: xr.DataArray
         """
 
         if kwargs == {}:
-            error_message = "No predictions are provided as input for the RollingRMSE. You should add the predictions" \
-                            " by a seperate key word arguments if you add the RollingRMSE to the pipeline."
+            error_message = "No predictions are provided as input for the RollingMAE. You should add the predictions" \
+                            " by a seperate key word arguments if you add the RollingMAE to the pipeline."
             self.logger.error(error_message)
             raise InputNotAvailable(error_message)
 
@@ -74,10 +74,10 @@ class RollingRMSE(BaseTransformer):
         for key, y_hat in kwargs.items():
             p = y_hat.values
             p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
-            results[key] = pd.DataFrame(np.mean((p_ - t_) ** 2, axis=-1),
+            results[key] = pd.DataFrame(np.mean((p_ - t_), axis=-1),
                                         index=y.indexes[_get_time_indeces(kwargs)[0]]).rolling(
                 f"{self.window_size}{self.window_size_unit}").apply(
-                lambda x: np.sqrt(np.mean(x))).values
+                lambda x: np.mean(np.abs(x))).values
         time = y.indexes[_get_time_indeces(y)[0]]
 
         return xr.DataArray(np.concatenate(list(results.values()), axis=1),

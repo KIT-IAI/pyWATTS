@@ -20,9 +20,11 @@
 
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))
+* Change metrics to summaries ([#115](https://github.com/KIT-IAI/pyWATTS/issues/115))
 
 ### Deprecated
 * Usage of RMSECalculator. Will be removed in version 0.3. Calculation of metrics should be a summary and not a module. ([#34](https://github.com/KIT-IAI/pyWATTS/issues/34))
+* Usage of MAECalculator. Will be removed in version 0.3. Calculation of metrics should be a summary and not a module. ([#115](https://github.com/KIT-IAI/pyWATTS/issues/115))
 
 ### Fixed
 * Converts the input for the keras model in the kerasWrapper from xr.Dataarray to np.array ([#97](https://github.com/KIT-IAI/pyWATTS/issues/97))

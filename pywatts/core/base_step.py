@@ -30,9 +30,11 @@ class BaseStep(ABC):
 
     def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None,
                  targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
-                 computation_mode=ComputationMode.Default, name="BaseStep"):
+                 computation_mode=ComputationMode.Default, name="BaseStep",
+                 lag=pd.Timedelta(hours=0)):
         self.default_run_setting = RunSetting(computation_mode=computation_mode)
         self.current_run_setting = self.default_run_setting.clone()
+        self.lag = lag
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition

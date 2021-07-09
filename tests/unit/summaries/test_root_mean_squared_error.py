@@ -84,7 +84,7 @@ class TestRMSE(unittest.TestCase):
                          "seperate key word arguments if you add the RMSE to the pipeline.")
 
     @patch("builtins.open")
-    @patch("pywatts.summaries.rmse_summary.cloudpickle")
+    @patch("pywatts.summaries.metric_base.cloudpickle")
     def test_save(self, cloudpickle_mock, open_mock):
         fm_mock = MagicMock()
         fm_mock.get_path.return_value = "filter_path"
@@ -103,7 +103,7 @@ class TestRMSE(unittest.TestCase):
 
 
     @patch("builtins.open")
-    @patch("pywatts.summaries.rmse_summary.cloudpickle")
+    @patch("pywatts.summaries.metric_base.cloudpickle")
     def test_load(self, cloudpickle_mock, open_mock):
         load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'RMSE',
                             'module': 'pywatts.summaries.rmse_summary', 'filter': 'filter_path'}

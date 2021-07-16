@@ -4,7 +4,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indices
 
 
 class ClockShift(BaseTransformer):
@@ -67,7 +67,7 @@ class ClockShift(BaseTransformer):
         """
         indices = self.indices
         if not indices:
-            indices = _get_time_indeces(x)
+            indices = _get_time_indices(x)
         try:
             return x.shift({index: self.lag for index in indices}, fill_value=0)
         except ValueError as exc:

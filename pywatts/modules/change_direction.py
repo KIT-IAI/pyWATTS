@@ -4,7 +4,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indices
 
 
 class ChangeDirection(BaseTransformer):
@@ -43,7 +43,7 @@ class ChangeDirection(BaseTransformer):
         :rtype: xr.DataArray
         :raises WrongParameterException: If not all indices are part of x
         """
-        indices = _get_time_indeces(x)
+        indices = _get_time_indices(x)
         try:
             return xr.ufuncs.sign(x - x.shift({index: 1 for index in indices}))
         except ValueError as exc:

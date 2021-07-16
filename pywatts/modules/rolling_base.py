@@ -27,7 +27,7 @@ class RollingBase(BaseTransformer, ABC):
      :type window_size: int
      :param window_size_unit: Unit of the window size (default: "d" [day])
      :type window_size_unit: str
-     :param groupy_by: how the entries of the time series should be grouped
+     :param group_by: how the entries of the time series should be grouped
      :type group_by. RollingGroupBy
      :param continent: If group_by is WorkdayAndHoliday: Continent where the country or region is located
                           (important for importing calendar module).

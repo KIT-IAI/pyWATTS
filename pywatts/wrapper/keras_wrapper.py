@@ -6,7 +6,7 @@ import xarray as xr
 
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces, xarray_to_numpy, numpy_to_xarray
+from pywatts.utils._xarray_time_series_utils import _get_time_indices, xarray_to_numpy, numpy_to_xarray
 from pywatts.wrapper.dl_wrapper import DlWrapper
 
 
@@ -18,7 +18,7 @@ class KerasWrapper(DlWrapper):
     :param name: The name of the wrapper
     :type name: str
     :param fit_kwargs: The fit keyword arguments necessary for fitting the model
-    :type fit_kwars: dict
+    :type fit_kwargs: dict
     :param compile_kwargs: The compile keyword arguments necessary for compiling the model.
     :type compile_kwargs: dict
     """

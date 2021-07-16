@@ -3,7 +3,7 @@ from typing import Dict
 from pywatts.core.base_step import BaseStep
 from pywatts.core.filemanager import FileManager
 
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indices
 
 
 class StartStep(BaseStep):
@@ -42,9 +42,9 @@ class StartStep(BaseStep):
         :return: True if there exist further data
         :rtype: bool
         """
-        indeces = _get_time_indeces(self.buffer)
+        indeces = _get_time_indices(self.buffer)
         if len(indeces) == 0 or not all(
-                [counter < b.indexes[_get_time_indeces(self.buffer)[0]][-1] for b in self.buffer.values()]):
+                [counter < b.indexes[_get_time_indices(self.buffer)[0]][-1] for b in self.buffer.values()]):
             return False
         else:
             return True

@@ -4,9 +4,8 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indices
 import numpy as np
-
 
 class Sampler(BaseTransformer):
     """
@@ -21,12 +20,12 @@ class Sampler(BaseTransformer):
 
      """
 
-    def __init__(self, sample_size: int, name: str = "SampleModule", indeces: List[str] = None):
+    def __init__(self, sample_size: int, name: str = "SampleModule", indices: List[str] = None):
         super().__init__(name)
-        if indeces is None:
-            indeces = []
+        if indices is None:
+            indices = []
         self.sample_size = sample_size
-        self.indexes = indeces
+        self.indices = indices
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -37,10 +36,10 @@ class Sampler(BaseTransformer):
         """
         return {
             "sample_size": self.sample_size,
-            "indeces": self.indexes,
+            "indices": self.indices,
         }
 
-    def set_params(self, sample_size: int = None, indexes: List[str] = None):
+    def set_params(self, sample_size: int = None, indices: List[str] = None):
         """
         Set params.
 
@@ -52,9 +51,9 @@ class Sampler(BaseTransformer):
         """
         if sample_size:
             self.sample_size = sample_size
-        if indexes is not None:
-            # Do not use if indexes here, since this would be false if indexes is empty.
-            self.indexes = indexes
+        if indices is not None:
+            # Do not use if indices here, since this would be false if indices is empty.
+            self.indices = indices
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
@@ -65,15 +64,15 @@ class Sampler(BaseTransformer):
         :return: A shifted time series.
         :rtype: xr.DataArray
         """
-        indexes = self.indexes
-        if not indexes:
-            indexes = _get_time_indeces(x)
+        indices = self.indices
+        if not indices:
+            indices = _get_time_indices(x)
         try:
-            r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(0, self.sample_size)]
+            r = [x.shift({index: i for index in indices}, fill_value=0) for i in range(0, self.sample_size)]
         except ValueError as exc:
             raise WrongParameterException(
-                f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
-                "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
+                f"Not all indices ({indices}) are in the indices of x ({list(x.indexes.keys())}).",
+                "Perhaps you set the wrong indices with set_params or during the initialization of the Sampler.",
                 module=self.name) from exc
         result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords)
-        return result.transpose(_get_time_indeces(x)[0], "horizon", ...)
+        return result.transpose(_get_time_indices(x)[0], "horizon", ...)

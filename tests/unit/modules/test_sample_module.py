@@ -28,7 +28,7 @@ class TestSampler(unittest.TestCase):
                              "sample_size": 2,
                              "indeces": [],
                          })
-        self.sampler.set_params(indexes=["Foo"], sample_size=12)
+        self.sampler.set_params(indices=["Foo"], sample_size=12)
         self.assertEqual(self.sampler.get_params(),
                          {
                              "sample_size": 12,
@@ -51,7 +51,7 @@ class TestSampler(unittest.TestCase):
 
     def test_transform_exception(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
-        self.sampler.set_params(indexes=["FOO"])
+        self.sampler.set_params(indices=["FOO"])
 
         da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=['time'], coords={"time": time})
         with self.assertRaises(WrongParameterException) as context:

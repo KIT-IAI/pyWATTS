@@ -1,5 +1,7 @@
 import logging
 import time
+import warnings
+
 import pandas as pd
 from typing import Optional, Dict, Union, Callable, List
 
@@ -65,6 +67,10 @@ class Step(BaseStep):
         self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
+        if self.computation_mode not in [ComputationMode.Refit] and train_if is not None:
+            message = "You added a train if condition without setting the computation_mode to refit. So train_if will be ignored."
+            warnings.warn(message)
+            logger.warn(message)
         self.lag = lag
         self.train_if = train_if
         self.result_steps: Dict[str, ResultStep] = {}

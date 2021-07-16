@@ -7,7 +7,7 @@ from typing import Dict, List
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
-from pywatts.utils._xarray_time_series_utils import _get_time_indices
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
 
 
@@ -65,7 +65,6 @@ class TrendExtraction(BaseTransformer):
         if length:
             self.length = length
         if indexes is not None:
-            # Do not use if indexes here, since this would be false if indexes is empty.
             self.indexes = indexes
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
@@ -79,8 +78,8 @@ class TrendExtraction(BaseTransformer):
         """
         indexes = self.indexes
         if not indexes:
-            indexes = _get_time_indices(x)
+            indexes = _get_time_indexes(x)
         trends = [x.shift({index: self.period * i for index in indexes}, fill_value=0) for i in
                   range(1, self.length + 1)]
         trend = xr.DataArray(np.stack(trends, axis=-1), dims=(*x.dims, "length"), coords=x.coords)
-        return trend.transpose(_get_time_indices(x)[0], "length", ...)
+        return trend.transpose(_get_time_indexes(x)[0], "length", ...)

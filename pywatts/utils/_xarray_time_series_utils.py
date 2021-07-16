@@ -5,7 +5,7 @@ import pandas as pd
 import xarray as xr
 
 
-def _get_time_indices(x: Dict[str, xr.DataArray]) -> List[str]:
+def _get_time_indexes(x: Dict[str, xr.DataArray]) -> List[str]:
     indexes = []
     if isinstance(x, xr.DataArray):
         for k, v in x.indexes.items():

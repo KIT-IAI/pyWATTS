@@ -8,7 +8,7 @@ from statsmodels.tsa.base.tsa_model import TimeSeriesModel
 
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
-from pywatts.utils._xarray_time_series_utils import _get_time_indices, numpy_to_xarray
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes, numpy_to_xarray
 from pywatts.wrapper.base_wrapper import BaseWrapper
 
 
@@ -107,7 +107,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         :return: the transformed dataarray
         :rtype: xr.DataArray
         """
-        time_data = list(kwargs.values())[0][_get_time_indices(kwargs)[0]]
+        time_data = list(kwargs.values())[0][_get_time_indexes(kwargs)[0]]
 
         x = []
         for key, value in kwargs.items():

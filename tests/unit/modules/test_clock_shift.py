@@ -19,7 +19,7 @@ class TestClockShift(unittest.TestCase):
 
         self.assertEqual({
             "lag": 2,
-            "indices": None
+            "indexes": None
         }, params)
 
     def test_set_params(self):
@@ -27,15 +27,15 @@ class TestClockShift(unittest.TestCase):
 
         self.assertEqual({
             "lag": 2,
-            "indices": None
+            "indexes": None
         }, params)
 
-        self.clock_shift.set_params(indices=["time"], lag=24)
+        self.clock_shift.set_params(indexes=["time"], lag=24)
         params = self.clock_shift.get_params()
 
         self.assertEqual({
             "lag": 24,
-            "indices": ["time"]
+            "indexes": ["time"]
         }, params)
 
     def test_transform(self):
@@ -52,11 +52,11 @@ class TestClockShift(unittest.TestCase):
 
     def test_transform_exception(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
-        self.clock_shift.set_params(indices=["FOO"])
+        self.clock_shift.set_params(indexes=["FOO"])
 
         ds = xr.Dataset({'foo': ('time', [2, 3, 4, 5, 6, 7, 8]), 'time': time})
         with self.assertRaises(WrongParameterException) as context:
             self.clock_shift.transform(ds)
         self.assertEqual(context.exception.message,
-                         "Not all indices (['FOO']) are in the indices of x (['time']). "
-                         "Perhaps you set the wrong indices with set_params or during the initialization of the ClockShift.")
+                         "Not all indexes (['FOO']) are in the indexes of x (['time']). "
+                         "Perhaps you set the wrong indexes with set_params or during the initialization of the ClockShift.")

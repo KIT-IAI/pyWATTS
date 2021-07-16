@@ -23,7 +23,7 @@ from pywatts.core.step import Step
 from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.summary_step import SummaryStep
-from pywatts.utils._xarray_time_series_utils import _get_time_indices
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
                     level=logging.ERROR)
@@ -74,7 +74,7 @@ class Pipeline(BaseTransformer):
             start_step.buffer = {key: x[key].copy()}
             start_step.finished = True
 
-        time_index = _get_time_indices(x)
+        time_index = _get_time_indexes(x)
         self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
 
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))

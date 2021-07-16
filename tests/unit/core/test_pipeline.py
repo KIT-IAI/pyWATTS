@@ -390,8 +390,8 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual({"step": result_mock}, result)
 
     @patch('pywatts.core.pipeline.FileManager')
-    @patch("pywatts.core.pipeline._get_time_indeces", return_value=["time"])
-    def test_transform_pipeline(self, get_time_indeces_mock, fm_mock):
+    @patch("pywatts.core.pipeline._get_time_indexes", return_value=["time"])
+    def test_transform_pipeline(self, get_time_indexes_mock, fm_mock):
         input_mock = MagicMock()
         input_mock.indexes = {"time": ["20.12.2020"]}
         step_two = MagicMock()
@@ -403,7 +403,7 @@ class TestPipeline(unittest.TestCase):
         result = self.pipeline.transform(x=input_mock)
 
         step_two.get_result.assert_called_once_with("20.12.2020", None, return_all=True)
-        get_time_indeces_mock.assert_called_once_with({"x": input_mock})
+        get_time_indexes_mock.assert_called_once_with({"x": input_mock})
         self.assertEqual({"mock": result_mock}, result)
 
     @patch("pywatts.core.pipeline.FileManager")

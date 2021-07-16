@@ -7,7 +7,7 @@ import pandas as pd
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
-from pywatts.utils._xarray_time_series_utils import _get_time_indices
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 logger = logging.getLogger(__name__)
 
@@ -74,12 +74,12 @@ class MaeCalculator(BaseTransformer):
             predictions.append(key)
 
             if self.rolling:
-                time = y[_get_time_indices(y)[0]][self.offset:]
+                time = y[_get_time_indexes(y)[0]][self.offset:]
                 p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
                 _mae = pd.DataFrame(p_[self.offset:] - t_[self.offset:]).rolling(
                     self.window).apply(lambda x: np.mean(np.abs(x))).values
             else:
-                time = [y.indexes[_get_time_indices(y)[0]][-1]]
+                time = [y.indexes[_get_time_indexes(y)[0]][-1]]
                 _mae = [np.mean(np.abs(p[self.offset:] - t[self.offset:]))]
             mae.append(_mae)
         return xr.DataArray(np.stack(mae).swapaxes(0, 1).reshape((-1, len(predictions))),

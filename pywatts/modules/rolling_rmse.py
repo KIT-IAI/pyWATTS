@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 from pywatts.modules.rolling_metric_base import RollingMetricBase
-from pywatts.utils._xarray_time_series_utils import _get_time_indices
 
 
 class RollingRMSE(RollingMetricBase):

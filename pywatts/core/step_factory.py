@@ -105,7 +105,7 @@ class StepFactory:
                 else:
                     input_steps[key] = element.step
                 if isinstance(element.step, PipelineStep):
-                    raise Exception(
+                    raise StepCreationException(
                         f"Please specify which result of {element.step.name} should be used, since this steps"
                         f"may provide multiple results.")
             elif isinstance(element, tuple):
@@ -160,10 +160,12 @@ class StepFactory:
                             "Specifiy the desired column of your dataset by using step[<column_name>]",
                         )
                     if not pipeline_temp == step_information.pipeline:
-                        raise Exception()
+                        raise StepCreationException(
+                            f"A step can only be part of one pipeline. Assure that all inputs {kwargs}"
+                            f"are part of the same pipeline.")
 
             if pipeline_temp is None:
-                raise Exception()  # TODO
+                raise StepCreationException(f"No Pipeline is specified.")
 
             if pipeline is None:
                 pipeline = pipeline_temp

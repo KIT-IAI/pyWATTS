@@ -46,8 +46,8 @@ class ChangeDirection(BaseTransformer):
         indices = _get_time_indeces(x)
         try:
             return xr.ufuncs.sign(x - x.shift({index: 1 for index in indices}))
-        except ValueError:
+        except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indices ({indices}) are in the indices of x ({list(x.indices.keys())}).",
                 "Either correct the indices which you passed to that module or assert that this index occurs in the "
-                "data which are passed by the previous modules to the current one.", module=self.name)
+                "data which are passed by the previous modules to the current one.", module=self.name) from exc

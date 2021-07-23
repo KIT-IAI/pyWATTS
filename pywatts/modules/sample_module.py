@@ -72,11 +72,11 @@ class Sampler(BaseTransformer):
             result = x
             for i in range(1, self.sample_size):
                 result = xr.concat([result, x.shift({index: i for index in indexes}, fill_value=0)], dim="horizon")
-        except ValueError:
+        except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
-                module=self.name)
+                module=self.name) from exc
         result = result.transpose(_get_time_indeces(x)[0], "horizon", ...)
 
         return result

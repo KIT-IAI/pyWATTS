@@ -97,9 +97,9 @@ class CalendarExtraction(BaseTransformer):
         self.country = country
         try:
             self.calendar = _init_calendar(self.continent, self.country)
-        except UtilException as e:
-            raise WrongParameterException(e.message,
-                                          "Please set a valid country or continent for.", CalendarExtraction)
+        except UtilException as exc:
+            raise WrongParameterException(exc.message,
+                                          "Please set a valid country or continent for.", CalendarExtraction) from exc
 
         if features is None:
             self.features: List[CalendarFeature] = [CalendarFeature.month, CalendarFeature.day, CalendarFeature.hour,
@@ -195,9 +195,9 @@ class CalendarExtraction(BaseTransformer):
             self.features: List[CalendarFeature] = features
         try:
             self.calendar = _init_calendar(self.continent, self.country)
-        except UtilException as e:
-            raise WrongParameterException(e.message,
-                                          "Please set a valid country or continent for.", CalendarExtraction)
+        except UtilException as exc:
+            raise WrongParameterException(exc.message,
+                                          "Please set a valid country or continent for.", CalendarExtraction) from exc
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Add date features to xarray dataset as configured.

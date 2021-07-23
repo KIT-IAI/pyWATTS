@@ -70,8 +70,8 @@ class ClockShift(BaseTransformer):
             indices = _get_time_indeces(x)
         try:
             return x.shift({index: self.lag for index in indices}, fill_value=0)
-        except ValueError:
+        except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indices ({indices}) are in the indices of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indices with set_params or during the initialization of the ClockShift.",
-                module=self.name)
+                module=self.name) from exc

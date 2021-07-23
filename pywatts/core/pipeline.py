@@ -188,7 +188,9 @@ class Pipeline(BaseTransformer):
             if summary:
                 return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary()
             else:
-                return self.transform(**{key: data[key] for key in data.data_vars})
+                result = self.transform(**data)
+                self.create_summary()
+                return result
 
         elif isinstance(data, dict):
             for key in data:
@@ -201,8 +203,9 @@ class Pipeline(BaseTransformer):
             if summary:
                 return self.transform(**data), self.create_summary()
             else:
-                return self.transform(**data)
-
+                result = self.transform(**data)
+                self.create_summary()
+                return result
 
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",

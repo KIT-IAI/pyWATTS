@@ -34,9 +34,9 @@ class RmseCalculator(BaseTransformer):
         self.window = window
         self.filter = filter
         if not rolling:
-            DeprecationWarning("If you do not need a rolling RMSE, you should use the RMSESummary module.")
+            DeprecationWarning("If you do not need a rolling RMSE, you should use the RMSESummary module. Will be removed in 0.3")
         else:
-            DeprecationWarning("If you need a rolling RMSE  you should use the RollingRMSE module.")
+            DeprecationWarning("If you need a rolling RMSE  you should use the RollingRMSE module. Will be removed in 0.3")
 
     def get_params(self) -> Dict[str, object]:
         """

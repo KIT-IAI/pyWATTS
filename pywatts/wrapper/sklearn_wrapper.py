@@ -62,7 +62,7 @@ class SKLearnWrapper(BaseWrapper):
         target = self._dataset_to_sklearn_input(targets)
         self.targets = list(
             zip(targets.keys(), map(lambda x: x.shape[-1] if len(x.shape) > 1 else 1, list(targets.values()))))
-        self.module.fit(x, target)
+        self.fit_result = self.module.fit(x, target)
         self.is_fitted = True
 
     @staticmethod

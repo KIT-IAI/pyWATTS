@@ -18,7 +18,8 @@
 * Add MAE as another summary. ([#99](https://github.com/KIT-IAI/pyWATTS/issues/99))
 * Add summary parameter to train and test to ensure backward compatibility. ([#127](https://github.com/KIT-IAI/pyWATTS/issues/127))
 * Add Min amd Max as new summaries ([#105](https://github.com/KIT-IAI/pyWATTS/issues/105))
->>>>>>> Added note regarding max_ and min_error.
+* Add MAPE as new summary ([#104](https://github.com/KIT-IAI/pyWATTS/issues/104))
+
 
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))

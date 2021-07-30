@@ -35,3 +35,19 @@ pywatts.summaries.max\_summary module
    :members:
    :undoc-members:
    :show-inheritance:
+
+pywatts.summaries.mae\_summary module
+--------------------------------------
+
+.. automodule:: pywatts.summaries.mae_summary
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.summaries.mape\_summary module
+--------------------------------------
+
+.. automodule:: pywatts.summaries.mape_summary
+   :members:
+   :undoc-members:
+   :show-inheritance:

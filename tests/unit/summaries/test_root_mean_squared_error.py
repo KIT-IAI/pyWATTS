@@ -34,8 +34,8 @@ class TestRMSE(unittest.TestCase):
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
                                '2015-06-03 04:00:00'])
 
-        test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2])),
-                                "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2])),  "time": time})
+        test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2]).data),
+                                "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2]).data),  "time": time})
 
         filter_mock.return_value = (test_data["predictCol1"].values, test_data["testCol"].values)
 
@@ -55,9 +55,9 @@ class TestRMSE(unittest.TestCase):
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
                                '2015-06-03 04:00:00'])
 
-        test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2])),
-                                "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2])),
-                                "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1])), "time": time})
+        test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2]).data),
+                                "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2]).data),
+                                "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1]).data), "time": time})
 
         test_result = self.rmse.transform(file_manager=MagicMock(), y=test_data['testCol'], gt=test_data['testCol'],
                                           pred1=test_data['predictCol1'],
@@ -72,9 +72,9 @@ class TestRMSE(unittest.TestCase):
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
                                '2015-06-03 04:00:00'])
 
-        test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2])),
-                                "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2])),
-                                "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1])), "time": time})
+        test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2]).data),
+                                "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2]).data),
+                                "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1]).data), "time": time})
 
         with pytest.raises(InputNotAvailable) as e_info:
             self.rmse.transform(file_manager=MagicMock(), y=test_data['testCol'])

@@ -35,7 +35,7 @@ class TestSimplePipeline(unittest.TestCase):
 
         RmseCalculator(name="Load")(y=imputer_power_statistics, pred=lin_regression["target2"])
         RmseCalculator(name="Price")(y=imputer_price, pred=lin_regression["target1"])
-        data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
+        data = pd.read_csv(f"{FIXTURE_DIR}/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]
         test = data[:6000]
@@ -57,7 +57,7 @@ class TestSimplePipeline(unittest.TestCase):
 
         pipeline2 = Pipeline.from_folder("./pipe1")
 
-        data = pd.read_csv("data/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
+        data = pd.read_csv(f"{FIXTURE_DIR}/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]
         test = data[:6000]

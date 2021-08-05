@@ -48,7 +48,7 @@ class TestMAE(unittest.TestCase):
         np.testing.assert_equal(filter_mock.call_args[0][0], test_data["predictCol1"])
         np.testing.assert_equal(filter_mock.call_args[0][1], test_data["testCol"])
 
-        expected_result = f'  * pred1: {3/2}\n'
+        expected_result = f'  * pred1: {3/2 * 100}\n'
 
         self.assertEqual(test_result, expected_result)
 
@@ -65,7 +65,7 @@ class TestMAE(unittest.TestCase):
                                           pred1=test_data['predictCol1'],
                                           pred2=test_data['predictCol2'])
 
-        expected_result = f'  * gt: 0.0\n  * pred1: {3/2}\n  * pred2: {23/8}\n'
+        expected_result = f'  * gt: 0.0\n  * pred1: {3/2 * 100}\n  * pred2: {23/8 * 100}\n'
 
         self.assertEqual(test_result, expected_result)
 

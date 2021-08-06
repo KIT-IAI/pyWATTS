@@ -7,29 +7,29 @@ import pytest
 import xarray as xr
 
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
-from pywatts.summaries.mae_summary import MAE
+from pywatts.summaries.mape_summary import MAPE
 
 
 class TestMAE(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.mae = MAE(name="NAME")
+        self.mape = MAPE(name="NAME")
 
     def tearDown(self) -> None:
-        self.mae = None
+        self.mape = None
 
     def test_get_params(self):
-        self.assertEqual(self.mae.get_params(),
+        self.assertEqual(self.mape.get_params(),
                          {'offset': 0})
 
     def test_set_params(self):
-        self.mae.set_params(offset=24)
-        self.assertEqual(self.mae.get_params(),
+        self.mape.set_params(offset=24)
+        self.assertEqual(self.mape.get_params(),
                          {'offset': 24})
 
     def test_transform_with_filter(self):
         filter_mock = MagicMock()
-        mae = MAE(filter_method=filter_mock)
+        mae = MAPE(filter_method=filter_mock)
 
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',
@@ -48,7 +48,7 @@ class TestMAE(unittest.TestCase):
         np.testing.assert_equal(filter_mock.call_args[0][0], test_data["predictCol1"])
         np.testing.assert_equal(filter_mock.call_args[0][1], test_data["testCol"])
 
-        expected_result = '  * pred1: 2.6\n'
+        expected_result = f'  * pred1: {3/2 * 100}\n'
 
         self.assertEqual(test_result, expected_result)
 
@@ -61,11 +61,11 @@ class TestMAE(unittest.TestCase):
                                 "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2]).data),
                                 "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1]).data), "time": time})
 
-        test_result = self.mae.transform(file_manager=MagicMock(), y=test_data['testCol'], gt=test_data['testCol'],
-                                         pred1=test_data['predictCol1'],
-                                         pred2=test_data['predictCol2'])
+        test_result = self.mape.transform(file_manager=MagicMock(), y=test_data['testCol'], gt=test_data['testCol'],
+                                          pred1=test_data['predictCol1'],
+                                          pred2=test_data['predictCol2'])
 
-        expected_result = '  * gt: 0.0\n  * pred1: 2.6\n  * pred2: 3.6\n'
+        expected_result = f'  * gt: 0.0\n  * pred1: {3/2 * 100}\n  * pred2: {23/8 * 100}\n'
 
         self.assertEqual(test_result, expected_result)
 
@@ -79,11 +79,11 @@ class TestMAE(unittest.TestCase):
                                 "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1]).data), "time": time})
 
         with pytest.raises(InputNotAvailable) as e_info:
-            self.mae.transform(file_manager=MagicMock(), y=test_data['testCol'])
+            self.mape.transform(file_manager=MagicMock(), y=test_data['testCol'])
 
         self.assertEqual(e_info.value.message,
-                         "No predictions are provided as input for the MAE.  You should add the predictions by a "
-                         "seperate key word arguments if you add the MAE to the pipeline.")
+                         "No predictions are provided as input for the MAPE.  You should add the predictions by a "
+                         "seperate key word arguments if you add the MAPE to the pipeline.")
 
     @patch("builtins.open")
     @patch("pywatts.summaries.metric_base.cloudpickle")
@@ -92,7 +92,7 @@ class TestMAE(unittest.TestCase):
         fm_mock.get_path.return_value = "filter_path"
         filter_mock = MagicMock()
 
-        mae = MAE(name="NAME", filter_method=filter_mock)
+        mae = MAPE(name="NAME", filter_method=filter_mock)
 
         json = mae.save(fm_mock)
 
@@ -112,7 +112,7 @@ class TestMAE(unittest.TestCase):
         filter_mock = MagicMock()
         cloudpickle_mock.load.return_value = filter_mock
 
-        mae = MAE.load(load_information)
+        mae = MAPE.load(load_information)
 
         open_mock.assert_called_once_with("filter_path", "rb")
         cloudpickle_mock.load.assert_called_once_with(open_mock().__enter__.return_value)

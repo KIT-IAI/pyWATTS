@@ -33,11 +33,12 @@ class TestRollingRMSE(unittest.TestCase):
 
         test_data = xr.Dataset({"testCol": ("time", xr.DataArray([-2, -1, 0, 1, 2]).data),
                                 "predictCol1": ("time", xr.DataArray([2, -3, 3, 1, -2]).data),
-                                "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1]).data), "time": time, "timeTest": time})
+                                "predictCol2": ("time", xr.DataArray([4, 4, 3, -2, 1]).data), "time": time,
+                                "timeTest": time})
 
         y = xr.DataArray(np.array([-2, -1, 0, 1, 2]),
-                                       coords={"timeTest": time},
-                                       dims=["timeTest"])
+                         coords={"timeTest": time},
+                         dims=["timeTest"])
 
         test_result = self.rolling_rmse.transform(y=y, gt=test_data['testCol'],
                                                   pred1=test_data['predictCol1'],

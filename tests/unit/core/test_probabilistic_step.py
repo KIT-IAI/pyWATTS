@@ -29,7 +29,7 @@ class TestProbabilisticStep(unittest.TestCase):
         self.probabilistic_module.predict_proba.assert_called_once_with(input_mock)
 
     def test_get_result_stop(self):
-        self.input_step._should_stop.return_value = True
+        self.input_step.get_result.return_value = None
 
         self.probabilistic_step.get_result(pd.Timestamp("2000.01.01"), pd.Timestamp("2000.01.02"))
 

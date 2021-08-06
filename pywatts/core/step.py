@@ -78,8 +78,7 @@ class Step(BaseStep):
             logger.error(message)
             raise NotFittedException(message, self.name, self.module.name)
         result = self.module.transform(**input_step)
-        self._post_transform(result)
-        return result
+        return self._post_transform(result)
 
     @classmethod
     def load(cls, stored_step: Dict, inputs, targets, module, file_manager):
@@ -103,7 +102,7 @@ class Step(BaseStep):
         else:
             train_if = None
         callbacks = []
-        for callback_path in  stored_step["callbacks"]:
+        for callback_path in stored_step["callbacks"]:
             with open(callback_path, 'rb') as pickle_file:
                 callback = cloudpickle.load(pickle_file)
             callback.set_filemanager(file_manager)
@@ -135,7 +134,7 @@ class Step(BaseStep):
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 
-        self._transform(input_data)
+        return self._transform(input_data)
 
     def _get_target(self, start, batch):
         return {

@@ -54,6 +54,7 @@ class FunctionModule(BaseEstimator):
         """
         if self.fit_method is not None:
             self.fit_method(**kwargs)
+            self.is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

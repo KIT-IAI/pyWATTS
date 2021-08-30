@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import List
@@ -72,3 +73,45 @@ class SummaryMarkdown(SummaryFormatter):
             [
                 f"#### {key}\n {tabulate(value, headers=range(len(value)), showindex=range(len(value)), tablefmt='github')}\n"
                 for key, value in summary.k_v.items()])
+
+
+class SummaryJSON(SummaryFormatter):
+
+    def create_summary(self, summaries: List[SummaryObject], fm: FileManager):
+        summary_dict = {}
+        for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime]:
+            category_dict = {}
+            for summary in filter(lambda s: s.category == category, summaries):
+                if summary.additional_information != "" or len(summary.k_v) > 0:
+                    if isinstance(summary, SummaryObjectList):
+                        category_dict.update(self._create_summary(summary))
+                    elif isinstance(summary, SummaryObjectTable):
+                        category_dict.update(self._create_table_summary(summary))
+
+            summary_dict.update({category.name: category_dict})
+        with open(fm.get_path("summary.json"), "w") as file:
+            json.dump(summary_dict, file)
+        return summary_dict
+
+    def _create_summary(self, summary: SummaryObject):
+        result_dict = {
+            key: value for key, value in summary.k_v.items()
+        }
+        return {
+            summary.name: {
+                "additional_information": summary.additional_information,
+                "results": result_dict
+            }
+        }
+
+
+    def _create_table_summary(self, summary: SummaryObject):
+        result_dict = {
+            key: value.tolist() for key, value in summary.k_v.items()
+        }
+        return {
+            summary.name: {
+                "additional_information": summary.additional_information,
+                "results": result_dict
+            }
+        }

@@ -7,7 +7,7 @@ import numpy as np
 import xarray as xr
 
 from pywatts.core.base_summary import BaseSummary
-from pywatts.core.summary_object import SummaryObject
+from pywatts.core.summary_object import SummaryObject, SummaryObjectList
 from pywatts.core.exceptions import InputNotAvailable
 from pywatts.core.filemanager import FileManager
 

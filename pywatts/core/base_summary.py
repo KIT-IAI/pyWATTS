@@ -10,6 +10,7 @@ import xarray as xr
 from pywatts.core.base import Base
 from pywatts.core.filemanager import FileManager
 from pywatts.core.step_information import SummaryInformation
+from pywatts.core.summary_object import SummaryObject
 
 if TYPE_CHECKING:
     pass
@@ -31,7 +32,7 @@ class BaseSummary(Base, ABC):
         """
 
     @abstractmethod
-    def transform(self, file_manager: FileManager, **kwargs: xr.DataArray) -> str:
+    def transform(self, file_manager: FileManager, **kwargs: xr.DataArray) -> SummaryObject:
         """
         Transform method. Here the summary should be calculated.
         :param file_manager: The filemanager, it can be used to store data that corresponds to the summary as a file.
@@ -39,7 +40,7 @@ class BaseSummary(Base, ABC):
         :param kwargs: The input data for which a summary should be calculated.
         :type kwargs: xr.DataArray
         :return: A markdown formatted string that contains the summary.
-        :rtype: str
+        :rtype: SummaryObject
         """
 
     def save(self, fm: FileManager) -> Dict:

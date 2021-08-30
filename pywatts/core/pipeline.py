@@ -24,6 +24,7 @@ from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.summary_step import SummaryStep
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts.core.summary_object import SummaryFormatter, SummaryMarkdown
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
                     level=logging.ERROR)
@@ -47,12 +48,14 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline",
+                 summary_formatter: SummaryFormatter = SummaryMarkdown()):
         super().__init__(name)
         self.batch = batch
         self.counter = None
         self.start_steps = dict()
         self.id_to_step: Dict[int, BaseStep] = {}
+        self.summary_formatter = summary_formatter
         if path is None:
             self.file_manager = None
         else:
@@ -408,15 +411,10 @@ class Pipeline(BaseTransformer):
         return self.start_steps[item][-1]
 
     def create_summary(self):
-        summary = "# Summary steps\n"
-        for step in filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values()):
-            assert isinstance(step, SummaryStep)
-            summary += "#" + step.name + "\n" + step.get_summary() + "\n"
 
-        summary += "# Training Time\n"
+        summaries = []
         for step in self.id_to_step.values():
-            summary += f"  * {step.name}: {step.training_time}\n"
-
-        with open(self.file_manager.get_path("summary.md"), "w") as file:
-            file.write(summary)
-        return summary
+            if isinstance(step, SummaryStep):
+                summaries.append(step.get_summary())
+            summaries.extend([step.transform_time, step.training_time])
+        return self.summary_formatter.create_summary(summaries, self.file_manager)

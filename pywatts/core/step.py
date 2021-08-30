@@ -49,8 +49,7 @@ class Step(BaseStep):
                  train_if=None):
 
         super().__init__(input_steps, targets, condition=condition,
-                         computation_mode=computation_mode)
-        self.name = module.name
+                         computation_mode=computation_mode, name=module.name)
         self.file_manager = file_manager
         self.module = module
         self.callbacks = callbacks
@@ -133,11 +132,14 @@ class Step(BaseStep):
                 self._fit(input_batch, target_batch)
             else:
                 self._fit(input_data, target)
-            self.training_time = time.time() - start_time
+            self.training_time.set_kv("", time.time() - start_time)
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 
-        return self._transform(input_data)
+        start_time = time.time()
+        result = self._transform(input_data)
+        self.transform_time.set_kv("", time.time() - start_time)
+        return result
 
     def _get_target(self, start, batch):
         return {

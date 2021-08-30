@@ -7,6 +7,7 @@ import numpy as np
 import xarray as xr
 
 from pywatts.core.base_summary import BaseSummary
+from pywatts.core.summary_object import SummaryObject
 from pywatts.core.exceptions import InputNotAvailable
 from pywatts.core.filemanager import FileManager
 
@@ -51,7 +52,7 @@ class MetricBase(BaseSummary, ABC):
         if offset:
             self.offset = offset
 
-    def transform(self, file_manager: FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> str:
+    def transform(self, file_manager: FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> SummaryObjectList:
         """
         Calculates the MAE based on the predefined target and predictions variables.
         :param file_manager: The filemanager, it can be used to store data that corresponds to the summary as a file.
@@ -66,7 +67,7 @@ class MetricBase(BaseSummary, ABC):
         """
 
         t = y.values
-        summary = ""
+        summary = SummaryObjectList(self.name)
         if kwargs == {}:
             error_message = f"No predictions are provided as input for the {self.__class__.__name__}.  You should add the predictions by a " \
                             f"seperate key word arguments if you add the {self.__class__.__name__} to the pipeline."
@@ -81,7 +82,7 @@ class MetricBase(BaseSummary, ABC):
 
             else:
                 mae = self._apply_metric(p, t)
-            summary += f"  * {key}: {mae}\n"
+            summary.set_kv(key, mae)
         return summary
 
     def save(self, fm: FileManager) -> Dict:

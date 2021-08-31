@@ -42,7 +42,7 @@ class Step(BaseStep):
     :param condition: A callable which checks if the step should be executed with the current data.
     :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     :param train_if: A callable which checks if the train_if step should be executed or not.
-    :type train_if: Callable[xr.DataArray, xr.DataArray, bool]
+    :type train_if: Callable[xr.DataArray, xr.DataArray, bool] #TODO fix type?
     :param lag: Needed for online learning. Determines what data can be used for retraining.
             E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
             use future values as target values.
@@ -141,6 +141,7 @@ class Step(BaseStep):
         if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
             if self.train_if and self.train_if.evaluate(start, end):
                 # TODO should the same data be used for refitting and for calling the train_if condition?
+                #      NOPE -> Make it more flexible... Perhaps something for issue 147
                 refit_input = self._get_input(end - self.retrain_batch, end)
                 refit_target = self._get_target(end - self.retrain_batch, end)
                 start_time = time.time()

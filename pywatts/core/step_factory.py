@@ -204,7 +204,7 @@ class StepFactory:
         pipeline = self._check_ins(kwargs)
         input_steps, target_steps = self._split_input_target_steps(kwargs, pipeline, set_last=False)
 
-        step = SummaryStep(module, input_steps, pipeline.file_manager, )
+        step = SummaryStep(module, input_steps, pipeline.file_manager)
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],

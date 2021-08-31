@@ -61,13 +61,6 @@ def create_test_pipeline(modules):
                                                            computation_mode=ComputationMode.Transform,
                                                            callbacks=[LinePlotCallback('LinearRegression')])
 
-    #   * Rolling would not work, since the complete RMSE should be calculated for each Time Point
-    #   * Summary do not work, since summaries are only executed once
-    #   Is the current solution useful?
-    #   Possible Solution: window_size=-1 means that the window is from the start until the current point in time.
-    #                      In that case, the online learning has to be built in that way, that module only calculate
-    #                      data for the desired/requested time steps.
-
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"],

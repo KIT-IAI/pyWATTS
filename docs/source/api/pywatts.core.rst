@@ -132,6 +132,22 @@ pywatts.core.step\_information module
    :undoc-members:
    :show-inheritance:
 
+pywatts.core.summary\_formatter module
+--------------------------------------
+
+.. automodule:: pywatts.core.summary_formatter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.core.summary\_object module
+-----------------------------------
+
+.. automodule:: pywatts.core.summary_object
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.core.summary\_step module
 ---------------------------------
 

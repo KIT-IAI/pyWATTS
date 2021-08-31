@@ -4,7 +4,7 @@ from enum import IntEnum
 
 class SummaryCategory(IntEnum):
     """
-    Category for Summaries. Structures the final resulting summary file.
+    Category for Summaries.
     """
     Summary = 1
     TransformTime = 2
@@ -13,10 +13,19 @@ class SummaryCategory(IntEnum):
 
 class SummaryObject(ABC):
     """
-    TODO
+    A SummaryObject contains the results of a Summary Module.
+
+    :param name: Name of the summary object. Is also the headline in the resulting summary file.
+    :type name: str
+    :param category: The category of the SummaryObject. Determines the section in the final summary file of the
+                     result of this summary object.
+    :type category: SummaryCategory
+    :param additional_information: A string containing additional information that should be stored in the summary.
+    :type additional_information: str
     """
-    def __init__(self, name, category: SummaryCategory = SummaryCategory.Summary,
-                 additional_information=""):
+
+    def __init__(self, name: str, category: SummaryCategory = SummaryCategory.Summary,
+                 additional_information: str = ""):
         self.k_v = {}
         self.name = name
         self.category = category
@@ -24,22 +33,39 @@ class SummaryObject(ABC):
 
     def set_kv(self, key, value):
         """
-        TODO
+        This method sets a value in this summary information.
+        :param key: the key of the value.
+        :param value: the value
         """
         self.k_v[key] = value
 
 
 class SummaryObjectList(SummaryObject):
     """
-    TODO
+    A SummaryObjectList contains the results of a Summary Module. In the resulting file the summary of this object will
+    be saved as list.
+
+    :param name: Name of the summary object. Is also the headline in the resulting summary file.
+    :type name: str
+    :param category: The category of the SummaryObject. Determines the section in the final summary file of the
+                     result of this summary object.
+    :type category: SummaryCategory
+    :param additional_information: A string containing additional information that should be stored in the summary.
+    :type additional_information: str
     """
-    pass
 
 
 class SummaryObjectTable(SummaryObject):
     """
-    TODO
-    """
-    pass
+    A SummaryObjectList contains the results of a Summary Module. In the resulting file the summary of this object will
+    be saved as table.
 
+    :param name: Name of the summary object. Is also the headline in the resulting summary file.
+    :type name: str
+    :param category: The category of the SummaryObject. Determines the section in the final summary file of the
+                     result of this summary object.
+    :type category: SummaryCategory
+    :param additional_information: A string containing additional information that should be stored in the summary.
+    :type additional_information: str
+    """
 

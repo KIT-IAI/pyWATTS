@@ -8,9 +8,18 @@ from tabulate import tabulate
 
 
 class SummaryFormatter(ABC):
+    """
+    SummaryFormatter is responsible for formatting the SummaryObjects according to the output file.
+    """
 
     def create_summary(self, summaries: List[SummaryObject], fm: FileManager):
-        pass
+        """
+        This method is responsible for creating and storing the summaries according to the output file.
+        :param summaries: The summaries that should be stored.
+        :type summaries: List[SummaryObject]
+        :param fm: The pyWATTS filemanager.
+        :type fm: FileManager
+        """
 
     @abstractmethod
     def _create_summary(self, summary: SummaryObject):
@@ -22,8 +31,18 @@ class SummaryFormatter(ABC):
 
 
 class SummaryMarkdown(SummaryFormatter):
+    """
+    SummaryMarkdown is a SummaryFormatter that save the SummaryObjects according as markdown file.
+    """
 
     def create_summary(self, summaries: List[SummaryObject], fm: FileManager):
+        """
+        This method is responsible for creating and storing the summaries as markdown file.
+        :param summaries: The summaries that should be stored.
+        :type summaries: List[SummaryObject]
+        :param fm: The pyWATTS filemanager.
+        :type fm: FileManager
+        """
         summary_string = "# Summary: \n"
         for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime]:
             summary_string += f"## {category.name}\n"
@@ -50,8 +69,18 @@ class SummaryMarkdown(SummaryFormatter):
 
 
 class SummaryJSON(SummaryFormatter):
+    """
+    SummaryJSON is a SummaryFormatter that save the SummaryObjects according as json file.
+    """
 
     def create_summary(self, summaries: List[SummaryObject], fm: FileManager):
+        """
+        This method is responsible for creating and storing the summaries as json file.
+        :param summaries: The summaries that should be stored.
+        :type summaries: List[SummaryObject]
+        :param fm: The pyWATTS filemanager.
+        :type fm: FileManager
+        """
         summary_dict = {}
         for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime]:
             category_dict = {}
@@ -77,7 +106,6 @@ class SummaryJSON(SummaryFormatter):
                 "results": result_dict
             }
         }
-
 
     def _create_table_summary(self, summary: SummaryObject):
         result_dict = {

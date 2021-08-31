@@ -15,6 +15,7 @@
   * RMSESummary and RollingRMSE as consequence of the usage of summary modules.
   * Time needed by the fit method is recorded by the summary. (Part of the summary.md)
   * Section about how to get results of a pyWATTS pipeline.
+  * Enable more generic usage of summaries, including different output formats ([#129](https://github.com/KIT-IAI/pyWATTS/issues/129))
 * Add MAE as another summary. ([#99](https://github.com/KIT-IAI/pyWATTS/issues/99))
 * Add summary parameter to train and test to ensure backward compatibility. ([#127](https://github.com/KIT-IAI/pyWATTS/issues/127))
 * Add Min amd Max as new summaries ([#105](https://github.com/KIT-IAI/pyWATTS/issues/105))

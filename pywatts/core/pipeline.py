@@ -23,7 +23,7 @@ from pywatts.core.step import Step
 from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.summary_step import SummaryStep
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 from pywatts.core.summary_object import SummaryFormatter, SummaryMarkdown
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',

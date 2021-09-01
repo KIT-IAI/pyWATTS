@@ -1,7 +1,10 @@
+import inspect
 from abc import ABC, abstractmethod
+from typing import List
 
-import pandas as pd
+import xarray as xr
 
+from pywatts.core.exceptions.step_creation_exception import StepCreationException
 from pywatts.core.step_information import StepInformation
 
 
@@ -14,29 +17,25 @@ class ConditionObject(ABC):
     """
 
     def __init__(self, name):
-        # self.function = function
         self.name = name
 
     @abstractmethod
-    def save(self):
+    def evaluate(self, **kwargs: List[xr.DataArray]) -> bool:
         """
-        TODO
-        """
-
-    @abstractmethod
-    def load(self):
-        """
-        TODO
-        """
-
-    @abstractmethod
-    def evaluate(self, start: pd.Timestamp, end: pd.Timestamp) -> bool:
-        """
-        TODO
+        This method evaluates the Condition
         """
 
     def __call__(self, **kwargs: StepInformation):
         """
-        TODO
+        This method adds a Condition to the pipeline.
         """
-        # TODO?
+        arguments = inspect.signature(self.evaluate).parameters.keys()
+
+        if arguments != kwargs.keys():
+            raise StepCreationException(
+                f"The given kwargs does not fit to the inputs of the Condition{self.__class__.__name__} {self.name}."
+                f"The module only needs and accepts {inspect.signature(self.evaluate).parameters.keys()} as input. "
+                f"However, {kwargs.keys()} are given as input. ",
+                self
+            )
+        self.kwargs = kwargs

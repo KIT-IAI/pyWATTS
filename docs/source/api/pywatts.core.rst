@@ -44,6 +44,14 @@ pywatts.core.computation\_mode module
    :undoc-members:
    :show-inheritance:
 
+pywatts.core.condition\_object module
+-------------------------------------
+
+.. automodule:: pywatts.core.condition_object
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.core.either\_or\_step module
 ------------------------------------
 

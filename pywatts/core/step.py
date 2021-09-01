@@ -139,15 +139,17 @@ class Step(BaseStep):
 
     def refit(self, start: pd.Timestamp, end: pd.Timestamp):
         if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
-            if self.train_if and self.train_if.evaluate(start, end):
-                # TODO should the same data be used for refitting and for calling the train_if condition?
-                #      NOPE -> Make it more flexible... Perhaps something for issue 147
-                refit_input = self._get_input(end - self.retrain_batch, end)
-                refit_target = self._get_target(end - self.retrain_batch, end)
-                start_time = time.time()
-                summary = self.module.refit(**refit_input, **refit_target)
-                self.refit_summary += f" * Refit at position {end} takes {time.time() - start_time}\n" + (
-                    summary if summary is not None else "")
+            if self.train_if:
+                condition_input = {key: value.step.get_result(start, end) for key, value in self.train_if.kwargs.items()}
+                if self.train_if.evaluate(**condition_input):
+                    # TODO should the same data be used for refitting and for calling the train_if condition?
+                    #      NOPE -> Make it more flexible... Perhaps something for issue 147
+                    refit_input = self._get_input(end - self.retrain_batch, end)
+                    refit_target = self._get_target(end - self.retrain_batch, end)
+                    start_time = time.time()
+                    summary = self.module.refit(**refit_input, **refit_target)
+                    self.refit_summary += f" * Refit at position {end} takes {time.time() - start_time}\n" + (
+                        summary if summary is not None else "")
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)

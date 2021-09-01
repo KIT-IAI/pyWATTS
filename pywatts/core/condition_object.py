@@ -13,7 +13,8 @@ class ConditionObject(ABC):
     This module contains a function which returns either True or False. The input of this function is the output of one
     or more modules.
 
-    A condition object can be passed to the train_if function of steps
+    :param name: The name of the condition
+    :type name: str
     """
 
     def __init__(self, name):

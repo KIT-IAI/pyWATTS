@@ -86,8 +86,8 @@ class BaseSummary(Base, ABC):
         :rtype: SummaryInformation
         """
 
-        non_supported_kwargs = ["use_inverse_transform", "train_if", "callbacks", "condition", "computation_mode",
-                                "batch_size"]
+        non_supported_kwargs = ["use_inverse_transform", "refit_condition", "callbacks", "condition",
+                                "computation_mode", "batch_size"]
 
         for kwa in non_supported_kwargs:
             if kwa in kwargs:

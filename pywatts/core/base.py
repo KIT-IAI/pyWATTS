@@ -35,7 +35,7 @@ class Base(ABC):
         self.has_inverse_transform = False
         self.has_predict_proba = False
         # TODO each module needs a function for returning how much past values it needs for executing the transformation.
-
+        #      SEE Issue 147
     @abstractmethod
     def get_params(self) -> Dict[str, object]:
         """
@@ -146,7 +146,7 @@ class Base(ABC):
                  condition: Optional[Callable] = None,
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
-                 train_if: Optional[Union[ConditionObject]] = None,
+                 refit_condition: Optional[Union[ConditionObject]] = None,
                  lag: Optional[int] = pd.Timedelta(hours=0),
                  retrain_batch: Optional[int] = pd.Timedelta(hours=24),
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
@@ -171,8 +171,8 @@ class Base(ABC):
         :type use_prob_transform: bool
         :param callbacks: Callbacks to use after results are processed.
         :type callbacks: List[BaseCallback, Callable[[Dict[str, xr.DataArray]]]]
-        :param train_if: A callable, which contains a condition that indicates if the module should be trained or not
-        :type train_if: Optional[Callable]
+        :param refit_condition: A callable, which contains a condition that indicates if the module should be trained or not
+        :type refit_condition: Optional[Callable]
         :param batch_size: Determines how much data from the past should be used for training
         :type batch_size: pd.Timedelta
         :param computation_mode: Determines the computation mode of the step. Could be ComputationMode.Train,
@@ -195,7 +195,7 @@ class Base(ABC):
                                          condition=condition,
                                          callbacks=callbacks,
                                          computation_mode=computation_mode, batch_size=batch_size,
-                                         train_if=train_if,
+                                         refit_condition=refit_condition,
                                          retrain_batch=retrain_batch,
                                          lag=lag
                                          )

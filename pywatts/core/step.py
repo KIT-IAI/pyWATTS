@@ -41,8 +41,8 @@ class Step(BaseStep):
     :type callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]]
     :param condition: A callable which checks if the step should be executed with the current data.
     :type condition: Callable[xr.DataArray, xr.DataArray, bool]
-    :param train_if: A callable which checks if the train_if step should be executed or not.
-    :type train_if: Callable[xr.DataArray, xr.DataArray, bool] #TODO fix type?
+    :param refit_condition: A ConditionObject which checks if the step should be refitted or not.
+    :type refit_condition: ConditionObject
     :param lag: Needed for online learning. Determines what data can be used for retraining.
             E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
             use future values as target values.
@@ -57,7 +57,7 @@ class Step(BaseStep):
                  callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]] = [],
                  condition=None,
                  batch_size: Optional[None] = None,
-                 train_if=None,
+                 refit_condition=None,
                  retrain_batch=pd.Timedelta(hours=24),
                  lag=pd.Timedelta(hours=24)):
         super().__init__(input_steps, targets, condition=condition,
@@ -67,12 +67,13 @@ class Step(BaseStep):
         self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
-        if self.computation_mode not in [ComputationMode.Refit] and train_if is not None:
-            message = "You added a train if condition without setting the computation_mode to refit. So train_if will be ignored."
+        if self.computation_mode not in [ComputationMode.Refit] and refit_condition is not None:
+            message = "You added a refit_condition without setting the computation_mode to refit." \
+                      " The conditoin will be ignored."
             warnings.warn(message)
             logger.warn(message)
         self.lag = lag
-        self.train_if = train_if
+        self.refit_condition = refit_condition
         self.result_steps: Dict[str, ResultStep] = {}
         self.retrain_batch = retrain_batch
 
@@ -115,11 +116,11 @@ class Step(BaseStep):
                 condition = cloudpickle.load(pickle_file)
         else:
             condition = None
-        if stored_step["train_if"]:
-            with open(stored_step["train_if"], 'rb') as pickle_file:
-                train_if = cloudpickle.load(pickle_file)
+        if stored_step["refit_condition"]:
+            with open(stored_step["refit_condition"], 'rb') as pickle_file:
+                refit_condition = cloudpickle.load(pickle_file)
         else:
-            train_if = None
+            refit_condition = None
         callbacks = []
         for callback_path in stored_step["callbacks"]:
             with open(callback_path, 'rb') as pickle_file:
@@ -128,7 +129,7 @@ class Step(BaseStep):
             callbacks.append(callback)
 
         step = cls(module, inputs, targets=targets, file_manager=file_manager, condition=condition,
-                   train_if=train_if, callbacks=callbacks, batch_size=stored_step["batch_size"])
+                   refit_condition=refit_condition, callbacks=callbacks, batch_size=stored_step["batch_size"])
         step.default_run_setting = RunSetting.load(stored_step["default_run_setting"])
         step.current_run_setting = step.default_run_setting.clone()
         step.id = stored_step["id"]
@@ -139,10 +140,10 @@ class Step(BaseStep):
 
     def refit(self, start: pd.Timestamp, end: pd.Timestamp):
         if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
-            if self.train_if:
-                condition_input = {key: value.step.get_result(start, end) for key, value in self.train_if.kwargs.items()}
-                if self.train_if.evaluate(**condition_input):
-                    # TODO should the same data be used for refitting and for calling the train_if condition?
+            if self.refit_condition:
+                condition_input = {key: value.step.get_result(start, end) for key, value in self.refit_condition.kwargs.items()}
+                if self.refit_condition.evaluate(**condition_input):
+                    # TODO should the same data be used for refitting and for calling the refit_condition condition?
                     #      NOPE -> Make it more flexible... Perhaps something for issue 147
                     refit_input = self._get_input(end - self.retrain_batch, end)
                     refit_target = self._get_target(end - self.retrain_batch, end)
@@ -193,16 +194,16 @@ class Step(BaseStep):
     def get_json(self, fm: FileManager):
         json = super().get_json(fm)
         condition_path = None
-        train_if_path = None
+        refit_condition_path = None
         callbacks_paths = []
         if self.condition:
             condition_path = fm.get_path(f"{self.name}_condition.pickle")
             with open(condition_path, 'wb') as outfile:
                 cloudpickle.dump(self.condition, outfile)
-        if self.train_if:
-            train_if_path = fm.get_path(f"{self.name}_train_if.pickle")
-            with open(train_if_path, 'wb') as outfile:
-                cloudpickle.dump(self.train_if, outfile)
+        if self.refit_condition:
+            refit_condition_path = fm.get_path(f"{self.name}_refit_condition.pickle")
+            with open(refit_condition_path, 'wb') as outfile:
+                cloudpickle.dump(self.refit_condition, outfile)
         for callback in self.callbacks:
             callback_path = fm.get_path(f"{self.name}_callback.pickle")
             with open(callback_path, 'wb') as outfile:
@@ -210,7 +211,7 @@ class Step(BaseStep):
             callbacks_paths.append(callback_path)
         json.update({"callbacks": callbacks_paths,
                      "condition": condition_path,
-                     "train_if": train_if_path,
+                     "refit_condition": refit_condition_path,
                      "batch_size": self.batch_size})
         return json
 
@@ -222,10 +223,10 @@ class Step(BaseStep):
         """
         if self.current_run_setting.computation_mode in [ComputationMode.Refit] and isinstance(self.module,
                                                                                                BaseEstimator):
-            if self.train_if:
+            if self.refit_condition:
                 input_data = self._get_input(start, end)
                 target = self._get_target(start, end)
-                if self.train_if(input_data, target):
+                if self.refit_condition(input_data, target):
                     refit_input = self._get_input(end - self.retrain_batch, end)
                     refit_target = self._get_target(end - self.retrain_batch, end)
                     self.module.refit(**refit_input, **refit_target)

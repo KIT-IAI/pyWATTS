@@ -25,7 +25,6 @@ class PeriodicCondition(ConditionObject):
         self.counter = self.counter % self.num_steps
 
         if self.counter == 0:
-            print("Periodic Relearn")  # TODO logging?
             return True
         else:
             return False

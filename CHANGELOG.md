@@ -5,6 +5,12 @@
 ### Added
 * Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
 * Add a MASE Summary ([#148](https://github.com/KIT-IAI/pyWATTS/issues/148))
+* Improve Online Learning Functionality ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))
+  * Replace train_if callable by a ConditionObject. 
+  * Rename train_if to refit_condition.
+  * Separate transform from refit. I.e., the complete pipeline is transformed before any step is refitted.
+  * Add PeriodicCondition
+
 
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))

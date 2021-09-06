@@ -1,9 +1,10 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple, Dict, Optional
+from typing import Callable, Tuple, Dict, Optional, List
 
 import cloudpickle
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base_summary import BaseSummary
@@ -28,10 +29,15 @@ class MetricBase(BaseSummary, ABC):
     def __init__(self,
                  name: str = None,
                  filter_method: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]] = None,
-                 offset: int = 0):
+                 offset: int = 0,
+                 cuts: List[Tuple[pd.Timestamp, pd.Timestamp]] = None):
         super().__init__(name if name is not None else self.__class__.__name__)
         self.offset = offset
         self.filter_method = filter_method
+        if cuts is None:
+            self.cuts = []
+        else:
+            self.cuts = cuts
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -40,7 +46,7 @@ class MetricBase(BaseSummary, ABC):
         :return: Parameters set for the Metric
         :rtype: Dict[str, object]
         """
-        return {"offset": self.offset}
+        return {"offset": self.offset}  # TODO
 
     def set_params(self, offset: Optional[int] = None):
         """
@@ -51,6 +57,7 @@ class MetricBase(BaseSummary, ABC):
         """
         if offset:
             self.offset = offset
+            # TODO
 
     def transform(self, file_manager: FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> SummaryObjectList:
         """
@@ -66,7 +73,6 @@ class MetricBase(BaseSummary, ABC):
         :rtype: xr.DataArray
         """
 
-        t = y.values
         summary = SummaryObjectList(self.name)
         if kwargs == {}:
             error_message = f"No predictions are provided as input for the {self.__class__.__name__}.  You should add the predictions by a " \
@@ -74,6 +80,14 @@ class MetricBase(BaseSummary, ABC):
             logger.error(error_message)
             raise InputNotAvailable(error_message)
 
+        self._transform(kwargs, ": complete", summary, y.values)
+        for start, end in self.cuts:
+            _kwargs = {key: value.loc[start:end] for key, value in kwargs.items()}
+            self._transform(kwargs, f": Cut from {start} to {end}", summary, y.loc[start:end].values)
+
+        return summary
+
+    def _transform(self, kwargs, suffix, summary, t):
         for key, y_hat in kwargs.items():
             p = y_hat.values
             if self.filter_method:
@@ -82,8 +96,7 @@ class MetricBase(BaseSummary, ABC):
 
             else:
                 mae = self._apply_metric(p, t)
-            summary.set_kv(key, mae)
-        return summary
+            summary.set_kv(key + suffix, mae)
 
     def save(self, fm: FileManager) -> Dict:
         json = super().save(fm)

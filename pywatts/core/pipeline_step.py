@@ -1,7 +1,7 @@
+from pywatts.core.run_setting import RunSetting
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
-
 
 
 class PipelineStep(Step):
@@ -26,9 +26,9 @@ class PipelineStep(Step):
     """
     module: Pipeline
 
-    def set_computation_mode(self, computation_mode: ComputationMode):
+    def set_run_setting(self, run_setting: RunSetting):
         """
-        Sets the computation mode of the step for the current run. Note that after reset the all mode is restored.
+        Sets the run settings of the step for the current run. Note that after reset old setting is restored.
         Moreover, setting the computation_mode is only possible if the computation_mode is not set explicitly while
         adding the corresponding module to the pipeline.
         Moreover, it sets also the computation_mode of all steps in the subpipeline.
@@ -36,10 +36,10 @@ class PipelineStep(Step):
         :param computation_mode: The computation mode which should be set.
         :type computation_mode: ComputationMode
         """
-        if self._original_compuation_mode == computation_mode.Default:
-            self.computation_mode = computation_mode
-            for step in self.module.id_to_step.values():
-                step.set_computation_mode(computation_mode)
+        self.current_run_setting = self.default_run_setting.update(run_setting=run_setting)
+        for step in self.module.id_to_step.values():
+            step.set_run_setting(run_setting)
+
 
     def reset(self):
         """

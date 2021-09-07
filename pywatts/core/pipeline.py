@@ -14,6 +14,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.base_step import BaseStep
+from pywatts.core.run_setting import RunSetting
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.io_exceptions import IOException
 from pywatts.core.filemanager import FileManager
@@ -179,7 +180,7 @@ class Pipeline(BaseTransformer):
 
         for step in self.id_to_step.values():
             step.reset()
-            step.set_computation_mode(mode)
+            step.set_run_setting(RunSetting(computation_mode=mode))
 
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()

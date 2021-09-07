@@ -8,6 +8,7 @@ import xarray as xr
 
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.filemanager import FileManager
+from pywatts.core.run_setting import RunSetting
 from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 
 logger = logging.getLogger(__name__)
@@ -29,8 +30,9 @@ class BaseStep(ABC):
     def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None,
                  targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
                  computation_mode=ComputationMode.Default):
-        self._original_compuation_mode = computation_mode
-        self.computation_mode = computation_mode
+        self.default_run_setting = RunSetting(computation_mode=computation_mode)
+        self.current_run_setting = self.default_run_setting.clone()
+
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
@@ -87,9 +89,11 @@ class BaseStep(ABC):
         # Check if the cached results fits to the request, if yes return it.
         if self.cached_result["cached"] is not None and self.cached_result["start"] == start and self.cached_result[
             "end"] == end:
-            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(self.cached_result["cached"][
-                buffer_element]) if buffer_element is not None else copy.deepcopy(list(self.cached_result["cached"].values())[
-                0])
+            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(
+                self.cached_result["cached"][
+                    buffer_element]) if buffer_element is not None else copy.deepcopy(
+                list(self.cached_result["cached"].values())[
+                    0])
         return self._pack_data(start, end, buffer_element, return_all=return_all)
 
     def _compute(self, start, end) -> Dict[str, xr.DataArray]:
@@ -181,7 +185,7 @@ class BaseStep(ABC):
             "class": self.__class__.__name__,
             "name": self.name,
             "last": self.last,
-            "computation_mode": int(self._original_compuation_mode)
+            "default_run_setting": self.default_run_setting.save()
         }
 
     @classmethod
@@ -223,9 +227,9 @@ class BaseStep(ABC):
         """
         self.buffer = {}
         self.finished = False
-        self.computation_mode = self._original_compuation_mode
+        self.current_run_setting = self.default_run_setting.clone()
 
-    def set_computation_mode(self, computation_mode: ComputationMode):
+    def set_run_setting(self, run_setting: RunSetting):
         """
         Sets the computation mode of the step for the current run. Note that after reset the all mode is restored.
         Moreover, setting the computation_mode is only possible if the computation_mode is not set explicitly while
@@ -234,5 +238,4 @@ class BaseStep(ABC):
         :param computation_mode: The computation mode which should be set.
         :type computation_mode: ComputationMode
         """
-        if self._original_compuation_mode == computation_mode.Default:
-            self.computation_mode = computation_mode
+        self.current_run_setting = self.default_run_setting.update(run_setting)

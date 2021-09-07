@@ -40,6 +40,9 @@ class PipelineStep(Step):
         for step in self.module.id_to_step.values():
             step.set_run_setting(run_setting)
 
+    def _post_transform(self, result):
+        self.module._create_summary(self.current_run_setting.summary_formatter)
+        super()._post_transform(result)
 
     def reset(self):
         """

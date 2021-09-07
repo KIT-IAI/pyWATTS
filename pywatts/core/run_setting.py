@@ -1,6 +1,7 @@
 from typing import Dict
 
 from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.summary_formatter import SummaryFormatter, SummaryMarkdown
 
 
 class RunSetting:
@@ -9,10 +10,13 @@ class RunSetting:
 
     :param computation_mode: The computation mode for the specific run.
     :type computation_mode: ComputationMode
+    :param summary_formatter: The formatter which formats the summary data.
+    :type summary_formatter: SummaryFormatter
     """
 
-    def __init__(self, computation_mode: ComputationMode):
+    def __init__(self, computation_mode: ComputationMode, summary_formatter: SummaryFormatter = SummaryMarkdown()):
         self.computation_mode = computation_mode
+        self.summary_formatter = summary_formatter
 
     def update(self, run_setting: 'RunSetting') -> 'RunSetting':
         """
@@ -26,6 +30,7 @@ class RunSetting:
         setting = self.clone()
         if setting.computation_mode == ComputationMode.Default:
             setting.computation_mode = run_setting.computation_mode
+        setting.summary_formatter = run_setting.summary_formatter
         return setting
 
     def clone(self) -> 'RunSetting':
@@ -35,7 +40,8 @@ class RunSetting:
         :rtype: RunSetting
         """
         return RunSetting(
-            computation_mode=self.computation_mode
+            computation_mode=self.computation_mode,
+            summary_formatter=self.summary_formatter
         )
 
     def save(self) -> Dict:
@@ -49,6 +55,10 @@ class RunSetting:
         }
 
     @staticmethod
+    def load(load_information):
+        return RunSetting(computation_mode=load_information["computation_mode"],
+                          summary_formatter=SummaryMarkdown())
+
     def load(load_information: Dict):
         """
         Create a RunSetting from a Dict.

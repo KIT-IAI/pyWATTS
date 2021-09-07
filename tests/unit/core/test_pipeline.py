@@ -204,8 +204,9 @@ class TestPipeline(unittest.TestCase):
             pd.DataFrame({"test": [1, 2, 2, 3, 4], "test2": [2, 2, 2, 2, 2], "target": [2, 2, 4, 4, -5]},
                          index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5))))
 
+    @patch('pywatts.core.pipeline.Pipeline._create_summary')
     @patch('pywatts.core.pipeline.FileManager')
-    def test_add_pipeline_to_pipeline_and_train(self, fm_mock):
+    def test_add_pipeline_to_pipeline_and_train(self, fm_mock, create_summary_mock):
         sub_pipeline = Pipeline()
 
         detector = MissingValueDetector()
@@ -216,11 +217,14 @@ class TestPipeline(unittest.TestCase):
                                                                           target=self.pipeline["target"])
         sub_pipeline(regression=regressor)
 
+        summary_formatter_mock = MagicMock()
         self.pipeline.train(pd.DataFrame({"test": [24, 24], "target": [12, 24]}, index=pd.to_datetime(
-            ['2015-06-03 00:00:00', '2015-06-03 01:00:00'])))
+            ['2015-06-03 00:00:00', '2015-06-03 01:00:00'])), summary_formatter=summary_formatter_mock)
 
         for step in self.pipeline.id_to_step.values():
             assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
+
+        create_summary_mock.assert_has_calls([call(summary_formatter_mock), call(summary_formatter_mock)])
 
     @patch('pywatts.core.pipeline.FileManager')
     def test_add_pipeline_to_pipeline_and_test(self, fm_mock):
@@ -263,6 +267,9 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.to_folder(path="path")
 
         self.assertEqual(json_mock.dump.call_count, 2)
+
+    def create_summary_in_subpipelines(self):
+        assert False
 
     @patch('pywatts.core.pipeline.FileManager')
     def test__collect_batch_results_naming_conflict(self, fm_mock):

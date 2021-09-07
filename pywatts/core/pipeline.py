@@ -192,7 +192,7 @@ class Pipeline(BaseTransformer):
 
         for step in self.id_to_step.values():
             step.reset()
-            step.set_run_setting(RunSetting(computation_mode=mode))
+            step.set_run_setting(RunSetting(computation_mode=mode, summary_formatter=summary_formatter))
 
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()

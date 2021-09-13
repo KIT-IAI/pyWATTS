@@ -94,12 +94,13 @@ class StepFactory:
 
         return StepInformation(step, pipeline)
 
-    def _split_input_target_steps(self, kwargs, pipeline):
+    def _split_input_target_steps(self, kwargs, pipeline, set_last=True):
         input_steps: Dict[str, BaseStep] = dict()
         target_steps: Dict[str, BaseStep] = dict()
         for key, element in kwargs.items():
             if isinstance(element, StepInformation):
-                element.step.last = False
+                if set_last:
+                    element.step.last = False
                 if key.startswith("target"):
                     target_steps[key] = element.step
                 else:
@@ -175,11 +176,10 @@ class StepFactory:
                                             f"are part of the same pipeline.")
         return pipeline
 
-
     def create_summary(self,
-                    module: BaseSummary,
-                    kwargs: Dict[str, Union[StepInformation, Tuple[StepInformation, ...]]],
-                    ) -> SummaryInformation:
+                       module: BaseSummary,
+                       kwargs: Dict[str, Union[StepInformation, Tuple[StepInformation, ...]]],
+                       ) -> SummaryInformation:
         arguments = inspect.signature(module.transform).parameters.keys()
 
         if "kwargs" not in arguments and not isinstance(module, Pipeline):
@@ -194,9 +194,9 @@ class StepFactory:
 
         # TODO needs to check that inputs are unambigious -> I.e. check that each input has only one output
         pipeline = self._check_ins(kwargs)
-        input_steps, target_steps = self._split_input_target_steps(kwargs, pipeline)
+        input_steps, target_steps = self._split_input_target_steps(kwargs, pipeline, set_last=False)
 
-        step = SummaryStep(module, input_steps, pipeline.file_manager,)
+        step = SummaryStep(module, input_steps, pipeline.file_manager, )
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],

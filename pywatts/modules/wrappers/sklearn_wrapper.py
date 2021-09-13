@@ -10,6 +10,7 @@ from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import K
     KindOfTransform
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
+from pywatts.utils._xarray_time_series_utils import _get_time_indeces
 from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 
@@ -80,11 +81,11 @@ class SKLearnWrapper(BaseWrapper):
     @staticmethod
     def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
         reference = kwargs[list(kwargs)[0]]
-
+        time_index = reference.indexes[_get_time_indeces(reference)[0]]
         if len(targets) == 0:
             coords = (
                 # first dimension is number of batches. We assume that this is the time.
-                ("time", list(reference.coords.values())[0].to_dataframe().index.array),
+                ("time", time_index.values),
                 *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
             result = xr.DataArray(prediction, coords=coords)
         else:
@@ -93,8 +94,7 @@ class SKLearnWrapper(BaseWrapper):
             prediction = prediction.reshape(len(list(reference.coords.values())[0]), -1)
             for i, target in enumerate(targets):
                 result[target[0]] = xr.DataArray(prediction[:, position: position + target[1]], coords={
-                    "time": list(reference.coords.values())[0].to_dataframe().index.array, "dim_0": list(
-                        range(target[1]))}, dims=["time", "dim_0"])
+                    "time": time_index.values, "dim_0": list(range(target[1]))}, dims=["time", "dim_0"])
                 position += target[1]
         return result
 

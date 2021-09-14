@@ -89,10 +89,8 @@ class BaseStep(ABC):
         # Check if the cached results fits to the request, if yes return it.
         if self.cached_result["cached"] is not None and self.cached_result["start"] == start and self.cached_result[
             "end"] == end:
-            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(
-                self.cached_result["cached"][
-                    buffer_element]) if buffer_element is not None else copy.deepcopy(
-                list(self.cached_result["cached"].values())[
+            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(self.cached_result["cached"][
+                    buffer_element]) if buffer_element is not None else copy.deepcopy(list(self.cached_result["cached"].values())[
                     0])
         return self._pack_data(start, end, buffer_element, return_all=return_all)
 

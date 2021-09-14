@@ -6,7 +6,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions import InputNotAvailable
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class RollingMetricBase(BaseTransformer, ABC):
@@ -74,13 +74,13 @@ class RollingMetricBase(BaseTransformer, ABC):
         for key, y_hat in kwargs.items():
             p = y_hat.values
             p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
-            index = y.indexes[_get_time_indeces(y)[0]]
+            index = y.indexes[_get_time_indexes(y)[0]]
             results[key] = self._apply_rolling_metric(p_, t_, index)
-        time = y.indexes[_get_time_indeces(y)[0]]
+        time = y.indexes[_get_time_indexes(y)[0]]
 
         return xr.DataArray(np.concatenate(list(results.values()), axis=1),
-                            coords={_get_time_indeces(y)[0]: time, "predictions": list(results.keys())},
-                            dims=[_get_time_indeces(y)[0], "predictions"])
+                            coords={_get_time_indexes(y)[0]: time, "predictions": list(results.keys())},
+                            dims=[_get_time_indexes(y)[0], "predictions"])
 
     @abstractmethod
     def _apply_rolling_metric(self, p_, t_, index):

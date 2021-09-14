@@ -570,5 +570,4 @@ class TestPipeline(unittest.TestCase):
         self.fm_mock.get_path.assert_called_once_with("summary.md")
         open_mock().__enter__.return_value.write.assert_called_once_with(summary)
 
-        # Note last element in the pipeline is a SummaryModule. Therefore, the result here is empty.
-        self.assertEqual(result, {})
+        self.assertTrue("target" in result.keys())

@@ -26,6 +26,7 @@
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))
 * Change metrics to summaries ([#115](https://github.com/KIT-IAI/pyWATTS/issues/115))
 * Change indeces and indices to indexes  ([#102](https://github.com/KIT-IAI/pyWATTS/issues/102))
+* Restructure the modules folder  ([#114](https://github.com/KIT-IAI/pyWATTS/issues/114))
 
 ### Deprecated
 * Usage of RMSECalculator. Will be removed in version 0.3. Calculation of metrics should be a summary and not a module. ([#34](https://github.com/KIT-IAI/pyWATTS/issues/34))

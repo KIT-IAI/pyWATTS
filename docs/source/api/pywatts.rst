@@ -11,5 +11,11 @@ Subpackages
    pywatts.core
    pywatts.modules
    pywatts.summaries
-   pywatts.utils
-   pywatts.wrapper
+
+Module contents
+---------------
+
+.. automodule:: pywatts
+   :members:
+   :undoc-members:
+   :show-inheritance:

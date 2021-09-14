@@ -38,7 +38,7 @@ An extract of the example in example.py is given in the following:
 
 ```python
 from pywatts.core.pipeline import Pipeline
-from pywatts.wrapper import SKLearnWrapper
+from pywatts.modules import SKLearnWrapper
 from pywatts.modules import LinearInterpolater, CalendarFeature, CalendarExtraction
 from sklearn.preprocessing import StandardScaler
 

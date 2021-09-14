@@ -4,9 +4,8 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
-
 
 class Sampler(BaseTransformer):
     """
@@ -16,17 +15,17 @@ class Sampler(BaseTransformer):
 
     :param sample_size: The offset for shifting the time series
     :type sample_size: int
-    :param indices: The indices which should be shifted through time
-    :type indices: List[str]
+    :param indexes: The indexes which should be shifted through time
+    :type indexes: List[str]
 
      """
 
-    def __init__(self, sample_size: int, name: str = "SampleModule", indeces: List[str] = None):
+    def __init__(self, sample_size: int, name: str = "SampleModule", indexes: List[str] = None):
         super().__init__(name)
-        if indeces is None:
-            indeces = []
+        if indexes is None:
+            indexes = []
         self.sample_size = sample_size
-        self.indexes = indeces
+        self.indexes = indexes
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -37,7 +36,7 @@ class Sampler(BaseTransformer):
         """
         return {
             "sample_size": self.sample_size,
-            "indeces": self.indexes,
+            "indexes": self.indexes,
         }
 
     def set_params(self, sample_size: int = None, indexes: List[str] = None):
@@ -46,8 +45,8 @@ class Sampler(BaseTransformer):
 
         :param sample_size: The offset for shifting the time series
         :type sample_size: int
-        :param indices: The indices which should be shifted through time
-        :type indices: List[str]
+        :param indexes: The indexes which should be shifted through time
+        :type indexes: List[str]
 
         """
         if sample_size:
@@ -67,7 +66,7 @@ class Sampler(BaseTransformer):
         """
         indexes = self.indexes
         if not indexes:
-            indexes = _get_time_indeces(x)
+            indexes = _get_time_indexes(x)
         try:
             r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(0, self.sample_size)]
         except ValueError as exc:
@@ -76,4 +75,4 @@ class Sampler(BaseTransformer):
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
                 module=self.name) from exc
         result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords)
-        return result.transpose(_get_time_indeces(x)[0], "horizon", ...)
+        return result.transpose(_get_time_indexes(x)[0], "horizon", ...)

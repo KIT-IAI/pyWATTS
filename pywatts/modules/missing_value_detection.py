@@ -27,7 +27,7 @@ class MissingValueDetector(BaseTransformer):
 
     def transform(self, dataset: xr.DataArray) -> xr.DataArray:
         """
-        Detects the indices that correspond to the input having missing values
+        Detects the indexes that correspond to the input having missing values
 
         :param dataset: Dataset in which missing values should be detected
         :type dataset: xr.DataArray

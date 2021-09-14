@@ -6,7 +6,7 @@ import xarray as xr
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
 
 from pywatts.core.base import BaseTransformer
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -76,14 +76,14 @@ class RmseCalculator(BaseTransformer):
             if self.rolling:
                 if self.filter:
                     p_, t_ = self.filter(p, t)
-                    time = y[_get_time_indeces(y)[0]][-len(p_) + self.offset:]
+                    time = y[_get_time_indexes(y)[0]][-len(p_) + self.offset:]
                 else:
-                    time = y[_get_time_indeces(y)[0]][self.offset:]
+                    time = y[_get_time_indexes(y)[0]][self.offset:]
                     p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
                 _rmse = pd.DataFrame(np.mean((p_[self.offset:] - t_[self.offset:]) ** 2, axis=-1)).rolling(
                     self.window).apply(lambda x: np.sqrt(np.mean(x))).values
             else:
-                time = [y.indexes[_get_time_indeces(y)[0]][-1]]
+                time = [y.indexes[_get_time_indexes(y)[0]][-1]]
                 _rmse = [np.sqrt(np.mean((p[self.offset:] - t[self.offset:]) ** 2))]
             rmse.append(_rmse)
         return xr.DataArray(np.stack(rmse).swapaxes(0, 1).reshape((-1, len(predictions))),

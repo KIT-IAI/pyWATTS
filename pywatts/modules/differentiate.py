@@ -5,7 +5,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class Differentiate(BaseTransformer):
@@ -100,7 +100,7 @@ class Differentiate(BaseTransformer):
             ns = self.n
 
         if self.target_index is None:
-            idxs = _get_time_indeces(x)
+            idxs = _get_time_indexes(x)
         elif isinstance(self.target_index, str):
             idxs = [self.target_index]
         else:

@@ -100,7 +100,7 @@ class TestStep(unittest.TestCase):
         cloudpickle_mock.load.assert_called_once_with(open_mock().__enter__.return_value)
         cloudpickle_mock.dump.assert_called_once_with(train_if_mock, open_mock().__enter__.return_value)
 
-    @patch("pywatts.core.base_step._get_time_indeces", return_value=["time"])
+    @patch("pywatts.core.base_step._get_time_indexes", return_value=["time"])
     @patch("pywatts.core.base_step.xr")
     def test_transform_batch_with_existing_buffer(self, xr_mock, *args):
         # Check that data in batch learning are concatenated

@@ -151,7 +151,7 @@ class TestResampler(unittest.TestCase):
         self.assertTrue((dataset[f"{target_index}_d{2}"][:, :, :2] == np.zeros(2, dtype=np.int)).all())
 
     def test_target_index_none(self):
-        # test if None as target_index uses time indices to differentiate
+        # test if None as target_index uses time indexes to differentiate
         obj = Differentiate(target_index=None, n=1)
         diff = obj.transform(self.dataset)
         self.assertTrue((diff["time_d1"] == np.full(self.times - 1, np.timedelta64(1, "D"))).all())

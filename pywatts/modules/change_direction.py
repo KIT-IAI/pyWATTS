@@ -4,7 +4,7 @@ import xarray as xr
 
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class ChangeDirection(BaseTransformer):
@@ -41,13 +41,13 @@ class ChangeDirection(BaseTransformer):
         :return: A time series, where 1 indicates that the next value is higher, -1 that the next value
         is lower, and 0 that the next value is the same
         :rtype: xr.DataArray
-        :raises WrongParameterException: If not all indices are part of x
+        :raises WrongParameterException: If not all indexes are part of x
         """
-        indices = _get_time_indeces(x)
+        indexes = _get_time_indexes(x)
         try:
-            return xr.ufuncs.sign(x - x.shift({index: 1 for index in indices}))
+            return xr.ufuncs.sign(x - x.shift({index: 1 for index in indexes}))
         except ValueError as exc:
             raise WrongParameterException(
-                f"Not all indices ({indices}) are in the indices of x ({list(x.indices.keys())}).",
-                "Either correct the indices which you passed to that module or assert that this index occurs in the "
+                f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
+                "Either correct the indexes which you passed to that module or assert that this index occurs in the "
                 "data which are passed by the previous modules to the current one.", module=self.name) from exc

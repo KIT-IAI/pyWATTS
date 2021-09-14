@@ -9,7 +9,7 @@ from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.util_exception import UtilException
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._workalendar_utils import _init_calendar
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class CalendarFeature(IntEnum):
@@ -206,7 +206,7 @@ class CalendarExtraction(BaseTransformer):
         :return: The xarray dataset with date features added.
         """
 
-        time_index = _get_time_indeces(x)[0]
+        time_index = _get_time_indexes(x)[0]
         data = [self._encode(feature, x[time_index].to_series()) for feature in self.features]
         return xr.DataArray(np.array(data).swapaxes(0, 1), coords=[getattr(x, time_index), self.features.copy()],
                             dims=[time_index, "features"])

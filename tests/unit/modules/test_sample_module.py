@@ -19,20 +19,20 @@ class TestSampler(unittest.TestCase):
         self.assertEqual(params,
                          {
                              "sample_size": 2,
-                             "indeces": [],
+                             "indexes": [],
                          })
 
     def test_set_params(self):
         self.assertEqual(self.sampler.get_params(),
                          {
                              "sample_size": 2,
-                             "indeces": [],
+                             "indexes": [],
                          })
         self.sampler.set_params(indexes=["Foo"], sample_size=12)
         self.assertEqual(self.sampler.get_params(),
                          {
                              "sample_size": 12,
-                             "indeces": ["Foo"],
+                             "indexes": ["Foo"],
                          })
 
     def test_transform(self):

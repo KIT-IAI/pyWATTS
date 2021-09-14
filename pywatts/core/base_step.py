@@ -9,7 +9,7 @@ import xarray as xr
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.filemanager import FileManager
 from pywatts.core.run_setting import RunSetting
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ class BaseStep(ABC):
         :rtype: bool
         """
         if not self.buffer or all(
-                [counter < b.indexes[_get_time_indeces(self.buffer)[0]][-1] for b in self.buffer.values()]):
+                [counter < b.indexes[_get_time_indexes(self.buffer)[0]][-1] for b in self.buffer.values()]):
             return True
         for input_step in self.input_steps.values():
             if not input_step.further_elements(counter):
@@ -119,7 +119,7 @@ class BaseStep(ABC):
 
     def _pack_data(self, start, end, buffer_element=None, return_all=False):
         # Provide requested data
-        time_index = _get_time_indeces(self.buffer)
+        time_index = _get_time_indexes(self.buffer)
         if end and start and end > start:
             index = list(self.buffer.values())[0].indexes[time_index[0]]
             start = max(index[0], start.to_numpy())
@@ -161,7 +161,7 @@ class BaseStep(ABC):
             self.buffer = result
         else:
             # Time dimension is mandatory, consequently there dim has to exist
-            dim = _get_time_indeces(result)[0]
+            dim = _get_time_indexes(result)[0]
             for key in self.buffer.keys():
                 self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
         return result

@@ -16,9 +16,7 @@ class DlWrapper(BaseWrapper, ABC):
     :param name: The name of the wrapper
     :type name: str
     :param fit_kwargs: The fit keyword arguments necessary for fitting the model
-    :type fit_kwars: dict
-    :param compile_kwargs: The compile keyword arguments necessary for compiling the model.
-    :type compile_kwargs: dict
+    :type fit_kwargs: dict
     """
 
     def __init__(self, model, name, fit_kwargs=None):

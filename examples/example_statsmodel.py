@@ -13,8 +13,8 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 
 # All modules required for the pipeline are imported
-from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator
-from pywatts.wrapper import SKLearnWrapper, SmTimeSeriesModelWrapper
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator, \
+    SKLearnWrapper, SmTimeSeriesModelWrapper
 
 if __name__ == "__main__":
     # Create a pipeline

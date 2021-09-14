@@ -16,8 +16,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 
 # Import the pyWATTS pipeline and the required modules
-from pywatts.wrapper import SKLearnWrapper, KerasWrapper
-from pywatts.modules import ClockShift, LinearInterpolater
+from pywatts.modules import ClockShift, LinearInterpolater, SKLearnWrapper, KerasWrapper
 from pywatts.summaries import RMSE
 
 

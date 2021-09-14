@@ -1,14 +1,13 @@
 # Other modules required for the pipeline are imported
 import matplotlib.pyplot as plt
-import xarray as xr
 import pandas as pd
+import xarray as xr
 
+from pywatts.callbacks import CSVCallback, LinePlotCallback
 # From pyWATTS the pipeline is imported
 from pywatts.core.pipeline import Pipeline
-from pywatts.callbacks import CSVCallback, LinePlotCallback
-
 # All modules required for the pipeline are imported
-from pywatts.wrapper import FunctionModule
+from pywatts.modules import FunctionModule
 
 
 def custom_multiplication(x: xr.Dataset):
@@ -23,7 +22,8 @@ if __name__ == "__main__":
 
     # Add a custom function to the FunctionModule and add the module to the pipeline
     function_module = FunctionModule(custom_multiplication, name="Multiplication")(x=pipeline["load_power_statistics"],
-                                                                                   callbacks=[CSVCallback("Mul"), LinePlotCallback("Mul")])
+                                                                                   callbacks=[CSVCallback("Mul"),
+                                                                                              LinePlotCallback("Mul")])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

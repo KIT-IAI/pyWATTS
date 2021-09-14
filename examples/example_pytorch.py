@@ -12,9 +12,8 @@ from sklearn.preprocessing import StandardScaler
 from pywatts.callbacks import LinePlotCallback
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.modules import ClockShift, LinearInterpolater
+from pywatts.modules import ClockShift, LinearInterpolater, SKLearnWrapper, PyTorchWrapper
 from pywatts.summaries import RMSE
-from pywatts.wrapper import SKLearnWrapper, PyTorchWrapper
 
 
 def get_sequential_model():

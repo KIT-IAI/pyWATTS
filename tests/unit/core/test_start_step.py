@@ -15,7 +15,7 @@ class TestStartStep(unittest.TestCase):
             "target_ids": {},
             "input_ids": {},
             "id": -1,
-            'computation_mode': 4,
+            'default_run_setting': {'computation_mode': 4},
             "module": "pywatts.core.start_step",
             "class": "StartStep",
             "name": "StartStep",

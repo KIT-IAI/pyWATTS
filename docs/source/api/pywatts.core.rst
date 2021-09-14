@@ -100,6 +100,14 @@ pywatts.core.result\_step module
    :undoc-members:
    :show-inheritance:
 
+pywatts.core.run\_setting module
+--------------------------------
+
+.. automodule:: pywatts.core.run_setting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.core.start\_step module
 -------------------------------
 

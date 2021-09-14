@@ -8,6 +8,7 @@ import xarray as xr
 
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.step import Step
+from pywatts.core.run_setting import RunSetting
 
 
 class TestStep(unittest.TestCase):
@@ -48,7 +49,7 @@ class TestStep(unittest.TestCase):
             'batch_size': None,
             "input_ids": {},
             "id": -1,
-            'computation_mode': 4,
+            'default_run_setting': {'computation_mode': 4},
             "train_if": None,
             "module": "pywatts.core.step",
             "class": "Step",
@@ -84,7 +85,7 @@ class TestStep(unittest.TestCase):
             "input_ids": {},
             "id": -1,
             'batch_size': None,
-            'computation_mode': 4,
+            'default_run_setting': {'computation_mode': 4},
             "train_if": os.path.join("folder", "test_train_if.pickle"),
             "module": "pywatts.core.step",
             "class": "Step",
@@ -209,7 +210,7 @@ class TestStep(unittest.TestCase):
             'batch_size': None,
             "target_ids": {},
             "input_ids": {2: 'x'},
-            'computation_mode': 3,
+            'default_run_setting': {'computation_mode': 3},
             "id": -1,
             "module": "pywatts.core.step",
             "class": "Step",
@@ -232,7 +233,7 @@ class TestStep(unittest.TestCase):
         self.assertEqual({'batch_size': None,
                           'callbacks': [],
                           'class': 'Step',
-                          'computation_mode': 4,
+                          'default_run_setting': {'computation_mode': 4},
                           'condition': None,
                           'id': -1,
                           'input_ids': {},
@@ -242,30 +243,30 @@ class TestStep(unittest.TestCase):
                           'target_ids': {},
                           'train_if': None}, json)
 
-    def test_set_computation_mode(self):
+    def test_set_run_setting(self):
         step = Step(MagicMock(), MagicMock(), MagicMock())
-        step.set_computation_mode(ComputationMode.FitTransform)
+        step.set_run_setting(RunSetting(ComputationMode.FitTransform))
 
-        assert step.computation_mode == ComputationMode.FitTransform
+        assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
 
-        step.set_computation_mode(ComputationMode.Transform)
-        assert step.computation_mode == ComputationMode.Transform
+        step.set_run_setting(RunSetting(ComputationMode.Transform))
+        assert step.current_run_setting.computation_mode == ComputationMode.Transform
 
     def test_set_computation_mode_specified(self):
         step = Step(MagicMock(), MagicMock(), MagicMock(), computation_mode=ComputationMode.FitTransform)
-        assert step.computation_mode == ComputationMode.FitTransform
+        assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
 
-        step.set_computation_mode(ComputationMode.Transform)
-        assert step.computation_mode == ComputationMode.FitTransform
+        step.set_run_setting(RunSetting(computation_mode=ComputationMode.Transform))
+        assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
 
     def test_reset(self):
         step = Step(MagicMock(), MagicMock(), MagicMock())
         step.buffer = MagicMock()
-        step.computation_mode = ComputationMode.Transform
+        step.current_run_setting = RunSetting(computation_mode=ComputationMode.Transform)
         step.finished = True
         step.reset()
 
         self.assertIsNone(None)
-        assert step.computation_mode == ComputationMode.Default
+        assert step.current_run_setting.computation_mode == ComputationMode.Default
         assert step._should_stop(None, None) == False
         assert step.finished == False

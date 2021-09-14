@@ -11,6 +11,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
+from pywatts.core.run_setting import RunSetting
 from pywatts.modules.missing_value_detection import MissingValueDetector
 from pywatts.modules.root_mean_squared_error import RmseCalculator
 from pywatts.summaries import RMSE
@@ -35,7 +36,7 @@ pipeline_json = {'id': 1,
                                          'normalize': False},
                               'sklearn_module': os.path.join('test_pipeline', 'LinearRegression.pickle')}],
                  'steps': [{'class': 'StartStep',
-                            'computation_mode': 4,
+                            'default_run_setting': {'computation_mode': 4},
                             'id': 1,
                             'index': 'input',
                             'input_ids': {},
@@ -46,7 +47,7 @@ pipeline_json = {'id': 1,
                            {'batch_size': None,
                             'callbacks': [],
                             'class': 'Step',
-                            'computation_mode': 4,
+                            'default_run_setting': {'computation_mode': 4},
                             'condition': None,
                             'id': 2,
                             'input_ids': {1: 'input'},
@@ -59,7 +60,7 @@ pipeline_json = {'id': 1,
                            {'batch_size': None,
                             'callbacks': [],
                             'class': 'Step',
-                            'computation_mode': 4,
+                            'default_run_setting': {'computation_mode': 4},
                             'condition': None,
                             'id': 3,
                             'input_ids': {2: 'x'},
@@ -221,7 +222,7 @@ class TestPipeline(unittest.TestCase):
             ['2015-06-03 00:00:00', '2015-06-03 01:00:00'])))
 
         for step in self.pipeline.id_to_step.values():
-            assert step.computation_mode == ComputationMode.FitTransform
+            assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
 
     @patch('pywatts.core.pipeline.FileManager')
     def test_add_pipeline_to_pipeline_and_test(self, fm_mock):
@@ -338,7 +339,7 @@ class TestPipeline(unittest.TestCase):
 
         # Assert that the computation is set to fit_transform if the ComputationMode was default
         first_step = MagicMock()
-        first_step.computation_mode = ComputationMode.Default
+        first_step.run_setting = RunSetting(ComputationMode.Default)
         first_step.finished = False
         first_step.further_elements.side_effect = [True, True, True, True, False]
 
@@ -350,7 +351,8 @@ class TestPipeline(unittest.TestCase):
                             index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=4)))
         self.pipeline.test(data)
 
-        first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
+        first_step.set_run_setting.assert_called_once()
+        self.assertEqual(first_step.set_run_setting.call_args[0][0].computation_mode, ComputationMode.Transform)
         calls = [
             call(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), pd.Timestamp('2000-01-02 00:00:00', freq='24H'),
                  return_all=True),
@@ -490,8 +492,10 @@ class TestPipeline(unittest.TestCase):
         second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
                                                        return_all=True)
 
-        first_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
-        second_step.set_computation_mode.assert_called_once_with(ComputationMode.Transform)
+        first_step.set_run_setting.assert_called_once()
+        self.assertEqual(first_step.set_run_setting.call_args[0][0].computation_mode, ComputationMode.Transform)
+        second_step.set_run_setting.assert_called_once()
+        self.assertEqual(second_step.set_run_setting.call_args[0][0].computation_mode, ComputationMode.Transform)
 
         first_step.reset.assert_called_once()
         second_step.reset.assert_called_once()
@@ -521,8 +525,11 @@ class TestPipeline(unittest.TestCase):
                             index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=5)))
         result, summary = self.pipeline.train(data, summary=True)
 
-        first_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
-        second_step.set_computation_mode.assert_called_once_with(ComputationMode.FitTransform)
+        first_step.set_run_setting.assert_called_once()
+        self.assertEqual(first_step.set_run_setting.call_args[0][0].computation_mode, ComputationMode.FitTransform)
+        second_step.set_run_setting.assert_called_once()
+        self.assertEqual(second_step.set_run_setting.call_args[0][0].computation_mode, ComputationMode.FitTransform)
+
         first_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
                                                       return_all=True)
         second_step.get_result.assert_called_once_with(pd.Timestamp('2000-01-01 00:00:00', freq='24H'), None,
@@ -536,7 +543,6 @@ class TestPipeline(unittest.TestCase):
     def test_horizon_greater_one_regression_inclusive_summary_file(self, open_mock):
         lin_reg = LinearRegression()
         self.fm_mock.get_path.return_value = "summary_path"
-
 
         multi_regressor = SKLearnWrapper(lin_reg)(foo=self.pipeline["foo"], target=self.pipeline["target"],
                                                   target2=self.pipeline["target2"])

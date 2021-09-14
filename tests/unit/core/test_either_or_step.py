@@ -37,13 +37,13 @@ class TestEitherOrStep(unittest.TestCase):
         params = {
             "target_ids": {},
             "input_ids": {2: "stepTwo", 1: "stepOne"},
-            'computation_mode': 4,
+            'default_run_setting': {'computation_mode': 4},
             "id": -1,
             "module": "pywatts.core.either_or_step",
             "class": "EitherOrStep",
             "name": "EitherOrStep",
             "last": False
         }
-        step = EitherOrStep.load(params, {"stepOne": self.step_one, "stepTwo":self.step_two}, None, None, None)
+        step = EitherOrStep.load(params, {"stepOne": self.step_one, "stepTwo": self.step_two}, None, None, None)
         json = step.get_json("file")
         self.assertEqual(params, json)

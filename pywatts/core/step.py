@@ -8,6 +8,7 @@ import xarray as xr
 from pywatts.callbacks import BaseCallback
 from pywatts.core.base import Base, BaseEstimator
 from pywatts.core.base_step import BaseStep
+from pywatts.core.run_setting import RunSetting
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.not_fitted_exception import NotFittedException
 from pywatts.core.filemanager import FileManager
@@ -108,9 +109,10 @@ class Step(BaseStep):
             callback.set_filemanager(file_manager)
             callbacks.append(callback)
 
-        step = cls(module, inputs, targets=targets, file_manager=file_manager,
-                   computation_mode=ComputationMode(stored_step["computation_mode"]), condition=condition,
+        step = cls(module, inputs, targets=targets, file_manager=file_manager, condition=condition,
                    train_if=train_if, callbacks=callbacks, batch_size=stored_step["batch_size"])
+        step.default_run_setting = RunSetting.load(stored_step["default_run_setting"])
+        step.current_run_setting = step.default_run_setting.clone()
         step.id = stored_step["id"]
         step.name = stored_step["name"]
         step.last = stored_step["last"]
@@ -120,7 +122,8 @@ class Step(BaseStep):
     def _compute(self, start, end):
         input_data = self._get_input(start, end)
         target = self._get_target(start, end)
-        if self.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform, ComputationMode.Train] and (
+        if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
+                                                         ComputationMode.Train] and (
                 not self.train_if or self.train_if(input_data, target)):
             # Fetch input_data and target data
             start_time = time.time()

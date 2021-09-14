@@ -11,7 +11,7 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, SVR
 
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+from pywatts.modules import SKLearnWrapper
 
 
 class TestSklearnWrapper(unittest.TestCase):

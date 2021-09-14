@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
-from pywatts.modules.rolling_rmse import RollingRMSE
+from pywatts.modules import RollingRMSE
 
 
 class TestRollingRMSE(unittest.TestCase):

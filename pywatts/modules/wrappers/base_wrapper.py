@@ -8,7 +8,7 @@ from pywatts.core.base import BaseEstimator
 
 class BaseWrapper(BaseEstimator, ABC):
     """
-    The base wrapper class, where all wrappers have to inherit from.
+    The base wrappers class, where all wrappers have to inherit from.
 
     :param name: Name of the module
     :type name: str

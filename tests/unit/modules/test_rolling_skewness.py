@@ -3,8 +3,7 @@ import unittest
 import pandas as pd
 import xarray as xr
 
-from pywatts.modules.rolling_base import RollingGroupBy
-from pywatts.modules.rolling_skewness import RollingSkewness
+from pywatts.modules import RollingGroupBy, RollingSkewness
 
 
 class TestRollingSkewness(unittest.TestCase):

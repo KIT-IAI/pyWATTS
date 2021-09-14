@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from pywatts.modules.rolling_metric_base import RollingMetricBase
+from pywatts.modules.metrics.rolling_metric_base import RollingMetricBase
 
 
 class RollingRMSE(RollingMetricBase):

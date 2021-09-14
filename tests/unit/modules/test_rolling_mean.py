@@ -3,8 +3,7 @@ import unittest
 import pandas as pd
 import xarray as xr
 
-from pywatts.modules.rolling_base import RollingGroupBy
-from pywatts.modules.rolling_mean import RollingMean
+from pywatts.modules import RollingGroupBy, RollingMean
 
 
 class TestRollingMean(unittest.TestCase):

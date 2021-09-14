@@ -5,7 +5,7 @@ import xarray as xr
 import pandas as pd
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
 
-from pywatts.modules.root_mean_squared_error import RmseCalculator
+from pywatts.modules import RmseCalculator
 import numpy as np
 
 

@@ -7,9 +7,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 
 from pywatts.core.pipeline import Pipeline
-from pywatts.modules.linear_interpolation import LinearInterpolater
-from pywatts.modules.root_mean_squared_error import RmseCalculator
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
+from pywatts.modules import LinearInterpolater, SKLearnWrapper
+from pywatts.summaries import RMSE
 
 FIXTURE_DIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -33,8 +32,8 @@ class TestSimplePipeline(unittest.TestCase):
         scaler = SKLearnWrapper(StandardScaler())(x=imputer_price)
         lin_regression = SKLearnWrapper(LinearRegression())(x=scaler, target1=imputer_price, target2=imputer_power_statistics)
 
-        RmseCalculator(name="Load")(y=imputer_power_statistics, pred=lin_regression["target2"])
-        RmseCalculator(name="Price")(y=imputer_price, pred=lin_regression["target1"])
+        RMSE(name="Load")(y=imputer_power_statistics, pred=lin_regression["target2"])
+        RMSE(name="Price")(y=imputer_price, pred=lin_regression["target1"])
         data = pd.read_csv(f"{FIXTURE_DIR}/getting_started_data.csv", index_col="time", sep=",", parse_dates=["time"],
                            infer_datetime_format=True)
         train = data[6000:]

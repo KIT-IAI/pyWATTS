@@ -10,12 +10,12 @@ from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import K
     KindOfTransform
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
-from pywatts.wrapper.base_wrapper import BaseWrapper
+from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 
 class SKLearnWrapper(BaseWrapper):
     """
-    A wrapper class for sklearn modules. Should only used internal by the pipeline itself
+    A wrappers class for sklearn modules. Should only used internal by the pipeline itself
     :param module: The sklearn module to wrap
     :type module: sklearn.base.BaseEstimator
     :param name: The name of the module

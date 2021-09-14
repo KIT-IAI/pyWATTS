@@ -1,4 +1,4 @@
-from pywatts.modules.rolling_base import RollingBase
+from pywatts.modules.feature_extraction.rolling_base import RollingBase
 
 
 class RollingVariance(RollingBase):

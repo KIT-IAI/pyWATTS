@@ -12,22 +12,20 @@ from pywatts.core.pipeline import Pipeline
 from pywatts.core.start_step import StartStep
 from pywatts.core.step import Step
 from pywatts.core.run_setting import RunSetting
-from pywatts.modules.missing_value_detection import MissingValueDetector
-from pywatts.modules.root_mean_squared_error import RmseCalculator
+from pywatts.modules import MissingValueDetector, SKLearnWrapper
 from pywatts.summaries import RMSE
-from pywatts.wrapper.sklearn_wrapper import SKLearnWrapper
 
 pipeline_json = {'id': 1,
                  'name': 'Pipeline',
                  'modules': [{'class': 'SKLearnWrapper',
                               'is_fitted': False,
-                              'module': 'pywatts.wrapper.sklearn_wrapper',
+                              'module': 'pywatts.modules.wrappers.sklearn_wrapper',
                               'name': 'StandardScaler',
                               'params': {'copy': True, 'with_mean': True, 'with_std': True},
                               'sklearn_module': os.path.join('test_pipeline', 'StandardScaler.pickle')},
                              {'class': 'SKLearnWrapper',
                               'is_fitted': False,
-                              'module': 'pywatts.wrapper.sklearn_wrapper',
+                              'module': 'pywatts.modules.wrappers.sklearn_wrapper',
                               'name': 'LinearRegression',
                               'params': {'copy_X': True,
                                          'fit_intercept': True,
@@ -149,7 +147,7 @@ class TestPipeline(unittest.TestCase):
         assert kwargs["obj"]["steps"] == pipeline_json["steps"]
 
     @patch('pywatts.core.pipeline.FileManager')
-    @patch('pywatts.wrapper.sklearn_wrapper.pickle')
+    @patch('pywatts.modules.sklearn_wrapper.pickle')
     @patch('pywatts.core.pipeline.json')
     @patch("builtins.open", new_callable=mock_open)
     @patch('pywatts.core.pipeline.os.path.isdir')

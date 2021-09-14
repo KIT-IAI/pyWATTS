@@ -2,10 +2,10 @@
 # Pylint cannot handle abstract subclasses of abstract base classes
 
 from abc import ABC
-from typing import Dict
 
 import xarray as xr
-from pywatts.wrapper.base_wrapper import BaseWrapper
+
+from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 
 class DlWrapper(BaseWrapper, ABC):
@@ -13,7 +13,7 @@ class DlWrapper(BaseWrapper, ABC):
     Super class for deep learning framework wrappers
 
     :param model: The deep learning model
-    :param name: The name of the wrapper
+    :param name: The name of the wrappers
     :type name: str
     :param fit_kwargs: The fit keyword arguments necessary for fitting the model
     :type fit_kwargs: dict

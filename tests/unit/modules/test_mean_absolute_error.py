@@ -5,7 +5,7 @@ import xarray as xr
 import pandas as pd
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
 
-from pywatts.modules.mean_absolute_error import MaeCalculator
+from pywatts.modules import MaeCalculator
 import numpy as np
 
 

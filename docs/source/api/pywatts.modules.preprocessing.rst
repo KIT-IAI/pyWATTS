@@ -44,18 +44,18 @@ pywatts.modules.preprocessing.missing\_value\_detection module
    :undoc-members:
    :show-inheritance:
 
-pywatts.modules.preprocessing.resample module
----------------------------------------------
+pywatts.modules.preprocessing.resampler module
+----------------------------------------------
 
-.. automodule:: pywatts.modules.preprocessing.resample
+.. automodule:: pywatts.modules.preprocessing.resampler
    :members:
    :undoc-members:
    :show-inheritance:
 
-pywatts.modules.preprocessing.sample\_module module
----------------------------------------------------
+pywatts.modules.preprocessing.sampler module
+--------------------------------------------
 
-.. automodule:: pywatts.modules.preprocessing.sample_module
+.. automodule:: pywatts.modules.preprocessing.sampler
    :members:
    :undoc-members:
    :show-inheritance:

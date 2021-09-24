@@ -6,7 +6,7 @@ from pywatts.modules.preprocessing.linear_interpolation import LinearInterpolate
 from pywatts.modules.preprocessing.missing_value_detection import MissingValueDetector
 from pywatts.modules.preprocessing.slicer import Slicer
 from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
-from pywatts.modules.preprocessing.resample import Resampler
+from pywatts.modules.preprocessing.resampler import Resampler
 from pywatts.modules.feature_extraction.rolling_mean import RollingMean
 from pywatts.modules.feature_extraction.rolling_kurtosis import RollingKurtosis
 from pywatts.modules.feature_extraction.rolling_skewness import RollingSkewness
@@ -15,7 +15,7 @@ from pywatts.modules.feature_extraction.rolling_base import RollingGroupBy
 from pywatts.modules.metrics.root_mean_squared_error import RmseCalculator
 from pywatts.modules.metrics.rolling_mae import RollingMAE
 from pywatts.modules.metrics.rolling_rmse import RollingRMSE
-from pywatts.modules.preprocessing.sample_module import Sampler
+from pywatts.modules.preprocessing.sampler import Sampler
 from pywatts.modules.feature_extraction.trend_extraction import TrendExtraction
 from pywatts.modules.metrics.rolling_mae import RollingMAE
 from pywatts.modules.metrics.mean_absolute_error import MaeCalculator

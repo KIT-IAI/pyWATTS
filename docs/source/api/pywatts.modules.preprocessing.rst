@@ -60,6 +60,14 @@ pywatts.modules.preprocessing.sampler module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.preprocessing.slicer module
+-------------------------------------------
+
+.. automodule:: pywatts.modules.preprocessing.slicer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

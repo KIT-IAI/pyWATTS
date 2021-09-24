@@ -48,9 +48,7 @@ class TestMAE(unittest.TestCase):
         np.testing.assert_equal(filter_mock.call_args[0][0], test_data["predictCol1"])
         np.testing.assert_equal(filter_mock.call_args[0][1], test_data["testCol"])
 
-        expected_result = f'  * pred1: {3/2 * 100}\n'
-
-        self.assertEqual(test_result, expected_result)
+        self.assertEqual(test_result.k_v, {"pred1": 3/2 * 100})
 
     def test_transform(self):
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
@@ -64,10 +62,9 @@ class TestMAE(unittest.TestCase):
         test_result = self.mape.transform(file_manager=MagicMock(), y=test_data['testCol'], gt=test_data['testCol'],
                                           pred1=test_data['predictCol1'],
                                           pred2=test_data['predictCol2'])
+        expected_result = {"gt": 0.0, "pred1": 3/2 * 100, "pred2": 23/8 * 100}
 
-        expected_result = f'  * gt: 0.0\n  * pred1: {3/2 * 100}\n  * pred2: {23/8 * 100}\n'
-
-        self.assertEqual(test_result, expected_result)
+        self.assertEqual(test_result.k_v, expected_result)
 
     def test_transform_without_predictions(self):
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',

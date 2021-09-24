@@ -10,6 +10,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.filemanager import FileManager
 from pywatts.core.run_setting import RunSetting
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts.core.summary_object import SummaryObjectList, SummaryCategory
 
 logger = logging.getLogger(__name__)
 
@@ -29,23 +30,23 @@ class BaseStep(ABC):
 
     def __init__(self, input_steps: Optional[Dict[str, "BaseStep"]] = None,
                  targets: Optional[Dict[str, "BaseStep"]] = None, condition=None,
-                 computation_mode=ComputationMode.Default):
+                 computation_mode=ComputationMode.Default, name="BaseStep"):
         self.default_run_setting = RunSetting(computation_mode=computation_mode)
         self.current_run_setting = self.default_run_setting.clone()
-
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
         self.cached_result = {"cached": None, "start": None, "end": None}
 
-        self.name = "BaseStep"
+        self.name = name
 
         self.id = -1
         self.finished = False
         self.last = True
         self._current_end = None
         self.buffer: Dict[str, xr.DataArray] = {}
-        self.training_time = None
+        self.training_time = SummaryObjectList(self.name + " Training Time", category=SummaryCategory.FitTime)
+        self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
                    return_all=False):

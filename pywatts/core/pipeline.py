@@ -24,6 +24,7 @@ from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.summary_step import SummaryStep
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts.core.summary_formatter import SummaryMarkdown, SummaryJSON, SummaryFormatter
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
                     level=logging.ERROR)
@@ -149,7 +150,8 @@ class Pipeline(BaseTransformer):
 
         # TODO built the graph which should be drawn by starting with the last steps...
 
-    def test(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False):
+    def test(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False,
+             summary_formatter: SummaryFormatter = SummaryMarkdown()):
         """
         Executes all modules in the pipeline in the correct order. This method call only transform on every module
         if the ComputationMode is Default. I.e. if no computationMode is specified during the addition of the module to
@@ -157,12 +159,17 @@ class Pipeline(BaseTransformer):
 
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
+        :param summary: A flag indicating if an additional summary should be returned or not.
+        :type summary: bool
+        :param summary_formatter: Determines the format of the summary.
+        :type summary_formatter: SummaryFormatter
         :return: The result of all end points of the pipeline
         :rtype: Dict[xr.DataArray]
         """
-        return self._run(data, ComputationMode.Transform, summary)
+        return self._run(data, ComputationMode.Transform, summary, summary_formatter)
 
-    def train(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False):
+    def train(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False,
+              summary_formatter: SummaryFormatter = SummaryMarkdown()):
         """
         Executes all modules in the pipeline in the correct order. This method calls fit and transform on each module
         if the ComputationMode is Default. I.e. if no computationMode is specified during the addition of the module to
@@ -170,29 +177,30 @@ class Pipeline(BaseTransformer):
 
         :param data: dataset which should be processed by the data
         :type path: Union[pd.DataFrame, xr.Dataset]
+        :param summary: A flag indicating if an additional summary should be returned or not.
+        :type summary: bool
+        :param summary_formatter: Determines the format of the summary.
+        :type summary_formatter: SummaryFormatter
         :return: The result of all end points of the pipeline
         :rtype: Dict[xr.DataArray]
         """
 
-        return self._run(data, ComputationMode.FitTransform, summary)
+        return self._run(data, ComputationMode.FitTransform, summary, summary_formatter)
 
-    def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode, summary: bool):
+    def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode, summary: bool,
+             summary_formatter: SummaryFormatter):
 
         for step in self.id_to_step.values():
             step.reset()
-            step.set_run_setting(RunSetting(computation_mode=mode))
+            step.set_run_setting(RunSetting(computation_mode=mode, summary_formatter=summary_formatter))
 
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
 
         if isinstance(data, xr.Dataset):
-            if summary:
-                return self.transform(**{key: data[key] for key in data.data_vars}), self.create_summary()
-            else:
-                result = self.transform(**data)
-                self.create_summary()
-                return result
-
+            result = self.transform(**{key: data[key] for key in data.data_vars})
+            sum = self._create_summary(summary_formatter)
+            return (result, sum) if sum else result
         elif isinstance(data, dict):
             for key in data:
                 if not isinstance(data[key], xr.DataArray):
@@ -201,12 +209,9 @@ class Pipeline(BaseTransformer):
                         "Make sure to pass Dict[str, xr.DataArray].",
                         self.name
                     )
-            if summary:
-                return self.transform(**data), self.create_summary()
-            else:
-                result = self.transform(**data)
-                self.create_summary()
-                return result
+            result = self.transform(**data)
+            sum = self._create_summary(summary_formatter)
+            return (result, sum) if sum else result
 
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",
@@ -407,16 +412,10 @@ class Pipeline(BaseTransformer):
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
         return self.start_steps[item][-1]
 
-    def create_summary(self):
-        summary = "# Summary steps\n"
-        for step in filter(lambda step: isinstance(step, SummaryStep), self.id_to_step.values()):
-            assert isinstance(step, SummaryStep)
-            summary += "#" + step.name + "\n" + step.get_summary() + "\n"
-
-        summary += "# Training Time\n"
+    def _create_summary(self, summary_formatter):
+        summaries = []
         for step in self.id_to_step.values():
-            summary += f"  * {step.name}: {step.training_time}\n"
-
-        with open(self.file_manager.get_path("summary.md"), "w") as file:
-            file.write(summary)
-        return summary
+            if isinstance(step, SummaryStep):
+                summaries.append(step.get_summary())
+            summaries.extend([step.transform_time, step.training_time])
+        return summary_formatter.create_summary(summaries, self.file_manager)

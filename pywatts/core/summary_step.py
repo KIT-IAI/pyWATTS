@@ -1,9 +1,9 @@
 import logging
 from typing import Dict
 
-from pywatts.core.base import Base
 from pywatts.core.base_step import BaseStep
 from pywatts.core.base_summary import BaseSummary
+from pywatts.core.summary_object import SummaryObject
 from pywatts.core.filemanager import FileManager
 from pywatts.core.step import Step
 
@@ -27,7 +27,7 @@ class SummaryStep(Step):
         super().__init__(module, input_steps, file_manager)
         self.name = module.name
         self.file_manager = file_manager
-        self.module = module
+        self.module: BaseSummary = module
 
     def _transform(self, input_step):
         return self.module.transform(file_manager=self.file_manager, **input_step)
@@ -60,7 +60,7 @@ class SummaryStep(Step):
             "name": self.name,
         }
 
-    def get_summary(self) -> str:
+    def get_summary(self) -> SummaryObject:
         """
         Calculates a summary for the input data.
         :return: The summary as markdown formatted string

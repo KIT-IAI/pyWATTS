@@ -33,7 +33,7 @@ class FunctionModule(BaseEstimator):
 
     def get_params(self) -> Dict[str, object]:
         """
-        Returns an empty dictionary, since this wrapper does not contain any parameters
+        Returns an empty dictionary, since this wrappers does not contain any parameters
 
         :return: Empty dictionary
         :rtype: dict

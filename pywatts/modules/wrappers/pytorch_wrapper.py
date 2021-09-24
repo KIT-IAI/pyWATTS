@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import numpy_to_xarray, xarray_to_numpy
-from pywatts.wrapper.dl_wrapper import DlWrapper
+from pywatts.modules.wrappers.dl_wrapper import DlWrapper
 
 
 class TimeSeriesDataset(Dataset):
@@ -30,7 +30,7 @@ class PyTorchWrapper(DlWrapper):
 
     :param model: The pytorch model
     :type model: torch.nn.Module,
-    :param name: The name of the wrapper
+    :param name: The name of the wrappers
     :type name: str
     :param fit_kwargs: Key word arguments used for fitting the model.
     :type fit_kwargs: Optional[Dict]
@@ -133,7 +133,7 @@ class PyTorchWrapper(DlWrapper):
 
     def save(self, fm: FileManager):
         """
-        Saves the pytorch wrapper and the containing model
+        Saves the pytorch wrappers and the containing model
         :param fm: Filemanager for getting the path
         :type fm: FileManager
         :return: Dictionary with additional information
@@ -157,9 +157,9 @@ class PyTorchWrapper(DlWrapper):
         """
         Method for restoring a pytorch Wrapper.
 
-        :param load_information: Dict which contains the information for restoring the wrapper
+        :param load_information: Dict which contains the information for restoring the wrappers
         :type load_information: Dict
-        :return: The restored wrapper
+        :return: The restored wrappers
         :rtype: PyTorchWrapper
         """
         name = load_information["name"]
@@ -185,7 +185,7 @@ class PyTorchWrapper(DlWrapper):
 
     def set_params(self, fit_kwargs=None, loss_fn=None, optimizer=None):
         """
-        Set the parameters of the deep learning wrapper
+        Set the parameters of the deep learning wrappers
         :param fit_kwargs: keyword arguments for the fit method.
         :param compile_kwargs: keyword arguments for the compile methods.
         """

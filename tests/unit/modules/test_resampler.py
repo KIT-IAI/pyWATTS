@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.modules.resample import Resampler
+from pywatts.modules import Resampler
 
 
 class TestResampler(unittest.TestCase):

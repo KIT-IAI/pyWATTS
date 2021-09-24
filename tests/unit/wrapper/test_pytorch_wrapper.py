@@ -1,13 +1,10 @@
 import unittest
 
-import pytest
-import xarray as xr
 import pandas as pd
 import torch
+import xarray as xr
 
-from sklearn.preprocessing import StandardScaler
-
-from pywatts.wrapper.pytorch_wrapper import PyTorchWrapper
+from pywatts.modules import PyTorchWrapper
 
 
 class TestPyTorchWrapper(unittest.TestCase):

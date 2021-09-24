@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.modules.profile_neural_network import ProfileNeuralNetwork, _sum_squared_error, _root_mean_squared_error
-from pywatts.wrapper.keras_wrapper import KerasWrapper
+from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork, _sum_squared_error, _root_mean_squared_error
+from pywatts.modules import KerasWrapper
 
 
 class TestPNN(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestPNN(unittest.TestCase):
     def tearDown(self) -> None:
         self.pnn: Optional[KerasWrapper] = None
 
-    @patch("pywatts.modules.profile_neural_network._PNN")
+    @patch("pywatts.modules.models.profile_neural_network._PNN")
     def test_fit(self, pnn_model):
         keras_pnn = MagicMock()
         pnn_model.return_value = keras_pnn
@@ -58,7 +58,7 @@ class TestPNN(unittest.TestCase):
         self.assertEqual(pnn_model(), self.pnn.pnn)
         self.assertEqual(self.pnn.horizon, 2)
 
-    @patch("pywatts.modules.profile_neural_network.numpy_to_xarray")
+    @patch("pywatts.modules.models.profile_neural_network.numpy_to_xarray")
     def test_transform(self, np2xr_mock):
         keras_pnn = MagicMock()
         keras_result_mock = MagicMock()
@@ -129,7 +129,7 @@ class TestPNN(unittest.TestCase):
             'class': 'ProfileNeuralNetwork',
             'is_fitted': True,
             'pnn': os.path.join("new_path", "to_somewhere", "pnn.h5"),
-            'module': 'pywatts.modules.profile_neural_network',
+            'module': 'pywatts.modules.models.profile_neural_network',
             'name': 'PNN',
             'params': {'epochs': 50, "offset": 0, "validation_split": 0.2, "batch_size": 128}}, json)
 
@@ -142,17 +142,17 @@ class TestPNN(unittest.TestCase):
         self.assertEqual({
             'class': 'ProfileNeuralNetwork',
             'is_fitted': False,
-            'module': 'pywatts.modules.profile_neural_network',
+            'module': 'pywatts.modules.models.profile_neural_network',
             'name': 'PNN',
             'params': {'epochs': 50, "offset": 0, "validation_split": 0.2, "batch_size": 128}}, json)
 
-    @patch('pywatts.modules.profile_neural_network.keras.models.load_model')
+    @patch('pywatts.modules.models.profile_neural_network.keras.models.load_model')
     def test_load_if_fitted(self, load_model_mock):
         new_pnn_mock = MagicMock()
         load_model_mock.return_value = new_pnn_mock
         pnn = ProfileNeuralNetwork.load({'class': 'ProfileNeuralNetwork',
                                          'is_fitted': True,
-                                         'module': 'pywatts.modules.profile_neural_network',
+                                         'module': 'pywatts.modules.models.profile_neural_network',
                                          'name': 'PNN',
                                          'params': {'batch_size': 128,
                                                     'epochs': 50,
@@ -172,7 +172,7 @@ class TestPNN(unittest.TestCase):
                           'offset': 0,
                           'validation_split': 0.2})
 
-    @patch('pywatts.modules.profile_neural_network.keras.models.load_model')
+    @patch('pywatts.modules.models.profile_neural_network.keras.models.load_model')
     def test_load_if_not_fitted(self, load_model_mock):
         pnn = ProfileNeuralNetwork.load({'class': 'ProfileNeuralNetwork',
                                          'is_fitted': False,

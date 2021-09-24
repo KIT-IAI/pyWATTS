@@ -1,16 +1,16 @@
-from pywatts.modules.rolling_base import RollingBase
+from pywatts.modules.feature_extraction.rolling_base import RollingBase
 
 
-class RollingVariance(RollingBase):
+class RollingMean(RollingBase):
     """
-     Module which calculates a rolling variance over a specific window size. Note, currently the smallest resolution of
-     the generated profile is one minute.
+     Module which calculates a rolling mean over a specific window size. Note, currently the smallest resolution of the
+     generated profile is one minute.
 
      For the documentation of the methods see :class:`pywatts.modules.rolling_base.RollingBase`.
 
      :param name: Name of the new variable
      :type name: str
-     :param window_size: Window size for which to calculate the variance
+     :param window_size: Window size for which to calculate the mean
      :type window_size: int
      :param window_size_unit: Unit of the window size (default: "d" [day])
      :type window_size_unit: str
@@ -26,4 +26,4 @@ class RollingVariance(RollingBase):
     """
 
     def _get_rolling(self, df):
-        return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).var()
+        return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).mean()

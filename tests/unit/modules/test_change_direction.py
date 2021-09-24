@@ -1,6 +1,6 @@
 import unittest
 
-from pywatts.modules.change_direction import ChangeDirection
+from pywatts.modules import ChangeDirection
 import pandas as pd
 import xarray as xr
 import numpy as np

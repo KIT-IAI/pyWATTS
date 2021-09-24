@@ -1,13 +1,9 @@
 import unittest
 
 import pandas as pd
-import pytest
 import xarray as xr
-import numpy as np
 
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.modules.rolling_base import RollingGroupBy
-from pywatts.modules.rolling_variance import RollingVariance
+from pywatts.modules import RollingGroupBy, RollingVariance
 
 
 class TestRollingVariance(unittest.TestCase):

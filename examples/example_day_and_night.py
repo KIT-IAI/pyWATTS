@@ -14,9 +14,7 @@ from sklearn.svm import SVR
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
-from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
-from pywatts.modules.rolling_rmse import RollingRMSE
-from pywatts.wrapper import SKLearnWrapper
+from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper
 
 
 # The condition function. It returns True during daytime.

@@ -3,7 +3,7 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 
-from pywatts.modules.missing_value_detection import MissingValueDetector
+from pywatts.modules import MissingValueDetector
 
 
 class TestMissingValueDetector(unittest.TestCase):

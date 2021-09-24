@@ -45,9 +45,7 @@ In the following, we implement one step ahead forecast, based on the last two va
     from pywatts.core.computation_mode import ComputationMode
     from pywatts.core.pipeline import Pipeline
     from pywatts.callbacks import CSVCallback, LinePlotCallback
-    from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator
-    from pywatts.wrapper import SKLearnWrapper
-
+    from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator, SKLearnWrapper
 
 2. We create a condition function for distinguishing between day time and night time. This
    condition function returns true, if the time is between 8am and 8pm (daytime)

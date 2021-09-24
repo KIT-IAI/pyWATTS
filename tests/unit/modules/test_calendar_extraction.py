@@ -5,7 +5,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.modules.calendar_extraction import CalendarExtraction, CalendarFeature
+from pywatts.modules import CalendarExtraction, CalendarFeature
 
 
 class TestCalendarExtraction(unittest.TestCase):

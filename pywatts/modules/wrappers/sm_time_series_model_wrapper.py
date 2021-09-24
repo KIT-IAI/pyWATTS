@@ -9,7 +9,7 @@ from statsmodels.tsa.base.tsa_model import TimeSeriesModel
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes, numpy_to_xarray
-from pywatts.wrapper.base_wrapper import BaseWrapper
+from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 
 class SmTimeSeriesModelWrapper(BaseWrapper):
@@ -60,7 +60,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
 
     def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None):
         """
-        Set the parameters of the statsmodels wrapper
+        Set the parameters of the statsmodels wrappers
 
         :param module_kwargs: keyword arguments for the statsmodel module.
         :type module_kwargs: Dict
@@ -128,7 +128,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
 
     def save(self, fm: FileManager):
         """
-        Saves the statsmodels wrapper and the containing model
+        Saves the statsmodels wrappers and the containing model
 
         :param fm: FileManager for getting the path
         :type fm: FileManager
@@ -149,7 +149,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
     @classmethod
     def load(cls, load_information) -> 'SmTimeSeriesModelWrapper':
         """
-        Loads a statsmodels wrapper
+        Loads a statsmodels wrappers
 
         :param load_information: Information for reloading the StatsmodelsWrapper
         :type load_information: Dict

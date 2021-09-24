@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
-from pywatts.modules.rolling_mae import RollingMAE
+from pywatts.modules import RollingMAE
 
 
 class TestRollingMAE(unittest.TestCase):

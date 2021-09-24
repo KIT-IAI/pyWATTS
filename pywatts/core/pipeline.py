@@ -245,7 +245,7 @@ class Pipeline(BaseTransformer):
 
     def _register_step(self, step) -> int:
         """
-        Registers the module in the pipeline and inits the wrapper as well as the id.
+        Registers the module in the pipeline and inits the wrappers as well as the id.
 
         :param step: the step to be registered
         :return:

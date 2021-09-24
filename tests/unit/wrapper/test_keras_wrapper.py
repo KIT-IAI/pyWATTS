@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.wrapper.keras_wrapper import KerasWrapper
+from pywatts.modules import KerasWrapper
 
 stored_model = {
     "aux_models": [
@@ -22,7 +22,7 @@ stored_model = {
     ],
     "class": "KerasWrapper",
     "model": os.path.join("pipe1", "SimpleAE_4.h5"),
-    "module": "pywatts.wrapper.keras_wrapper",
+    "module": "pywatts.wrappers.keras_wrapper",
     "name": "SimpleAE",
     'is_fitted': False,
     "params": {
@@ -161,13 +161,13 @@ class TestKerasWrapper(unittest.TestCase):
                                 'class': 'KerasWrapper',
                                 'is_fitted': False,
                                 'model': os.path.join("new_path", "to_somewhere", "KerasWrapper.h5"),
-                                'module': 'pywatts.wrapper.keras_wrapper',
+                                'module': 'pywatts.modules.wrappers.keras_wrapper',
                                 'name': 'KerasWrapper',
                                 'params': {'compile_kwargs': {"test": "arg1"}, 'fit_kwargs': {"42": 24}},
                                 "targets":[]
                                 })
 
-    @patch('pywatts.wrapper.keras_wrapper.tf.keras.models.load_model')
+    @patch('pywatts.modules.wrappers.keras_wrapper.tf.keras.models.load_model')
     def test_load(self, load_model_mock):
         new_keras_mock = MagicMock()
         load_model_mock.return_value = new_keras_mock

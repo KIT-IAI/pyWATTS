@@ -3,7 +3,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.modules.sample_module import Sampler
+from pywatts.modules import Sampler
 
 
 class TestSampler(unittest.TestCase):

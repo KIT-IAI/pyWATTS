@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-from pywatts.wrapper import FunctionModule
+from pywatts.modules import FunctionModule
 
 
 class TestFunctionModule(unittest.TestCase):
@@ -35,7 +35,7 @@ class TestFunctionModule(unittest.TestCase):
         self.fit_function.assert_called_once_with(input_data=data_mock)
         self.transform_function.assert_called_once_with(input_data=data_mock)
 
-    @patch('pywatts.wrapper.function_module.cloudpickle')
+    @patch('pywatts.modules.wrappers.function_module.cloudpickle')
     @patch("builtins.open")
     def test_save(self, open_mock, cloudpickle_mock):
         fm_mock = MagicMock()
@@ -48,11 +48,11 @@ class TestFunctionModule(unittest.TestCase):
             "is_fitted": True,
             "name": "FunctionModule",
             "class": "FunctionModule",
-            "module": "pywatts.wrapper.function_module",
+            "module": "pywatts.modules.wrappers.function_module",
             "pickled_module": os.path.join("testpath", "FunctionModule.pickle")
         })
 
-    @patch('pywatts.wrapper.function_module.cloudpickle')
+    @patch('pywatts.modules.wrappers.function_module.cloudpickle')
     @patch("builtins.open")
     def test_load(self, open_mock, cloudpickle_mock):
         self.transform_module.load({

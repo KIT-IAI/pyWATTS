@@ -10,7 +10,7 @@ from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import K
     KindOfTransform
 from pywatts.core.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
-from pywatts.utils._xarray_time_series_utils import _get_time_indeces
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 
@@ -81,7 +81,7 @@ class SKLearnWrapper(BaseWrapper):
     @staticmethod
     def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
         reference = kwargs[list(kwargs)[0]]
-        time_index = reference.indexes[_get_time_indeces(reference)[0]]
+        time_index = reference.indexes[_get_time_indexes(reference)[0]]
         if len(targets) == 0:
             coords = (
                 # first dimension is number of batches. We assume that this is the time.

@@ -132,6 +132,14 @@ pywatts.modules.sample\_module module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.slicer module
+-----------------------------
+
+.. automodule:: pywatts.modules.slicer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.trend\_extraction module
 ----------------------------------------
 

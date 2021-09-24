@@ -20,6 +20,7 @@
 * Add Min amd Max as new summaries ([#105](https://github.com/KIT-IAI/pyWATTS/issues/105))
 * Add MAPE as new summary ([#104](https://github.com/KIT-IAI/pyWATTS/issues/104))
 * Add a RunSetting for setting run specific settings in the steps ([#150](https://github.com/KIT-IAI/pyWATTS/issues/150))
+* Add Slicer to slice data in a numpy like manner, i.e. a[start:end] ([#152](https://github.com/KIT-IAI/pyWATTS/issues/152))
 
 ### Changed
 * Remove parameter step.stop. Instead we call the method _should_stop on the previous steps. ([#25](https://github.com/KIT-IAI/pyWATTS/issues/25))

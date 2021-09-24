@@ -13,4 +13,5 @@ from pywatts.modules.rolling_variance import RollingVariance
 from pywatts.modules.rolling_base import RollingGroupBy
 from pywatts.modules.root_mean_squared_error import RmseCalculator
 from pywatts.modules.sample_module import Sampler
+from pywatts.modules.slicer import Slicer
 from pywatts.modules.trend_extraction import TrendExtraction

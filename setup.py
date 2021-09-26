@@ -5,12 +5,12 @@ setuptools.setup(
     version="0.1.0",
     packages=setuptools.find_packages(),
 
-    install_requires=['scikit-learn', 'cloudpickle', 'holidays', 'xarray', 'numpy', 'pandas', 'matplotlib',
-                      'tensorflow', 'workalendar',  'statsmodels', 'tabulate'],
+    install_requires=['scikit-learn < 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
+                      'tensorflow>=2', 'workalendar',  'statsmodels', 'tabulate'],
     extras_require={
         'dev': [
             "pytest",
-            "sphinx",
+            "sphinx>=4",
             "pylint",
             "pytest-cov"
         ]

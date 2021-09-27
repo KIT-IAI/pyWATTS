@@ -1,15 +1,16 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple, Dict, Optional
+from typing import Callable, Tuple, Dict, Optional, List
 
 import cloudpickle
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base_summary import BaseSummary
-from pywatts.core.summary_object import SummaryObject, SummaryObjectList
 from pywatts.core.exceptions import InputNotAvailable
 from pywatts.core.filemanager import FileManager
+from pywatts.core.summary_object import SummaryObjectList
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +29,15 @@ class MetricBase(BaseSummary, ABC):
     def __init__(self,
                  name: str = None,
                  filter_method: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]] = None,
-                 offset: int = 0):
+                 offset: int = 0,
+                 cuts: List[Tuple[pd.Timestamp, pd.Timestamp]] = None):
         super().__init__(name if name is not None else self.__class__.__name__)
         self.offset = offset
         self.filter_method = filter_method
+        if cuts is None:
+            self.cuts = []
+        else:
+            self.cuts = cuts
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -74,6 +80,17 @@ class MetricBase(BaseSummary, ABC):
             logger.error(error_message)
             raise InputNotAvailable(error_message)
 
+        y_ = y[self.offset:]
+        kwargs_ = {key: value[self.offset:] for key, value in kwargs.items()}
+        self._transform({key: value for key, value in kwargs_.items()}, ": complete", summary, y_)
+        for start, end in self.cuts:
+            _kwargs = {key: value.loc[start:end] for key, value in kwargs_.items()}
+            if not len(y_.loc[start:end].values) == 0:
+                self._transform(_kwargs, f": Cut from {start} to {end}", summary, y_.loc[start:end].values)
+
+        return summary
+
+    def _transform(self, kwargs, suffix, summary, t):
         for key, y_hat in kwargs.items():
             p = y_hat.values
             if self.filter_method:

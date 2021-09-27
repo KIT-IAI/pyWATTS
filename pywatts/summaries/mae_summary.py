@@ -20,4 +20,4 @@ class MAE(MetricBase):
 
 
     def _apply_metric(self, p, t):
-        return np.mean(np.abs((p[self.offset:] - t[self.offset:])))
+        return np.mean(np.abs((p - t)))

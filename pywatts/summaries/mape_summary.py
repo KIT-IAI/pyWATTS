@@ -20,5 +20,6 @@ class MAPE(MetricBase):
 
 
     def _apply_metric(self, p, t):
+        # TODO check
         non_zero_indexes = t.nonzero()[0][t.nonzero()[0] >= self.offset]
         return 100 * np.mean(np.abs((p[non_zero_indexes] - t[non_zero_indexes]) / t[non_zero_indexes]))

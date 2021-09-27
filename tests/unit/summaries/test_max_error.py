@@ -48,7 +48,7 @@ class TestMaxErr(unittest.TestCase):
         np.testing.assert_equal(filter_mock.call_args[0][0], test_data["predictCol1"])
         np.testing.assert_equal(filter_mock.call_args[0][1], test_data["testCol"])
 
-        expected_result = {"pred1": 4}
+        expected_result = {'pred1: complete': 4}
 
         self.assertEqual(test_result.k_v, expected_result)
 
@@ -65,7 +65,7 @@ class TestMaxErr(unittest.TestCase):
                                              pred1=test_data['predictCol1'],
                                              pred2=test_data['predictCol2'])
 
-        expected_result = {"gt": 0, "pred1": 4, "pred2": 6}
+        expected_result = {'gt: complete': 0, 'pred1: complete': 4, 'pred2: complete': 6}
 
         self.assertEqual(test_result.k_v, expected_result)
 

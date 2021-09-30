@@ -25,8 +25,8 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: MIT License"
         "Topic :: Software Development :: Libraries",
-        "Natural Language :: English"
-        "Operating System :: OS Independent"
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
 
     ],
     description="A python time series pipelining project",

@@ -1,5 +1,5 @@
-from pywatts.modules.feature_extraction.rolling_base import RollingBase
-
+from pywatts.modules.feature_extraction.rolling_base import RollingBase, RollingGroupBy
+import pandas as pd
 
 class RollingVariance(RollingBase):
     """
@@ -25,5 +25,16 @@ class RollingVariance(RollingBase):
      :type closed: str
     """
 
+    def __init__(self, name: str = "RollingVar", window_size=24 * 7, window_size_unit="d",
+                 group_by: RollingGroupBy = RollingGroupBy.No, continent: str = "Europe",
+                 country: str = "Germany", closed="left", alpha=None):
+        super().__init__(name=name, window_size=window_size, window_size_unit=window_size_unit, group_by=group_by,
+                         continent=continent, country=country, closed=closed)
+        self.alpha = alpha
+
     def _get_rolling(self, df):
-        return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).var()
+        if self.alpha:
+            ewm = lambda x: pd.Series(x).ewm(alpha=self.alpha).var().iloc[-1]
+            return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).apply(ewm)
+        else:
+            return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).var()

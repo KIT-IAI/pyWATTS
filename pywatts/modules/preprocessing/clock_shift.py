@@ -7,7 +7,8 @@ import xarray as xr
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
-
+import pandas as pd
+import numpy as np
 
 class ClockShift(BaseTransformer):
     """
@@ -39,6 +40,10 @@ class ClockShift(BaseTransformer):
             "lag": self.lag,
             "indexes": self.indexes
         }
+
+    def get_min_data(self):
+        # TODO hacky probably should be either Timeldeta or int
+        return pd.Timedelta(f"{np.abs(self.lag)}h")
 
     def set_params(self, lag: int = None, indexes: List[str] = None):
         """

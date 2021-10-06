@@ -36,6 +36,7 @@ class Base(ABC):
         self.has_predict_proba = False
         # TODO each module needs a function for returning how much past values it needs for executing the transformation.
         #      SEE Issue 147
+
     @abstractmethod
     def get_params(self) -> Dict[str, object]:
         """
@@ -138,6 +139,10 @@ class Base(ABC):
         :param kwargs: key word arguments as input. If the key word starts with target, then it is a target variable.
         """
         return self.fit(**kwargs)
+
+    def get_min_data(self):
+        # TODO hacky solution
+        return pd.Timedelta("0h")
 
     def __call__(self,
                  use_inverse_transform: bool = False,

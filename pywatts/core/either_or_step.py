@@ -16,7 +16,7 @@ class EitherOrStep(BaseStep):
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)
-        return self._transform(input_data)
+        return self._transform(input_data, start, end)
 
     def _get_input(self, start, batch):
         inputs = []

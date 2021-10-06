@@ -49,6 +49,12 @@ class BaseStep(ABC):
         self.buffer: Dict[str, xr.DataArray] = {}
         self.training_time = SummaryObjectList(self.name + " Training Time", category=SummaryCategory.FitTime)
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
+        self.refit_time = SummaryObjectList(self.name + " Refit Time", category=SummaryCategory.RefitTime)
+        self.additional_summary = SummaryObjectList(self.name + " Additional Information",
+                                                    category=SummaryCategory.AdditionalModuleInformation)
+
+    def get_summaries(self):
+        return [self.transform_time, self.transform_time, self.refit_time]
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
                    return_all=False):
@@ -91,8 +97,10 @@ class BaseStep(ABC):
         # Check if the cached results fits to the request, if yes return it.
         if self.cached_result["cached"] is not None and self.cached_result["start"] == start and self.cached_result[
             "end"] == end:
-            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(self.cached_result["cached"][
-                    buffer_element]) if buffer_element is not None else copy.deepcopy(list(self.cached_result["cached"].values())[
+            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(
+                self.cached_result["cached"][
+                    buffer_element]) if buffer_element is not None else copy.deepcopy(
+                list(self.cached_result["cached"].values())[
                     0])
         return self._pack_data(start, end, buffer_element, return_all=return_all)
 
@@ -121,6 +129,7 @@ class BaseStep(ABC):
 
     def _pack_data(self, start, end, buffer_element=None, return_all=False):
         # Provide requested data
+        # TODO Refactor
         time_index = _get_time_indexes(self.buffer)
         if end and start and end > start:
             index = list(self.buffer.values())[0].indexes[time_index[0]]
@@ -135,6 +144,19 @@ class BaseStep(ABC):
             else:
                 return list(self.buffer.values())[0].sel(
                     **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
+        elif start and end is None:
+            index = list(self.buffer.values())[0].indexes[time_index[0]]
+            start = max(index[0], start.to_numpy())
+            # After sel copy is not needed, since it returns a new array.
+            if buffer_element is not None:
+                return self.buffer[buffer_element].sel(
+                    **{time_index[0]: index[(index >= start)]})
+            elif return_all:
+                return {key: b.sel(**{time_index[0]: index[(index >= start)]}) for
+                        key, b in self.buffer.items()}
+            else:
+                return list(self.buffer.values())[0].sel(
+                    **{time_index[0]: index[(index >= start)]})
         else:
             self.finished = True
             if buffer_element is not None:
@@ -143,6 +165,9 @@ class BaseStep(ABC):
                 return copy.deepcopy(self.buffer)
             else:
                 return list(self.buffer.values())[0].copy()
+
+    def create_summary(self):
+        pass
 
     def _transform(self, input_step):
         pass
@@ -163,7 +188,8 @@ class BaseStep(ABC):
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indexes(result)[0]
             for key in self.buffer.keys():
-                self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
+                last = self.buffer[key][dim].values[-1]
+                self.buffer[key] = xr.concat([self.buffer[key], result[key][result[key][dim] > last]], dim=dim)
         return result
 
     def get_json(self, fm: FileManager) -> Dict:
@@ -225,11 +251,12 @@ class BaseStep(ABC):
     def _input_stopped(input_data):
         return (input_data is not None and len(input_data) > 0 and any(map(lambda x: x is None, input_data.values())))
 
-    def reset(self):
+    def reset(self, keep_buffer=False):
         """
         Resets all information of the step concerning a specific run.
         """
-        self.buffer = {}
+        if not keep_buffer:
+            self.buffer = {}
         self.finished = False
         self.current_run_setting = self.default_run_setting.clone()
 

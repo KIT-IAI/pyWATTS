@@ -67,7 +67,7 @@ class Step(BaseStep):
         self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
-        if self.computation_mode not in [ComputationMode.Refit] and refit_condition is not None:
+        if self.current_run_setting.computation_mode not in [ComputationMode.Refit] and refit_condition is not None:
             message = "You added a refit_condition without setting the computation_mode to refit." \
                       " The conditoin will be ignored."
             warnings.warn(message)
@@ -84,13 +84,15 @@ class Step(BaseStep):
     def _callbacks(self):
         # plots and writs the data if the step is finished.
         for callback in self.callbacks:
+            dim = _get_time_indexes(self.buffer)[0]
+
+            to_plot = self.buffer
+            if self.current_run_setting.online_start is not None:
+                to_plot = {k: self.buffer[k][self.buffer[k][dim] >= self.current_run_setting.online_start] for k in
+                           self.buffer.keys()}
             if isinstance(callback, BaseCallback):
                 callback.set_filemanager(self.file_manager)
-            if isinstance(self.buffer, xr.DataArray) or isinstance(self.buffer, xr.Dataset):
-                # DEPRECATED: direct DataArray or Dataset passing is depricated
-                callback({"deprecated": self.buffer})
-            else:
-                callback(self.buffer)
+            callback(to_plot)
 
     def _transform(self, input_step):
         if isinstance(self.module, BaseEstimator) and not self.module.is_fitted:
@@ -139,9 +141,11 @@ class Step(BaseStep):
         return step
 
     def refit(self, start: pd.Timestamp, end: pd.Timestamp):
-        if self.computation_mode in [ComputationMode.Refit] and isinstance(self.module, BaseEstimator):
+        if self.current_run_setting.computation_mode in [ComputationMode.Refit] and isinstance(self.module,
+                                                                                               BaseEstimator):
             if self.refit_condition:
-                condition_input = {key: value.step.get_result(start, end) for key, value in self.refit_condition.kwargs.items()}
+                condition_input = {key: value.step.get_result(start, end) for key, value in
+                                   self.refit_condition.kwargs.items()}
                 if self.refit_condition.evaluate(**condition_input):
                     # TODO should the same data be used for refitting and for calling the refit_condition condition?
                     #      NOPE -> Make it more flexible... Perhaps something for issue 147
@@ -149,8 +153,7 @@ class Step(BaseStep):
                     refit_target = self._get_target(end - self.retrain_batch, end)
                     start_time = time.time()
                     summary = self.module.refit(**refit_input, **refit_target)
-                    self.refit_summary += f" * Refit at position {end} takes {time.time() - start_time}\n" + (
-                        summary if summary is not None else "")
+                    self.refit_time.set_kv(f"Refit at position {end}", time.time() - start_time)
 
     def _compute(self, start, end):
         input_data = self._get_input(start, end)
@@ -173,6 +176,7 @@ class Step(BaseStep):
 
         start_time = time.time()
         result = self._transform(input_data)
+
         self.transform_time.set_kv("", time.time() - start_time)
         result_dict = {}
         for key, res in result.items():
@@ -183,12 +187,13 @@ class Step(BaseStep):
 
     def _get_target(self, start, batch):
         return {
-            key: target.get_result(start, batch) for key, target in self.targets.items()
+            key: target.get_result(start - self.module.get_min_data(), batch) for key, target in self.targets.items()
         }
 
     def _get_input(self, start, batch):
         return {
-            key: input_step.get_result(start, batch) for key, input_step in self.input_steps.items()
+            key: input_step.get_result(start - self.module.get_min_data(), batch) for key, input_step in
+            self.input_steps.items()
         }
 
     def get_json(self, fm: FileManager):

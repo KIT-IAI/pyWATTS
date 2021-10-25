@@ -200,7 +200,7 @@ class Pipeline(BaseTransformer):
         if isinstance(data, xr.Dataset):
             result = self.transform(**{key: data[key] for key in data.data_vars})
             sum = self._create_summary(summary_formatter)
-            return (result, sum) if sum else result
+            return (result, sum) if summary else result
         elif isinstance(data, dict):
             for key in data:
                 if not isinstance(data[key], xr.DataArray):
@@ -211,7 +211,7 @@ class Pipeline(BaseTransformer):
                     )
             result = self.transform(**data)
             sum = self._create_summary(summary_formatter)
-            return (result, sum) if sum else result
+            return (result, sum) if summary else result
 
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Fixed
+* Fixed wrong check of if summary should be returned in _run method of pipeline ([#157](https://github.com/KIT-IAI/pyWATTS/issues/157))
 
 ## 0.2.0 - 2021-30-09
 

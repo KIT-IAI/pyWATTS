@@ -22,7 +22,8 @@ stored_module = {'class': 'SmTimeSeriesModelWrapper',
                      },
                      "predict_kwargs": {
                          "dynamic": True
-                     }},
+                     },
+                    "use_exog":False},
                  'sm_class': 'ARIMA',
                  'sm_module': 'statsmodels.tsa.arima_model'
                  }
@@ -49,24 +50,28 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
         self.assertEqual(self.statsmodels_wrapper.get_params(),
                          {'fit_kwargs': {},
                           'module_kwargs': {'lags': [1, 2]},
-                          'predict_kwargs': {}})
+                          'predict_kwargs': {},
+                          'use_exog':True})
 
     def test_set_params(self):
         self.assertEqual(self.statsmodels_wrapper.get_params(),
                          {
                              'fit_kwargs': {},
                              'predict_kwargs': {},
-                             'module_kwargs': {'lags': [1, 2]}
+                             'module_kwargs': {'lags': [1, 2]},
+                             'use_exog': True
                          })
         self.statsmodels_wrapper.set_params(
             fit_kwargs={"cov_type": "nonrobust"},
             predict_kwargs={"dynamic": True},
-            module_kwargs={"scale": 2.0})
+            module_kwargs={"scale": 2.0},
+        use_exog=False)
         self.assertEqual(self.statsmodels_wrapper.get_params(),
                          {
                              "fit_kwargs": {"cov_type": "nonrobust"},
                              "predict_kwargs": {"dynamic": True},
-                             'module_kwargs': {"scale": 2.0}
+                             'module_kwargs': {"scale": 2.0},
+                             "use_exog": False,
                          })
 
     def test_fit(self):
@@ -90,11 +95,12 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
         self.assertTrue(self.statsmodels_wrapper.is_fitted)
         self.assertEqual(self.fitted_model, self.statsmodels_wrapper.model)
 
-    def test_transform(self):
+    def test_transform_using_forecast(self):
         self.fitted_model.forecast.return_value = np.array([2, 2, 4, 4, 5, 8, 6]),
 
         self.statsmodels_wrapper.set_params(module_kwargs={"lags": [1, 2]}, fit_kwargs={}, predict_kwargs={})
 
+        del self.fitted_model.predict
         self.statsmodels_wrapper.model = self.fitted_model
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         exog = xr.DataArray([1, 2, 3, 4, 5, 8, 9], dims=["time"], coords={'time': time})
@@ -106,8 +112,40 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
         self.fitted_model.forecast.assert_called_once()
 
         # assert correct arguments when calling transform
-        args = self.fitted_model.forecast.call_args
         xr.testing.assert_equal(expected_result, result)
+
+    def test_transform_using_predict(self):
+        self.fitted_model.predict.return_value = np.array([2, 2, 4, 4, 5, 8, 6]),
+
+        self.statsmodels_wrapper.set_params(module_kwargs={"lags": [1, 2]}, fit_kwargs={}, predict_kwargs={})
+
+        del self.fitted_model.forecast
+        self.statsmodels_wrapper.model = self.fitted_model
+        time = pd.date_range('2000-01-01', freq='24H', periods=7)
+        exog = xr.DataArray([1, 2, 3, 4, 5, 8, 9], dims=["time"], coords={'time': time})
+        expected_result = xr.DataArray([2, 2, 4, 4, 5, 8, 6], dims=["time"], coords={'time': time})
+
+        result = self.statsmodels_wrapper.transform(exog=exog)
+
+        # assert transform is called
+        self.fitted_model.predict.assert_called_once()
+
+        # assert correct arguments when calling transform
+        xr.testing.assert_equal(expected_result, result)
+
+    def test_transform_no_forecast_predict(self):
+
+        del self.fitted_model.forecast
+        del self.fitted_model.predict
+        self.statsmodels_wrapper.model = self.fitted_model
+
+        time = pd.date_range('2000-01-01', freq='24H', periods=7)
+        exog = xr.DataArray([1, 2, 3, 4, 5, 8, 9], dims=["time"], coords={'time': time})
+
+        with self.assertRaises(Exception) as cm:
+            self.statsmodels_wrapper.transform(exog=exog)
+
+        self.assertEqual(cm.exception.args[0], f"{self.fitted_model.__class__.__name__} has no forecast or predict method...")
 
     def test_save(self):
         fm_mock = MagicMock()
@@ -121,7 +159,8 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                                 'name': 'ARIMA',
                                 'params': {'fit_kwargs': {},
                                            'module_kwargs': {'lags': [1, 2]},
-                                           'predict_kwargs': {}},
+                                           'predict_kwargs': {},
+                                           'use_exog':True},
                                 'sm_class': 'ARIMA',
                                 'sm_module': 'statsmodels.tsa.arima_model'})
 
@@ -139,5 +178,6 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                              },
                              "predict_kwargs": {
                                  "dynamic": True
-                             }
+                             },
+                             "use_exog" : False
                          })

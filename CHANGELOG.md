@@ -5,8 +5,11 @@
 ### Added
 * Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
 
-
 ### Changed
+
+### Fixed
+* Try to handle non matching shapes in metrics. If not possible raise an exception.  ([#154](https://github.com/KIT-IAI/pyWATTS/issues/154))
+
 
 ### Deprecated
 

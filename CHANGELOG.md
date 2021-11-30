@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+* Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
+
 
 ### Changed
 

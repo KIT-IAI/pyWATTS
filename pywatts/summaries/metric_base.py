@@ -46,17 +46,22 @@ class MetricBase(BaseSummary, ABC):
         :return: Parameters set for the Metric
         :rtype: Dict[str, object]
         """
-        return {"offset": self.offset}
+        return {"offset": self.offset,
+                "cuts": self.cuts}
 
-    def set_params(self, offset: Optional[int] = None):
+    def set_params(self, offset: Optional[int] = None, cuts=Optional[List[Tuple[pd.Timestamp, pd.Timestamp]]]):
         """
         Set parameters of the Metric.
 
         :param offset: Offset, which determines the number of ignored values in the beginning for calculating the Metric.
         :type offset: int
+        :param cuts: The cutouts on which the metric should be additionally calculated.
+        :type cuts: List[Tuple[pd.Timestamp, pd.Timestamp]]
         """
         if offset:
             self.offset = offset
+        if cuts is not None:
+            self.cuts = cuts
 
     def transform(self, file_manager: FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> SummaryObjectList:
         """

@@ -19,6 +19,7 @@ class ResultStep(BaseStep):
         """
         Returns the specified result of the previous step.
         """
+        res = list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
         if not isinstance(res, dict) and return_all:
             return {self.buffer_element: res}
         return res

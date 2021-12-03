@@ -89,7 +89,7 @@ class StepFactory:
             step.last = False
             for target in target_steps:
                 r_step = step.get_result_step(target)
-                r_id = pipeline.add(module=step, input_ids=[step_id])
+                r_id = pipeline.add(module=r_step, input_ids=[step_id])
                 r_step.id = r_id
 
         return StepInformation(step, pipeline)

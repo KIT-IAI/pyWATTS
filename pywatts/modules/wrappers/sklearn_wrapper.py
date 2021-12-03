@@ -112,7 +112,7 @@ class SKLearnWrapper(BaseWrapper):
             prediction = self.module.predict(x_np)
         else:
             raise KindOfTransformDoesNotExistException(
-                f"The sklearn-module in {self.name} does not have a predict or transform method",
+                f"The sklearn-module {self.module} in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
         return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)

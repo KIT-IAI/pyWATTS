@@ -19,10 +19,10 @@ class ResultStep(BaseStep):
         """
         Returns the specified result of the previous step.
         """
-        if not return_all:
-            return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
-        else:
-            return {self.buffer_element: list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)}
+        if not isinstance(res, dict) and return_all:
+            return {self.buffer_element: res}
+        return res
+
 
     def get_json(self, fm: FileManager) -> Dict:
         """

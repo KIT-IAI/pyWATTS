@@ -1,6 +1,6 @@
 class InvalidInputException(Exception):
     """
-    Exception which indicates that the requested input for a module is not available
+    Exception which indicates that the requested input for a module is invalid
     Attributes:
         message -- explanation of the exception
     """

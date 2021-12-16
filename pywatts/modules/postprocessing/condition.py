@@ -1,11 +1,11 @@
-from typing import Dict
+from typing import Dict, Callable
 
 import xarray as xr
 import numpy as np
 
 from pywatts.core.base import BaseTransformer
 from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
-from pywatts.core.exceptions.invalid_input_exception import InvalidInputException
+from pywatts.core.exceptions import InvalidInputException
 
 
 class Condition(BaseTransformer):
@@ -13,7 +13,7 @@ class Condition(BaseTransformer):
     Condition step to decide which output is applied, if_true or if_false.
     """
 
-    def __init__(self, condition, name: str = "Condition"):
+    def __init__(self, condition: Callable, name: str = "Condition"):
         """ Initialize the condition step.
         :param condition: A callable that checks if the condition is true or false.
         :type condition: Callable[xr.DataArray, xr.DataArray, bool]
@@ -30,7 +30,7 @@ class Condition(BaseTransformer):
             "condition": self.condition
         }
 
-    def set_params(self, condition: list = None):
+    def set_params(self, condition: Callable = None):
         """ Set or change Condition object parameters.
         :param condition: A callable that checks if the condition is true or false.
         :type condition: Callable[xr.DataArray, xr.DataArray, bool]

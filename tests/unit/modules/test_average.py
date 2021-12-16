@@ -6,7 +6,7 @@ import xarray as xr
 from pywatts.modules import Average
 
 
-class TestCustomScaler(unittest.TestCase):
+class TestAverage(unittest.TestCase):
     def setUp(self) -> None:
         self.averager = Average()
 

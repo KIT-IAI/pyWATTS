@@ -78,6 +78,7 @@ class TestMAE(BaseTestMetricBase, unittest.TestCase):
         self.assertEqual(cm.exception.message,
                          "The prediction pred1 does not match to the shape of the ground truth y in the instance NAME of class MAE.")
 
+
     def test_transform(self):
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',
                                '2015-06-03 02:00:00', '2015-06-03 03:00:00',

@@ -9,6 +9,7 @@ import xarray as xr
 
 from pywatts.core.base_summary import BaseSummary
 from pywatts.core.exceptions import InputNotAvailable
+from pywatts.core.exceptions.invalid_input_exception import InvalidInputException
 from pywatts.core.filemanager import FileManager
 from pywatts.core.summary_object import SummaryObjectList
 
@@ -98,6 +99,14 @@ class MetricBase(BaseSummary, ABC):
     def _transform(self, kwargs, suffix, summary, t):
         for key, y_hat in kwargs.items():
             p = y_hat.values
+            if p.shape != t.shape:
+                try:
+                    p = p.reshape(t.shape)
+                except ValueError:
+                    raise InvalidInputException(
+                        f"The prediction {key} does not match to the shape of the ground truth y in the instance "
+                        f"{self.name} of class {self.__class__.__name__}.")
+                self.logger.info(f"Reshaped prediction {key} in {self.name}")
             if self.filter_method:
                 p_, t_ = self.filter_method(p, t)
                 mae = self._apply_metric(p_, t_)

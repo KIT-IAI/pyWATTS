@@ -68,7 +68,11 @@ class Sampler(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(0, self.sample_size)]
+            if self.sample_size > 0:
+                r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(0, self.sample_size)]
+            else:
+                r = [x.shift({index: i for index in indexes}, fill_value=0) for i in reversed(range(0,
+                                                                                                    -self.sample_size))]
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",

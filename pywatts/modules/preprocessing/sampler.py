@@ -78,5 +78,14 @@ class Sampler(BaseTransformer):
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
                 module=self.name) from exc
+        FutureWarning(
+            "The syntax of the sample_size will change\n"
+            "Current behavior:\n"
+            "Sampler(3).transform([1,2,3,4,5])  = [[1, 0, 0], [2, 1, 0], [3, 2, 1], [4, 3, 2], [5, 4, 3]]\n"
+            "Sampler(-3).transform([1,2,3,4,5]) = [[0, 0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5]]\n"
+            "Future behavior:\n"
+            "Sampler(3).transform([1,2,3,4,5])  = [[0, 0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5]]\n"
+            "Sampler(-3).transform([1,2,3,4,5]) = [[1, 0, 0], [2, 1, 0], [3, 2, 1], [4, 3, 2], [5, 4, 3]]"
+        )
         result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords)
         return result.transpose(_get_time_indexes(x)[0], "horizon", ...)

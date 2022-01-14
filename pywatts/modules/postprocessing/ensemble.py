@@ -46,6 +46,7 @@ class Ensemble(BaseTransformer):
         self.weights = weights
         self.loss = loss
         self.k_best = k_best
+        self.is_fitted = False
 
     def get_params(self) -> Dict[str, object]:
         """ Get parameters for the Ensemble object.
@@ -54,8 +55,8 @@ class Ensemble(BaseTransformer):
         """
         return {
             "weights": self.weights,
+            "k_best": self.k_best,
             "loss": self.loss,
-            "k_best": self.k_best
         }
 
     def set_params(self, weights: Union[str, list] = None, loss: list = None, k_best: Union[str, int] = None):
@@ -69,11 +70,11 @@ class Ensemble(BaseTransformer):
         on the given loss values by applying the 1.5*IQR rule.
         :type k_best: str or int, optional
         """
-        if weights:
+        if weights is not None:
             self.weights = weights
-        if loss:
+        if loss is not None:
             self.loss = loss
-        if k_best:
+        if k_best is not None:
             self.k_best = k_best
 
     def fit(self, **kwargs) -> xr.DataArray:
@@ -92,7 +93,7 @@ class Ensemble(BaseTransformer):
                 if isinstance(item, StepInformation):
                     loss_values += [float(value) for value in item.step.buffer.values()]
                 else:
-                    loss_values += item
+                    loss_values += [item]
 
             loss_values_dropped = []
             if self.k_best is not None:
@@ -117,7 +118,9 @@ class Ensemble(BaseTransformer):
             elif self.weights is None:  # averaging
                 self.weights = [0 if value in loss_values_dropped else 1 for value in loss_values]
             else:  # weighted averaging depending on specified weights
-                self.weights = [0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self.weights)]
+                self.weights = [
+                    0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self.weights)
+                ]
 
             self.is_fitted = True
         else:
@@ -151,7 +154,8 @@ class Ensemble(BaseTransformer):
                 )
 
         # normalize weights
-        self.weights = [weight / sum(self.weights) for weight in self.weights]
+        if self.weights:
+            self.weights = [weight / sum(self.weights) for weight in self.weights]
 
         list_of_series = []
         list_of_indexes = []

@@ -42,5 +42,6 @@ jobs:
         python example.py
         python example_keras.py
         python example_day_and_night.py
+        python example_batch_execution.py
         python example_pytorch.py
         python example_transform_module.py

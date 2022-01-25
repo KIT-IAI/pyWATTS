@@ -3,6 +3,7 @@ import time
 from typing import Optional, Dict, Union, Callable, List
 
 import cloudpickle
+import pandas as pd
 import xarray as xr
 
 from pywatts.callbacks import BaseCallback
@@ -13,6 +14,7 @@ from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.not_fitted_exception import NotFittedException
 from pywatts.core.filemanager import FileManager
 from pywatts.core.result_step import ResultStep
+from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,12 @@ class Step(BaseStep):
     :type condition: Callable[xr.DataArray, xr.DataArray, bool]
     :param train_if: A callable which checks if the train_if step should be executed or not.
     :type train_if: Callable[xr.DataArray, xr.DataArray, bool]
+    :param lag: Needed for online learning. Determines what data can be used for retraining.
+            E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
+            use future values as target values.
+    :type lag: pd.Timedelta
+    :param retrain_batch: Needed for online learning. Determines how much data should be used for retraining.
+    :type retrain_batch: pd.Timedelta
     """
 
     def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *,
@@ -46,14 +54,17 @@ class Step(BaseStep):
                  callbacks: List[Union[BaseCallback, Callable[[Dict[str, xr.DataArray]], None]]] = [],
                  condition=None,
                  batch_size: Optional[None] = None,
-                 train_if=None):
-
+                 train_if=None,
+                 retrain_batch=pd.Timedelta(hours=24),
+                 lag=pd.Timedelta(hours=24)):
         super().__init__(input_steps, targets, condition=condition,
                          computation_mode=computation_mode, name=module.name)
         self.file_manager = file_manager
         self.module = module
+        self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
+        self.lag = lag
         self.train_if = train_if
         self.result_steps: Dict[str, ResultStep] = {}
 
@@ -122,24 +133,30 @@ class Step(BaseStep):
         input_data = self._get_input(start, end)
         target = self._get_target(start, end)
         if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
-                                                         ComputationMode.Train] and (
-                not self.train_if or self.train_if(input_data, target)):
+                                                         ComputationMode.Train]:
             # Fetch input_data and target data
-            start_time = time.time()
             if self.batch_size:
                 input_batch = self._get_input(end - self.batch_size, end)
                 target_batch = self._get_target(end - self.batch_size, end)
+                start_time = time.time()
                 self._fit(input_batch, target_batch)
+                self.training_time.set_kv("", time.time() - start_time)
             else:
+                start_time = time.time()
                 self._fit(input_data, target)
-            self.training_time.set_kv("", time.time() - start_time)
+                self.training_time.set_kv("", time.time() - start_time)
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 
         start_time = time.time()
         result = self._transform(input_data)
         self.transform_time.set_kv("", time.time() - start_time)
-        return result
+        if result is None:
+            return result
+        index = list(result.values())[0].indexes[_get_time_indexes(result)[0]]
+        start = max(index[0], start.to_numpy())
+        return {key: b.sel(**{_get_time_indexes(result)[0]: index[(index >= start)]}) for
+                key, b in result.items()}
 
     def _get_target(self, start, batch):
         return {
@@ -174,6 +191,22 @@ class Step(BaseStep):
                      "train_if": train_if_path,
                      "batch_size": self.batch_size})
         return json
+
+    def refit(self, start: pd.Timestamp, end: pd.Timestamp):
+        """
+        Refits the module of the step.
+        :param start: The date of the first data used for retraining.
+        :param end: The date of the last data used for retraining.
+        """
+        if self.current_run_setting.computation_mode in [ComputationMode.Refit] and isinstance(self.module,
+                                                                                               BaseEstimator):
+            if self.train_if:
+                input_data = self._get_input(start, end)
+                target = self._get_target(start, end)
+                if self.train_if(input_data, target):
+                    refit_input = self._get_input(end - self.retrain_batch, end)
+                    refit_target = self._get_target(end - self.retrain_batch, end)
+                    self.module.refit(**refit_input, **refit_target)
 
     def get_result_step(self, item: str):
         if item not in self.result_steps:

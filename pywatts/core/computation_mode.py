@@ -9,3 +9,4 @@ class ComputationMode(IntEnum):
     Train = 2
     FitTransform = 3
     Default = 4
+    Refit = 5

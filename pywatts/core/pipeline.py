@@ -99,6 +99,7 @@ class Pipeline(BaseTransformer):
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)
                     logger.info(message)
+            self.refit(self.counter, self.counter + self.batch if self.batch is not None else self.counter)
             self.counter += self.batch
         return result
 
@@ -419,3 +420,14 @@ class Pipeline(BaseTransformer):
                 summaries.append(step.get_summary())
             summaries.extend([step.transform_time, step.training_time])
         return summary_formatter.create_summary(summaries, self.file_manager)
+
+    def refit(self, start, end):
+        """
+        Refits all steps inside of the pipeline.
+        :param start: The date of the first data used for retraining.
+        :param end: The date of the last data used for retraining.
+        """
+        for step in self.id_to_step.values():
+            # A lag is needed, since if we have a 24 hour forecast we can evaluate the forecast not until 24 hours are gone, since before not all target variables are available
+            if isinstance(step, Step):
+                step.refit(start - step.lag, end - step.lag)

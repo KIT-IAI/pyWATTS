@@ -571,3 +571,20 @@ class TestPipeline(unittest.TestCase):
         open_mock().__enter__.return_value.write.assert_called_once_with(summary)
 
         self.assertTrue("target" in result.keys())
+
+
+    @patch('pywatts.core.pipeline.isinstance', return_value=True)
+    def test_refit(self, isinstance_mock):
+        # Add some steps to the pipeline
+        time = pd.date_range('2000-01-01', freq='1H', periods=7)
+
+        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+
+        # Assert that the computation is set to fit_transform if the ComputationMode was default
+        first_step = MagicMock()
+        first_step.lag = pd.Timedelta("1d")
+
+        self.pipeline.add(module=first_step)
+        self.pipeline.refit(pd.Timestamp("2000.01.02"), pd.Timestamp("2022.01.02"))
+
+        first_step.refit.assert_called_once_with(pd.Timestamp("2000.01.01"), pd.Timestamp("2022.01.01"))

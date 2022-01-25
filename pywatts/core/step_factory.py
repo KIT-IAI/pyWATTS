@@ -31,7 +31,9 @@ class StepFactory:
                     condition,
                     batch_size,
                     computation_mode,
-                    train_if):
+                    train_if,
+                    retrain_batch,
+                    lag):
         """
         Creates a appropriate step for the current situation.
 
@@ -45,6 +47,10 @@ class StepFactory:
         :param batch_size: The size of the past time range which should be used for relearning the module
         :param computation_mode: The computation mode of the step
         :param train_if: A method for determining if the step should be fitted at a specific timestamp.
+        :param retrain_batch: Determines how much past data should be used for relearning.
+        :param lag: Needed for online learning. Determines what data can be used for retraining.
+                    E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
+                    use future values as target values.
         :return: StepInformation
         """
 
@@ -68,17 +74,19 @@ class StepFactory:
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps,
                                 callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                                batch_size=batch_size, train_if=train_if)
+                                batch_size=batch_size, train_if=train_if, retrain_batch=retrain_batch, lag=lag)
         elif use_inverse_transform:
             step = InverseStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                               callbacks=callbacks, computation_mode=computation_mode, condition=condition)
+                               callbacks=callbacks, computation_mode=computation_mode, condition=condition,
+                               retrain_batch=retrain_batch, lag=lag)
         elif use_predict_proba:
             step = ProbablisticStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                                    callbacks=callbacks, computation_mode=computation_mode, condition=condition)
+                                    callbacks=callbacks, computation_mode=computation_mode, condition=condition,
+                                    retrain_batch=retrain_batch, lag=lag)
         else:
             step = Step(module, input_steps, pipeline.file_manager, targets=target_steps,
                         callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                        batch_size=batch_size, train_if=train_if)
+                        batch_size=batch_size, train_if=train_if, retrain_batch=retrain_batch, lag=lag)
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],

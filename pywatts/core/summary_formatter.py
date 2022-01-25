@@ -82,6 +82,7 @@ class SummaryJSON(SummaryFormatter):
         :param fm: The pyWATTS filemanager.
         :type fm: FileManager
         """
+        # TODO Handle if two summaries has the same name...
         summary_dict = {}
         for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime,
                          SummaryCategory.RefitTime]:

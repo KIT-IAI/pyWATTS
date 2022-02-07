@@ -1,4 +1,5 @@
 from pywatts.modules.feature_extraction.calendar_extraction import CalendarFeature, CalendarExtraction
+from pywatts.modules.preprocessing.average import Average
 from pywatts.modules.preprocessing.change_direction import ChangeDirection
 from pywatts.modules.preprocessing.clock_shift import ClockShift
 from pywatts.modules.preprocessing.differentiate import Differentiate

@@ -5,6 +5,7 @@ from pywatts.modules.preprocessing.differentiate import Differentiate
 from pywatts.modules.preprocessing.linear_interpolation import LinearInterpolater
 from pywatts.modules.preprocessing.missing_value_detection import MissingValueDetector
 from pywatts.modules.preprocessing.slicer import Slicer
+from pywatts.modules.preprocessing.custom_scaler import CustomScaler
 from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
 from pywatts.modules.preprocessing.resampler import Resampler
 from pywatts.modules.feature_extraction.rolling_mean import RollingMean

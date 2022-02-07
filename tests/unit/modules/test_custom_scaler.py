@@ -4,6 +4,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.modules import CustomScaler
+from pywatts.core.exceptions import WrongParameterException
 
 
 class TestCustomScaler(unittest.TestCase):
@@ -107,3 +108,10 @@ class TestCustomScaler(unittest.TestCase):
         expected_result = xr.DataArray([2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
+
+    def test_set_params_exception(self):
+        with self.assertRaises(WrongParameterException) as context:
+            self.custom_scaler.set_params(multiplier=0)
+        self.assertEqual(context.exception.message,
+                         "Multiplication by 0 is not possible. "
+                         "During initialisation set a multiplier different to 0.")

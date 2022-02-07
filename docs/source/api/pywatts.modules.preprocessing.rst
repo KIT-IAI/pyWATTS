@@ -4,6 +4,14 @@ pywatts.modules.preprocessing package
 Submodules
 ----------
 
+pywatts.modules.preprocessing.average module
+------------------------------------------------------
+
+.. automodule:: pywatts.modules.preprocessing.average
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.preprocessing.change\_direction module
 ------------------------------------------------------
 

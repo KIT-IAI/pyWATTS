@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+* Add average module for pre-processing
 
 ### Changed
 

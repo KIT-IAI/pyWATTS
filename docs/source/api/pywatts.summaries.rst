@@ -20,6 +20,14 @@ pywatts.summaries.mape\_summary module
    :undoc-members:
    :show-inheritance:
 
+pywatts.summaries.mase\_summary module
+--------------------------------------
+
+.. automodule:: pywatts.summaries.mase_summary
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.summaries.max\_summary module
 -------------------------------------
 

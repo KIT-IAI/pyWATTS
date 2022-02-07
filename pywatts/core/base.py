@@ -230,6 +230,6 @@ class BaseEstimator(Base, ABC):
         :return: The restored module
         :rtype: BaseEstimator
         """
-        module = super().__class__.load(load_information)
+        module = super(BaseEstimator, cls).load(load_information)
         module.is_fitted = load_information["is_fitted"]
         return module

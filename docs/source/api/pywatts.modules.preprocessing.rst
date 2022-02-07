@@ -28,6 +28,14 @@ pywatts.modules.preprocessing.clock\_shift module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.preprocessing.custom\_scaler module
+------------------------------------------------------
+
+.. automodule:: pywatts.modules.preprocessing.custom_scaler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.preprocessing.differentiate module
 --------------------------------------------------
 

@@ -20,5 +20,5 @@ class MinErr(MetricBase):
 
 
     def _apply_metric(self, p, t):
-        return np.min(np.abs((p[self.offset:] - t[self.offset:])))
+        return np.min(np.abs((p - t)))
 

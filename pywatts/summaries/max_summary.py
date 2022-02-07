@@ -20,5 +20,5 @@ class MaxErr(MetricBase):
 
 
     def _apply_metric(self, p, t):
-        return np.max(np.abs((p[self.offset:] - t[self.offset:])))
+        return np.max(np.abs((p- t)))
 

@@ -19,5 +19,5 @@ class RMSE(MetricBase):
     """
 
     def _apply_metric(self, p, t):
-        return np.sqrt(np.mean((p[self.offset:] - t[self.offset:]) ** 2))
+        return np.sqrt(np.mean((p - t) ** 2))
 

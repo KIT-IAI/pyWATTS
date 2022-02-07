@@ -4,6 +4,7 @@
 
 ### Added
 * Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
+* Add custom scaler module for pre-processing
 
 ### Changed
 

@@ -24,6 +24,7 @@ from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.summary_step import SummaryStep
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts.utils._pywatts_json_encoder import PyWATTSJsonEncoder
 from pywatts.core.summary_formatter import SummaryMarkdown, SummaryJSON, SummaryFormatter
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
@@ -333,7 +334,7 @@ class Pipeline(BaseTransformer):
         }
         file_path = save_file_manager.get_path('pipeline.json')
         with open(file_path, 'w') as outfile:
-            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4)
+            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4, cls=PyWATTSJsonEncoder)
 
     @staticmethod
     def from_folder(load_path, file_manager_path=None):

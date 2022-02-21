@@ -8,7 +8,7 @@ import xarray as xr
 
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
 from pywatts.core.exceptions.invalid_input_exception import InvalidInputException
-from pywatts.summaries.mae_summary import MAE
+from pywatts.summaries import MAE
 from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBase
 
 

@@ -1,4 +1,4 @@
-import pickle
+import cloudpickle
 from typing import List, Tuple
 
 import numpy as np
@@ -152,12 +152,13 @@ class SKLearnWrapper(BaseWrapper):
         return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
     def save(self, fm: FileManager):
-        json = super().save(fm)
+        json_module = super().save(fm)
         file_path = fm.get_path(f'{self.name}.pickle')
         with open(file_path, 'wb') as outfile:
-            pickle.dump(obj=self.module, file=outfile)
-        json.update({"sklearn_module": file_path})
-        return json
+            cloudpickle.dump(obj=self.module, file=outfile)
+        json_module.update({"sklearn_module": file_path})
+        json_module.pop("params")
+        return json_module
 
     @classmethod
     def load(cls, load_information) -> 'SKLearnWrapper':
@@ -174,7 +175,7 @@ class SKLearnWrapper(BaseWrapper):
         """
         name = load_information["name"]
         with open(load_information["sklearn_module"], 'rb') as pickle_file:
-            module = pickle.load(pickle_file)
+            module = cloudpickle.load(pickle_file)
         module = cls(module=module, name=name)
         module.is_fitted = load_information["is_fitted"]
         return module

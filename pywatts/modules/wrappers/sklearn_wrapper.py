@@ -82,13 +82,13 @@ class SKLearnWrapper(BaseWrapper):
     def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
         reference = kwargs[list(kwargs)[0]]
         time_index = reference.indexes[_get_time_indexes(reference)[0]]
-        if len(targets) == 0:
+        if len(targets) == 0:  # sklearn module is a transformer
             coords = (
                 # first dimension is number of batches. We assume that this is the time.
                 ("time", time_index.values),
                 *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
             result = xr.DataArray(prediction, coords=coords)
-        else:
+        else:  # sklearn module is an estimator
             result = {}
             position = 0
             prediction = prediction.reshape(len(list(reference.coords.values())[0]), -1)
@@ -105,9 +105,11 @@ class SKLearnWrapper(BaseWrapper):
         :return: the transformed output
         """
         x_np = self._dataset_to_sklearn_input(kwargs)
+        targets = self.targets
 
         if isinstance(self.module, TransformerMixin):
             prediction = self.module.transform(x_np)
+            targets = []  # output of transformer must not match the shape of the target
         elif "predict" in dir(self.module):
             prediction = self.module.predict(x_np)
         else:
@@ -115,7 +117,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
+        return self._sklearn_output_to_dataset(kwargs, prediction, targets)
 
     def inverse_transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

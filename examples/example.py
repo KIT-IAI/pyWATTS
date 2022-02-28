@@ -7,6 +7,7 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, f_regression
 
 # From pyWATTS the pipeline is imported
 from pywatts.callbacks import LinePlotCallback
@@ -43,15 +44,24 @@ if __name__ == "__main__":
     shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
                                          )(x=scale_power_statistics)
 
+    # Select features based on F-statistic
+    selected_features = SKLearnWrapper(
+        module=SelectKBest(score_func=f_regression, k=2)
+    )(
+        power_lag1=shift_power_statistics,
+        power_lag2=shift_power_statistics2,
+        calendar=calendar,
+        target=scale_power_statistics,
+        callbacks=[LinePlotCallback('linear_regression')],
+    )
+
     # Create a linear regression that uses the lagged values to predict the current value
     # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
     #       It is also possible to implement a join/collect class
     regressor_power_statistics = SKLearnWrapper(
         module=LinearRegression(fit_intercept=True)
     )(
-        power_lag1=shift_power_statistics,
-        power_lag2=shift_power_statistics2,
-        calendar=calendar,
+        features=selected_features,
         target=scale_power_statistics,
         callbacks=[LinePlotCallback('linear_regression')],
     )

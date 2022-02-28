@@ -6,10 +6,10 @@
 * Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
 
 ### Changed
-* Sampling with the Sampler-module is now possible in forwarding direction ([#174](https://github.com/KIT-IAI/pyWATTS/issues/174))
 
 ### Fixed
 * Try to handle non matching shapes in metrics. If not possible raise an exception.  ([#154](https://github.com/KIT-IAI/pyWATTS/issues/154))
+* Fixed Sampler-module, samples now in forwarding direction ([#174](https://github.com/KIT-IAI/pyWATTS/issues/174))
 
 
 ### Deprecated

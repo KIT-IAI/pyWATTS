@@ -35,22 +35,7 @@ class TestSampler(unittest.TestCase):
                              "indexes": ["Foo"],
                          })
 
-    def test_transform_forward(self):
-        time = pd.date_range('2000-01-01', freq='24H', periods=7)
-
-        da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})
-
-        self.sampler.set_params(sample_size=3)
-        result = self.sampler.transform(da)
-
-        time = pd.date_range('2000-01-01', freq='24H', periods=7)
-
-        expected_result = xr.DataArray([[1, 0, 0], [2, 1, 0], [3, 2, 1], [4, 3, 2], [5, 4, 3], [6, 5, 4], [7, 6, 5]],
-                                       dims=["time", "horizon"], coords={"time": time})
-
-        xr.testing.assert_equal(result, expected_result)
-
-    def test_transform_backward(self):
+    def test_transform(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
         da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})

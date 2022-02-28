@@ -132,7 +132,7 @@ class Base(ABC):
 
     def refit(self, **kwargs):
         """
-        This method refit the module. If not overwritten it is the same as fit.
+        This method refits the module. If not overwritten it is the same as fit.
         :param kwargs: key word arguments as input. If the key word starts with target, then it is a target variable.
         """
         return self.fit(**kwargs)

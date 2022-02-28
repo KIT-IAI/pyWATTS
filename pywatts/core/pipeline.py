@@ -428,6 +428,7 @@ class Pipeline(BaseTransformer):
         :param end: The date of the last data used for retraining.
         """
         for step in self.id_to_step.values():
-            # A lag is needed, since if we have a 24 hour forecast we can evaluate the forecast not until 24 hours are gone, since before not all target variables are available
+            # A lag is needed, since if we have a 24 hour forecast we can evaluate the forecast not until 24 hours
+            # are gone, since before not all target variables are available
             if isinstance(step, Step):
                 step.refit(start - step.lag, end - step.lag)

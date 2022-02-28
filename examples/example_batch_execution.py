@@ -13,22 +13,25 @@ from sklearn.svm import SVR
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
-from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper
+from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper, Sampler, FunctionModule
 
 
 # This function creates and returns the preprocessing pipeline
+from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
+
+
 def create_preprocessing_pipeline(power_scaler):
     pipeline = Pipeline(path="../results/preprocessing")
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
-                                                  name="imputer_power")(x=pipeline["scaler_power"])
+                                                  name="imputed_power")(x=pipeline["scaler_power"])
     # Scale the data using a standard SKLearn scaler
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    ClockShift(lag=1)(x=scale_power_statistics)
-    ClockShift(lag=2)(x=scale_power_statistics)
+    historical_data = ClockShift(lag=24)(x=scale_power_statistics)
+    Sampler(24, name="sampled_data")(x=historical_data)
     return pipeline
 
 
@@ -39,14 +42,13 @@ def create_test_pipeline(regressor_svr):
     pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
 
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-    regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["ClockShift"],
-                                                   ClockShift_1=pipeline["ClockShift_1"],
+    regressor_svr_power_statistics = regressor_svr(historical_input=pipeline["historical_input"],
                                                    target=pipeline["load_power_statistics"],
                                                    computation_mode=ComputationMode.Refit,
                                                    callbacks=[LinePlotCallback('SVR')],
                                                    lag=pd.Timedelta(hours=24),
-                                                   train_if=lambda x, _: len(x["ClockShift"].indexes["time"]) > 0 and
-                                                                         x["ClockShift"].indexes["time"][0].hour == 0)
+                                                   train_if=lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and
+                                                                         x["historical_input"].indexes["time"][0].hour == 0)
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
@@ -63,8 +65,8 @@ if __name__ == "__main__":
     test = data[8700:]
 
     # Create all modules which are used multiple times.
-    regressor_svr = SKLearnWrapper(module=SVR(), name="Regression")
-    power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
+    regressor_svr = SKLearnWrapper(module=SVR(), name="regression")
+    power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaled_power")
 
     # Build a train pipeline. In this pipeline, each step processes all data at once.
     train_pipeline = Pipeline(path="../results/train")
@@ -73,10 +75,13 @@ if __name__ == "__main__":
     preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
     preprocessing_pipeline = preprocessing_pipeline(scaler_power=train_pipeline["load_power_statistics"])
 
+    target = FunctionModule(lambda x: numpy_to_xarray(
+        x.values.reshape((-1,)), x, "target"
+    ))(x=train_pipeline["load_power_statistics"])
+
     # Addd the regressors to the train pipeline
-    regressor_svr(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
-                  target=train_pipeline["load_power_statistics"],
+    regressor_svr(hist_input=preprocessing_pipeline["sampled_data"],
+                  target=target,
                   callbacks=[LinePlotCallback('SVR')])
 
     print("Start training")
@@ -92,8 +97,7 @@ if __name__ == "__main__":
 
     # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
     test_pipeline = create_test_pipeline(regressor_svr)
-    test_pipeline(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    test_pipeline(historical_input=preprocessing_pipeline["sampled_data"],
                   load_power_statistics=pipeline["load_power_statistics"],
                   callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
 

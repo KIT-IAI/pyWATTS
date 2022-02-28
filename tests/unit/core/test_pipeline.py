@@ -572,15 +572,8 @@ class TestPipeline(unittest.TestCase):
 
         self.assertTrue("target" in result.keys())
 
-
     @patch('pywatts.core.pipeline.isinstance', return_value=True)
     def test_refit(self, isinstance_mock):
-        # Add some steps to the pipeline
-        time = pd.date_range('2000-01-01', freq='1H', periods=7)
-
-        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
-
-        # Assert that the computation is set to fit_transform if the ComputationMode was default
         first_step = MagicMock()
         first_step.lag = pd.Timedelta("1d")
 

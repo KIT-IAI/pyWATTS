@@ -151,12 +151,12 @@ class Step(BaseStep):
         start_time = time.time()
         result = self._transform(input_data)
         self.transform_time.set_kv("", time.time() - start_time)
-        if result is None:
-            return result
-        index = list(result.values())[0].indexes[_get_time_indexes(result)[0]]
-        start = max(index[0], start.to_numpy())
-        return {key: b.sel(**{_get_time_indexes(result)[0]: index[(index >= start)]}) for
-                key, b in result.items()}
+        result_dict = {}
+        for key, res in result.items():
+            index = res.indexes[_get_time_indexes(result)[0]]
+            start = max(index[0], start.to_numpy())
+            result_dict[key] =  res.sel(**{_get_time_indexes(res)[0]: index[(index >= start)]})
+        return result_dict
 
     def _get_target(self, start, batch):
         return {

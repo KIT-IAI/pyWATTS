@@ -7,6 +7,7 @@ from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterExce
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
 
+
 class Sampler(BaseTransformer):
     """
     This module creates samples with a size specified by sample_size. I.e., if sample_size is 24h. It creates for each
@@ -68,24 +69,11 @@ class Sampler(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            if self.sample_size > 0:
-                r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(0, self.sample_size)]
-            else:
-                r = [x.shift({index: i for index in indexes}, fill_value=0) for i in reversed(range(0,
-                                                                                                    -self.sample_size))]
+            r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(self.sample_size - 1, -1, -1)]
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
                 module=self.name) from exc
-        FutureWarning(
-            "The syntax of the sample_size will change\n"
-            "Current behavior:\n"
-            "Sampler(3).transform([1,2,3,4,5])  = [[1, 0, 0], [2, 1, 0], [3, 2, 1], [4, 3, 2], [5, 4, 3]]\n"
-            "Sampler(-3).transform([1,2,3,4,5]) = [[0, 0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5]]\n"
-            "Future behavior:\n"
-            "Sampler(3).transform([1,2,3,4,5])  = [[0, 0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5]]\n"
-            "Sampler(-3).transform([1,2,3,4,5]) = [[1, 0, 0], [2, 1, 0], [3, 2, 1], [4, 3, 2], [5, 4, 3]]"
-        )
         result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords)
         return result.transpose(_get_time_indexes(x)[0], "horizon", ...)

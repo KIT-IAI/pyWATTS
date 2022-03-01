@@ -27,7 +27,7 @@ class Sampler(BaseTransformer):
             indexes = []
         if sample_size <= 0:
             raise WrongParameterException(
-                f"Sample size cannot be less than or equal to zero.",
+                "Sample size cannot be less than or equal to zero.",
                 "Please define a sample size greater than zero.",
                 module=self.name)
         self.sample_size = sample_size
@@ -59,7 +59,7 @@ class Sampler(BaseTransformer):
             self.sample_size = sample_size
             if sample_size <= 0:
                 raise WrongParameterException(
-                    f"Sample size cannot be less than or equal to zero.",
+                    "Sample size cannot be less than or equal to zero.",
                     "Please define a sample size greater than zero.",
                     module=self.name)
         if indexes is not None:

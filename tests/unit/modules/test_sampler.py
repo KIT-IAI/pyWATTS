@@ -60,3 +60,10 @@ class TestSampler(unittest.TestCase):
         self.assertEqual(context.exception.message,
                          "Not all indexes (['FOO']) are in the indexes of x (['time']). "
                          "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.")
+
+    def test_set_params_exception(self):
+        with self.assertRaises(WrongParameterException) as context:
+            self.sampler.set_params(sample_size=-3)
+        self.assertEqual(context.exception.message,
+                         "Sample size cannot be less than or equal to zero. "
+                         "Please define a sample size greater than zero.")

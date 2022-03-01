@@ -40,7 +40,7 @@ class TestSampler(unittest.TestCase):
 
         da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})
 
-        self.sampler.set_params(sample_size=-3)
+        self.sampler.set_params(sample_size=3)
         result = self.sampler.transform(da)
 
         time = pd.date_range('2000-01-01', freq='24H', periods=7)

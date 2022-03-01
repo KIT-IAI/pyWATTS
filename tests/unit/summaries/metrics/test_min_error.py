@@ -7,8 +7,8 @@ import pytest
 import xarray as xr
 
 from pywatts.core.exceptions.input_not_available import InputNotAvailable
-from pywatts.summaries.min_summary import MinErr
-from tests.unit.summaries.metrics.base_test_metric_base import BaseTestMetricBase
+from pywatts.summaries import MinErr
+from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBase
 
 
 class TestMinErr(BaseTestMetricBase, unittest.TestCase):

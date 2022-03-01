@@ -4,6 +4,14 @@ pywatts.modules.preprocessing package
 Submodules
 ----------
 
+pywatts.modules.preprocessing.average module
+------------------------------------------------------
+
+.. automodule:: pywatts.modules.preprocessing.average
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.preprocessing.change\_direction module
 ------------------------------------------------------
 
@@ -16,6 +24,14 @@ pywatts.modules.preprocessing.clock\_shift module
 -------------------------------------------------
 
 .. automodule:: pywatts.modules.preprocessing.clock_shift
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.modules.preprocessing.custom\_scaler module
+------------------------------------------------------
+
+.. automodule:: pywatts.modules.preprocessing.custom_scaler
    :members:
    :undoc-members:
    :show-inheritance:

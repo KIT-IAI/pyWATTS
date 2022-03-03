@@ -270,3 +270,4 @@ If you use this framework in a scientific publication please cite the correspond
 
 # Contact
 If you have any questions and want to talk to the pyWATTS Team directly, feel free to [contact us](mailto:pywatts-team@iai.kit.edu).
+For more information on pyWATTSvisit the [project website](https://www.iai.kit.edu/english/1266_4162.php).

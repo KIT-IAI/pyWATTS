@@ -13,6 +13,7 @@ The following people are currently involved in pyWATTS' core development and mai
 * Andreas Bartschat
 * Benedikt Heidrich
 * Nicole Ludwig
+* Stefan Meisenbacher
 * Oliver Neumann
 * Kaleb Phipps
 * Marian Turowski
@@ -30,7 +31,9 @@ The following people have been active contributors in the past, but are no longe
 
 Citing pyWATTS
 --------------
-tbd
+If you use this framework in a scientific publication please cite the corresponding paper:
+
+Benedikt Heidrich, Andreas Bartschat, Marian Turowski, Oliver Neumann, Kaleb Phipps, Stefan Meisenbacher, Kai Schmieder, Nicole Ludwig, Ralf Mikut, Veit Hagenmeyer. “pyWATTS: Python Workflow Automation Tool for Time Series.” (2021).). arXiv:2106.10157. http://arxiv.org/abs/2106.10157
 
 Funding
 -------

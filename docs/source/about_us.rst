@@ -6,6 +6,8 @@ History
 This project was started in 2019 by the Research Group "Machine Learning for Time Series and Images" of the Institute for
 Automation and Applied Informatics at the Karlsruhe Institute of Technology.
 
+For more information on pyWATTS you can visit https://www.iai.kit.edu/english/1266_4162.php
+
 Authors
 -------
 The following people are currently involved in pyWATTS' core development and maintenance:

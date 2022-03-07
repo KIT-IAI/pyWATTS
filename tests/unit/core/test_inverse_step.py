@@ -32,12 +32,12 @@ class TestInverseTransform(unittest.TestCase):
     def test_get_result(self):
         # This test checks if the get_result methods works corerctly, i.e. if it returns the correct result of the step and
         # calculate it if necessary.
-        self.inverse_step.get_result(None, None)
+        self.inverse_step.get_result(pd.Timestamp("2000.01.01"), None)
         self.inverse_module.inverse_transform.assert_called_once_with(input=self.input_step.get_result())
 
     def test_get_result_stop(self):
         self.input_step.get_result.return_value = None
-        self.inverse_step.get_result(None, None)
+        self.inverse_step.get_result(pd.Timestamp("2000.01.01"), None)
 
         self.inverse_module.inverse_transform.assert_not_called()
         self.assertTrue(self.inverse_step._should_stop(None, None))

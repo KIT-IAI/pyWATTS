@@ -270,3 +270,19 @@ class TestStep(unittest.TestCase):
         assert step.current_run_setting.computation_mode == ComputationMode.Default
         assert step._should_stop(None, None) == False
         assert step.finished == False
+
+    @patch('pywatts.core.step.isinstance', return_value=True)
+    def test_refit_train_if_false(self, isinstance_mock):
+        step = Step(self.module_mock, {"x": self.step_mock}, file_manager=None, train_if=lambda x, y: False,
+                    computation_mode=ComputationMode.Refit)
+        step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
+        self.module_mock.refit.assert_not_called()
+
+    @patch('pywatts.core.step.isinstance', return_value=True)
+    def test_refit_train_if_true(self, isinstance_m):
+        step = Step(self.module_mock, {"x": self.step_mock},
+                    targets={"target": self.step_mock}, file_manager=None, train_if=lambda x, y: True,
+                    computation_mode=ComputationMode.Refit)
+        step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
+        self.module_mock.refit.assert_called_once_with(x=self.step_mock.get_result(),
+                                                       target=self.step_mock.get_result())

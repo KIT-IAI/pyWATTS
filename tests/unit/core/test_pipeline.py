@@ -571,3 +571,13 @@ class TestPipeline(unittest.TestCase):
         open_mock().__enter__.return_value.write.assert_called_once_with(summary)
 
         self.assertTrue("target" in result.keys())
+
+    @patch('pywatts.core.pipeline.isinstance', return_value=True)
+    def test_refit(self, isinstance_mock):
+        first_step = MagicMock()
+        first_step.lag = pd.Timedelta("1d")
+
+        self.pipeline.add(module=first_step)
+        self.pipeline.refit(pd.Timestamp("2000.01.02"), pd.Timestamp("2022.01.02"))
+
+        first_step.refit.assert_called_once_with(pd.Timestamp("2000.01.01"), pd.Timestamp("2022.01.01"))

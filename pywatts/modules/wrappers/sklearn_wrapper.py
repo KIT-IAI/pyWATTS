@@ -5,6 +5,7 @@ import numpy as np
 import sklearn
 import xarray as xr
 from sklearn.base import TransformerMixin
+from sklearn.feature_selection import SelectorMixin
 
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
@@ -107,9 +108,11 @@ class SKLearnWrapper(BaseWrapper):
         x_np = self._dataset_to_sklearn_input(kwargs)
         target_names = self.targets
 
-        if isinstance(self.module, TransformerMixin):
+        if isinstance(self.module, SelectorMixin):
             prediction = self.module.transform(x_np)
-            target_names = []  # output of transformer must not match the shape of the target
+            target_names = []  # output of selector must not match the shape of the target
+        elif isinstance(self.module, TransformerMixin):
+            prediction = self.module.transform(x_np)
         elif "predict" in dir(self.module):
             prediction = self.module.predict(x_np)
         else:
@@ -130,7 +133,8 @@ class SKLearnWrapper(BaseWrapper):
 
         if self.has_inverse_transform:
             prediction = self.module.inverse_transform(x_np)
-            target_names = []  # output of transformer must not match the shape of the target
+            if isinstance(self.module, SelectorMixin):
+                target_names = []  # output of selector must not match the shape of the target
         else:
             raise KindOfTransformDoesNotExistException(
                 f"The sklearn-module in {self.name} does not have a inverse transform method",

@@ -8,6 +8,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.condition_object import ConditionObject
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
 from pywatts.core.filemanager import FileManager
@@ -33,6 +34,8 @@ class Base(ABC):
 
         self.has_inverse_transform = False
         self.has_predict_proba = False
+        # TODO each module needs a function for returning how much past values it needs for executing the transformation.
+        #      SEE Issue 147
 
     @abstractmethod
     def get_params(self) -> Dict[str, object]:
@@ -130,6 +133,17 @@ class Base(ABC):
         name = load_information["name"]
         return cls(name=name, **params)
 
+    def refit(self, **kwargs):
+        """
+        This method refits the module. If not overwritten it is the same as fit.
+        :param kwargs: key word arguments as input. If the key word starts with target, then it is a target variable.
+        """
+        return self.fit(**kwargs)
+
+    def get_min_data(self):
+        # TODO hacky solution
+        return pd.Timedelta("0h")
+
     def __call__(self,
                  use_inverse_transform: bool = False,
                  use_prob_transform: bool = False,
@@ -137,7 +151,9 @@ class Base(ABC):
                  condition: Optional[Callable] = None,
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
-                 train_if: Optional[Union[Callable, bool]] = None,
+                 refit_condition: Optional[Union[ConditionObject]] = None,
+                 lag: Optional[int] = pd.Timedelta(hours=0),
+                 retrain_batch: Optional[int] = pd.Timedelta(hours=24),
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
                  ) -> StepInformation:
         """
@@ -160,26 +176,33 @@ class Base(ABC):
         :type use_prob_transform: bool
         :param callbacks: Callbacks to use after results are processed.
         :type callbacks: List[BaseCallback, Callable[[Dict[str, xr.DataArray]]]]
-        :param train_if: A callable, which contains a condition that indicates if the module should be trained or not
-        :type train_if: Optional[Callable]
+        :param refit_condition: A callable, which contains a condition that indicates if the module should be trained or not
+        :type refit_condition: Optional[Callable]
         :param batch_size: Determines how much data from the past should be used for training
         :type batch_size: pd.Timedelta
         :param computation_mode: Determines the computation mode of the step. Could be ComputationMode.Train,
                                  ComputationMode.Transform, and Computation.FitTransform
         :type computation_mode: ComputationMode
+        :param lag: Needed for online learning. Determines what data can be used for retraining.
+                    E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
+                    use future values as target values.
+        :type lag: pd.Timedelta
+        :param retrain_batch: Needed for online learning. Determines how much data should be used for retraining.
+        :type retrain_batch: pd.Timedelta
         :return: a step information.
         :rtype: StepInformation
         """
 
         from pywatts.core.step_factory import StepFactory
-
         return StepFactory().create_step(self, kwargs=kwargs,
                                          use_inverse_transform=use_inverse_transform,
                                          use_predict_proba=use_prob_transform,
                                          condition=condition,
                                          callbacks=callbacks,
                                          computation_mode=computation_mode, batch_size=batch_size,
-                                         train_if=train_if
+                                         refit_condition=refit_condition,
+                                         retrain_batch=retrain_batch,
+                                         lag=lag
                                          )
 
 

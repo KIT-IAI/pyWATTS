@@ -31,7 +31,9 @@ class StepFactory:
                     condition,
                     batch_size,
                     computation_mode,
-                    train_if):
+                    refit_condition,
+                    retrain_batch,
+                    lag):
         """
         Creates a appropriate step for the current situation.
 
@@ -44,7 +46,11 @@ class StepFactory:
         :param condition: A function returning True or False which indicates if the step should be performed
         :param batch_size: The size of the past time range which should be used for relearning the module
         :param computation_mode: The computation mode of the step
-        :param train_if: A method for determining if the step should be fitted at a specific timestamp.
+        :param refit_condition: A method for determining if the step should be fitted at a specific timestamp.
+        :param retrain_batch: Determines how much past data should be used for relearning.
+        :param lag: Needed for online learning. Determines what data can be used for retraining.
+                    E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
+                    use future values as target values.
         :return: StepInformation
         """
 
@@ -68,17 +74,19 @@ class StepFactory:
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps,
                                 callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                                batch_size=batch_size, train_if=train_if)
+                                batch_size=batch_size, refit_condition=refit_condition, retrain_batch=retrain_batch, lag=lag)
         elif use_inverse_transform:
             step = InverseStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                               callbacks=callbacks, computation_mode=computation_mode, condition=condition)
+                               callbacks=callbacks, computation_mode=computation_mode, condition=condition,
+                               refit_condition=refit_condition, retrain_batch=retrain_batch, lag=lag)
         elif use_predict_proba:
             step = ProbablisticStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                                    callbacks=callbacks, computation_mode=computation_mode, condition=condition)
+                                    callbacks=callbacks, computation_mode=computation_mode, condition=condition,
+                                    refit_condition=refit_condition, retrain_batch=retrain_batch, lag=lag)
         else:
             step = Step(module, input_steps, pipeline.file_manager, targets=target_steps,
                         callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                        batch_size=batch_size, train_if=train_if)
+                        batch_size=batch_size, refit_condition=refit_condition, retrain_batch=retrain_batch, lag=lag)
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],
@@ -89,7 +97,7 @@ class StepFactory:
             step.last = False
             for target in target_steps:
                 r_step = step.get_result_step(target)
-                r_id = pipeline.add(module=step, input_ids=[step_id])
+                r_id = pipeline.add(module=r_step, input_ids=[step_id])
                 r_step.id = r_id
 
         return StepInformation(step, pipeline)
@@ -196,7 +204,7 @@ class StepFactory:
         pipeline = self._check_ins(kwargs)
         input_steps, target_steps = self._split_input_target_steps(kwargs, pipeline, set_last=False)
 
-        step = SummaryStep(module, input_steps, pipeline.file_manager, )
+        step = SummaryStep(module, input_steps, pipeline.file_manager)
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],

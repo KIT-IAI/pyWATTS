@@ -63,7 +63,22 @@ class SKLearnWrapper(BaseWrapper):
         target = self._dataset_to_sklearn_input(targets)
         self.targets = list(
             zip(targets.keys(), map(lambda x: x.shape[-1] if len(x.shape) > 1 else 1, list(targets.values()))))
-        self.fit_result = self.module.fit(x, target)
+        self.fit_result = self.module.fit(x[60:], target[60:] if target is not None else None)
+        self.is_fitted = True
+
+    def refit(self, **kwargs):
+        """
+        Fit the sklearn module
+        :param x: input data
+        :param y: target data
+        """
+        inputs, targets = split_kwargs(kwargs)
+        self.targets = list(targets.keys())
+        x = self._dataset_to_sklearn_input(inputs)
+        target = self._dataset_to_sklearn_input(targets)
+        self.targets = list(
+            zip(targets.keys(), map(lambda x: x.shape[-1] if len(x.shape) > 1 else 1, list(targets.values()))))
+        self.fit_result = self.module.fit(x, target if target is not None else None)
         self.is_fitted = True
 
     @staticmethod
@@ -82,7 +97,7 @@ class SKLearnWrapper(BaseWrapper):
     def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
         reference = kwargs[list(kwargs)[0]]
         time_index = reference.indexes[_get_time_indexes(reference)[0]]
-        if len(targets) == 0:
+        if len(targets) <= 1:
             coords = (
                 # first dimension is number of batches. We assume that this is the time.
                 ("time", time_index.values),

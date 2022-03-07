@@ -50,7 +50,7 @@ class TestStep(unittest.TestCase):
             "input_ids": {},
             "id": -1,
             'default_run_setting': {'computation_mode': 4},
-            "train_if": None,
+            "refit_condition": None,
             "module": "pywatts.core.step",
             "class": "Step",
             "name": "test",
@@ -65,19 +65,19 @@ class TestStep(unittest.TestCase):
 
     @patch("builtins.open")
     @patch("pywatts.core.step.cloudpickle")
-    def test_store_load_of_step_with_train_if(self, cloudpickle_mock, open_mock):
-        train_if_mock = MagicMock()
-        step = Step(self.module_mock, self.step_mock, None, train_if=train_if_mock)
+    def test_store_load_of_step_with_refit_condition(self, cloudpickle_mock, open_mock):
+        refit_condition_mock = MagicMock()
+        step = Step(self.module_mock, self.step_mock, None, refit_condition=refit_condition_mock)
         fm_mock = MagicMock()
-        fm_mock.get_path.return_value = os.path.join("folder", "test_train_if.pickle")
+        fm_mock.get_path.return_value = os.path.join("folder", "refit_condition.pickle")
         json = step.get_json(fm_mock)
         reloaded_step = Step.load(json, [self.step_mock], targets=None, module=self.module_mock,
                                   file_manager=MagicMock())
 
         # One call in load and one in save
         open_mock.assert_has_calls(
-            [call(os.path.join("folder", "test_train_if.pickle"), "wb"),
-             call(os.path.join("folder", "test_train_if.pickle"), "rb")],
+            [call(os.path.join("folder", "refit_condition.pickle"), "wb"),
+             call(os.path.join("folder", "refit_condition.pickle"), "rb")],
             any_order=True)
         self.assertEqual(json, {
             "target_ids": {},
@@ -86,7 +86,7 @@ class TestStep(unittest.TestCase):
             "id": -1,
             'batch_size': None,
             'default_run_setting': {'computation_mode': 4},
-            "train_if": os.path.join("folder", "test_train_if.pickle"),
+            "refit_condition": os.path.join("folder", "refit_condition.pickle"),
             "module": "pywatts.core.step",
             "class": "Step",
             "name": "test",
@@ -98,7 +98,7 @@ class TestStep(unittest.TestCase):
         self.assertEqual(reloaded_step.module, self.module_mock)
         self.assertEqual(reloaded_step.input_steps, [self.step_mock])
         cloudpickle_mock.load.assert_called_once_with(open_mock().__enter__.return_value)
-        cloudpickle_mock.dump.assert_called_once_with(train_if_mock, open_mock().__enter__.return_value)
+        cloudpickle_mock.dump.assert_called_once_with(refit_condition_mock, open_mock().__enter__.return_value)
 
     @patch("pywatts.core.base_step._get_time_indexes", return_value=["time"])
     @patch("pywatts.core.base_step.xr")
@@ -202,7 +202,7 @@ class TestStep(unittest.TestCase):
         input_dict = {'input_data': None}
         step = Step(self.module_mock, {"x": self.step_mock}, None)
         step._fit(input_dict, {})
-        step._transform(input_dict)
+        step._transform(input_dict,,
         self.module_mock.transform.assert_called_once_with(**input_dict)
 
     def test_load(self):
@@ -215,7 +215,7 @@ class TestStep(unittest.TestCase):
             "module": "pywatts.core.step",
             "class": "Step",
             "condition": None,
-            "train_if": None,
+            "refit_condition": None,
             'callbacks': [],
             "name": "test",
             "last": False,
@@ -241,7 +241,7 @@ class TestStep(unittest.TestCase):
                           'module': 'pywatts.core.step',
                           'name': 'test',
                           'target_ids': {},
-                          'train_if': None}, json)
+                          'refit_condition': None}, json)
 
     def test_set_run_setting(self):
         step = Step(MagicMock(), MagicMock(), MagicMock())
@@ -270,3 +270,19 @@ class TestStep(unittest.TestCase):
         assert step.current_run_setting.computation_mode == ComputationMode.Default
         assert step._should_stop(None, None) == False
         assert step.finished == False
+
+    @patch('pywatts.core.step.isinstance', return_value=True)
+    def test_refit_train_if_false(self, isinstance_mock):
+        step = Step(self.module_mock, {"x": self.step_mock}, file_manager=None, train_if=lambda x, y: False,
+                    computation_mode=ComputationMode.Refit)
+        step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
+        self.module_mock.refit.assert_not_called()
+
+    @patch('pywatts.core.step.isinstance', return_value=True)
+    def test_refit_train_if_true(self, isinstance_m):
+        step = Step(self.module_mock, {"x": self.step_mock},
+                    targets={"target": self.step_mock}, file_manager=None, train_if=lambda x, y: True,
+                    computation_mode=ComputationMode.Refit)
+        step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
+        self.module_mock.refit.assert_called_once_with(x=self.step_mock.get_result(),
+                                                       target=self.step_mock.get_result())

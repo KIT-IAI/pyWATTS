@@ -14,9 +14,11 @@ class RunSetting:
     :type summary_formatter: SummaryFormatter
     """
 
-    def __init__(self, computation_mode: ComputationMode, summary_formatter: SummaryFormatter = SummaryMarkdown()):
+    def __init__(self, computation_mode: ComputationMode, summary_formatter: SummaryFormatter = SummaryMarkdown(),
+                 online_start=False):
         self.computation_mode = computation_mode
         self.summary_formatter = summary_formatter
+        self.online_start = online_start
 
     def update(self, run_setting: 'RunSetting') -> 'RunSetting':
         """
@@ -31,6 +33,7 @@ class RunSetting:
         if setting.computation_mode == ComputationMode.Default:
             setting.computation_mode = run_setting.computation_mode
         setting.summary_formatter = run_setting.summary_formatter
+        setting.online_start = run_setting.online_start
         return setting
 
     def clone(self) -> 'RunSetting':
@@ -41,7 +44,8 @@ class RunSetting:
         """
         return RunSetting(
             computation_mode=self.computation_mode,
-            summary_formatter=self.summary_formatter
+            summary_formatter=self.summary_formatter,
+            online_start = self.online_start
         )
 
     def save(self) -> Dict:

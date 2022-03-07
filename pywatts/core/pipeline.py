@@ -49,7 +49,8 @@ class Pipeline(BaseTransformer):
     :type batch: Optional[pd.Timedelta]
     """
 
-    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = None, name="Pipeline"):
+    def __init__(self, path: Optional[str] = ".", batch: Optional[pd.Timedelta] = pd.Timedelta(hours=0),
+                 name="Pipeline"):
         super().__init__(name)
         self.batch = batch
         self.counter = None
@@ -72,25 +73,40 @@ class Pipeline(BaseTransformer):
         :return:The transformed data
         :rtype: xr.DataArray
         """
-        for key, (start_step, _) in self.start_steps.items():
-            start_step.buffer = {key: x[key].copy()}
-            start_step.finished = True
+        if self.current_run_setting.online_start is not None:
+            index_name = _get_time_indexes(x)[0]
+            time_index = list(x.values())[0][_get_time_indexes(x)[0]]
+            if time_index[0].values < self.current_run_setting.online_start:
+                return self._transform(x, None)
+            else:
+                return self._comp(x, self.current_run_setting.summary_formatter, self.batch)[0]
+        else:
+            return self._comp(x, self.current_run_setting.summary_formatter, self.batch)[0]
 
+    def _transform(self, x, batch=None):
+        for key, (start_step, _) in self.start_steps.items():
+            if not start_step.buffer:
+                start_step.buffer = {key: x[key].copy()}
+            else:
+                dim = _get_time_indexes(x)[0]
+                last = start_step.buffer[key][dim].values[-1]
+                start_step.buffer[key] = xr.concat([start_step.buffer[key], x[key][x[key][dim] > last]], dim=dim)
+            start_step.finished = True
         time_index = _get_time_indexes(x)
         self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
-
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
-
-        if not self.batch:
+        if not batch:
             return self._collect_results(last_steps)
-        return self._collect_batches(last_steps, time_index)
+        return self._collect_batches(last_steps, time_index, batch)
 
-    def _collect_batches(self, last_steps, time_index):
-        result = dict()
+    def _collect_batches(self, last_steps, time_index, batch):
+        result = {}
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
-            if not result:
-                result = self._collect_results(last_steps)
+            res = self._collect_results(last_steps, batch=batch)
+            if res is not None:
+                for key in res:
+                    result[key] = xr.concat([result[key], res[key]], dim=time_index[0]) if key in result else res[key]
             else:
                 input_results = self._collect_results(last_steps)
                 if input_results is not None:
@@ -100,12 +116,13 @@ class Pipeline(BaseTransformer):
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)
                     logger.info(message)
+            self.refit(self.counter, self.counter + self.batch if self.batch is not None else self.counter)
             self.counter += self.batch
         return result
 
-    def _collect_results(self, inputs):
+    def _collect_results(self, inputs, batch=None):
         # Note the return value is None if none of the inputs provide a result for this step...
-        end = None if not self.batch else self.counter + self.batch
+        end = None if not batch else self.counter + batch
         result = dict()
         for i, step in enumerate(inputs):
             if not isinstance(step, SummaryStep):
@@ -152,7 +169,7 @@ class Pipeline(BaseTransformer):
         # TODO built the graph which should be drawn by starting with the last steps...
 
     def test(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False,
-             summary_formatter: SummaryFormatter = SummaryMarkdown()):
+             summary_formatter: SummaryFormatter = SummaryMarkdown(), online_start=None):
         """
         Executes all modules in the pipeline in the correct order. This method call only transform on every module
         if the ComputationMode is Default. I.e. if no computationMode is specified during the addition of the module to
@@ -167,7 +184,7 @@ class Pipeline(BaseTransformer):
         :return: The result of all end points of the pipeline
         :rtype: Dict[xr.DataArray]
         """
-        return self._run(data, ComputationMode.Transform, summary, summary_formatter)
+        return self._run(data, ComputationMode.Transform, summary, summary_formatter, online_start)
 
     def train(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False,
               summary_formatter: SummaryFormatter = SummaryMarkdown()):
@@ -189,19 +206,33 @@ class Pipeline(BaseTransformer):
         return self._run(data, ComputationMode.FitTransform, summary, summary_formatter)
 
     def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode, summary: bool,
-             summary_formatter: SummaryFormatter):
+             summary_formatter: SummaryFormatter, online_start=None):
 
+        self.current_run_setting = RunSetting(computation_mode=mode,
+                                              summary_formatter=summary_formatter,
+                                              online_start=online_start)
         for step in self.id_to_step.values():
             step.reset()
-            step.set_run_setting(RunSetting(computation_mode=mode, summary_formatter=summary_formatter))
+            step.set_run_setting(run_setting=self.current_run_setting)
 
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
 
         if isinstance(data, xr.Dataset):
-            result = self.transform(**{key: data[key] for key in data.data_vars})
-            sum = self._create_summary(summary_formatter)
-            return (result, sum) if summary else result
+            if self.current_run_setting.online_start is not None:
+                index_name = _get_time_indexes(data)[0]
+                self._transform({key: data[key].sel(
+                    **{index_name: data[key][index_name] < online_start}) for key in data.data_vars}, False)
+                for step in self.id_to_step.values():
+                    step.reset(keep_buffer=True)
+                    step.set_run_setting(RunSetting(computation_mode=mode,
+                                                    summary_formatter=summary_formatter,
+                                                    online_start=online_start))
+                return self._comp({key: data[key].sel(
+                    **{index_name: data[key][index_name] >= online_start}) for key in data.data_vars}
+                    , summary_formatter, self.batch, start=online_start)
+            else:
+                return self._comp({key: data[key] for key in data.data_vars}, summary_formatter, self.batch)
         elif isinstance(data, dict):
             for key in data:
                 if not isinstance(data[key], xr.DataArray):
@@ -210,15 +241,23 @@ class Pipeline(BaseTransformer):
                         "Make sure to pass Dict[str, xr.DataArray].",
                         self.name
                     )
-            result = self.transform(**data)
-            sum = self._create_summary(summary_formatter)
-            return (result, sum) if summary else result
+            if online_start is not None:
+                self._transform(data[:online_start], self.batch)
+                return self._compute(data[online_start:], summary_formatter, self.batch)
+
+            else:
+                return self._compute(data, summary_formatter, self.batch)
 
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",
             "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
             self.name
         )
+
+    def _comp(self, data, summary_formatter, batch, start=None, end=None):
+        result = self._transform(data, batch)
+        sum = self._create_summary(summary_formatter, start, end)
+        return (result, sum) if sum else result
 
     def add(self, *,
             module: Union[BaseStep],
@@ -413,10 +452,22 @@ class Pipeline(BaseTransformer):
             start_step.id = self.add(module=start_step, input_ids=[], target_ids=[])
         return self.start_steps[item][-1]
 
-    def _create_summary(self, summary_formatter):
+    def _create_summary(self, summary_formatter, start=None, end=None):
         summaries = []
         for step in self.id_to_step.values():
             if isinstance(step, SummaryStep):
-                summaries.append(step.get_summary())
-            summaries.extend([step.transform_time, step.training_time])
+                summaries.append(step.get_summary(start, end))
+            summaries.extend(step.get_summaries())
         return summary_formatter.create_summary(summaries, self.file_manager)
+
+    def refit(self, start, end):
+        """
+        Refits all steps inside of the pipeline.
+        :param start: The date of the first data used for retraining.
+        :param end: The date of the last data used for retraining.
+        """
+        for step in self.id_to_step.values():
+            # A lag is needed, since if we have a 24 hour forecast we can evaluate the forecast not until 24 hours
+            # are gone, since before not all target variables are available
+            if isinstance(step, Step):
+                step.refit(start - step.lag, end - step.lag)

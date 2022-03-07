@@ -6,6 +6,8 @@ from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
+import pandas as pd
+
 
 
 class Sampler(BaseTransformer):
@@ -32,6 +34,10 @@ class Sampler(BaseTransformer):
                 module=self.name)
         self.sample_size = sample_size
         self.indexes = indexes
+
+    def get_min_data(self):
+        # TODO hacky probably should be either Timeldeta or int
+        return pd.Timedelta(f"{self.sample_size}h")
 
     def get_params(self) -> Dict[str, object]:
         """

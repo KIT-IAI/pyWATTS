@@ -1,7 +1,13 @@
+import logging
+
+from pywatts.core.base import BaseEstimator
 from pywatts.core.run_setting import RunSetting
 from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.exceptions import NotFittedException
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.step import Step
+from pywatts.core.base_summary import BaseSummary
+logger = logging.getLogger(__name__)
 
 
 class PipelineStep(Step):
@@ -40,15 +46,35 @@ class PipelineStep(Step):
         for step in self.module.id_to_step.values():
             step.set_run_setting(run_setting)
 
+        self.module.current_run_setting = self.current_run_setting
+
     def _post_transform(self, result):
         self.module._create_summary(self.current_run_setting.summary_formatter)
-        super()._post_transform(result)
+        return super()._post_transform(result)
 
-    def reset(self):
+    def reset(self, keep_buffer=False):
         """
         Resets all information of the step concerning a specific run. Furthermore, it resets also all steps
         of the subpipeline.
         """
-        super().reset()
+        super().reset(keep_buffer=keep_buffer)
         for step in self.module.id_to_step.values():
-            step.reset()
+            step.reset(keep_buffer=keep_buffer)
+
+    def _transform(self, input_step):
+        if isinstance(self.module, BaseEstimator) and not self.module.is_fitted:
+            message = f"Try to call transform in {self.name} on not fitted module {self.module.name}"
+            logger.error(message)
+            raise NotFittedException(message, self.name, self.module.name)
+        result = self.module.transform(**input_step)
+        #        self.additional_summary = self.module.create_summary()
+        return self._post_transform(result)
+
+    def get_summaries(self):
+        summaries = []
+        for m in self.module.id_to_step.values():
+            if isinstance(m, BaseSummary):
+                summaries.append(m.get_summary())
+            summaries.extend(m.get_summaries())
+
+        return  summaries

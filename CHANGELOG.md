@@ -7,6 +7,7 @@
 * Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
 * Add custom scaler module for pre-processing ([#167](https://github.com/KIT-IAI/pyWATTS/issues/167))
 * Add a MASE Summary ([#148](https://github.com/KIT-IAI/pyWATTS/issues/148))
+* Online Start Feature ([#189](https://github.com/KIT-IAI/pyWATTS/issues/189))
 
 
 ### Changed

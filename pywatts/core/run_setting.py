@@ -15,7 +15,7 @@ class RunSetting:
     """
 
     def __init__(self, computation_mode: ComputationMode, summary_formatter: SummaryFormatter = SummaryMarkdown(),
-                 online_start=False):
+                 online_start=None):
         self.computation_mode = computation_mode
         self.summary_formatter = summary_formatter
         self.online_start = online_start

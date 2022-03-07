@@ -73,9 +73,11 @@ class Pipeline(BaseTransformer):
         :rtype: xr.DataArray
         """
         if self.current_run_setting.online_start is not None:
-            index_name = _get_time_indexes(x)[0]
-            time_index = list(x.values())[0][_get_time_indexes(x)[0]]
-            if time_index[0].values < self.current_run_setting.online_start:
+            time_index_name = _get_time_indexes(x)[0]
+            time_index = list(x.values())[0][time_index_name]
+            if time_index[-1].values < self.current_run_setting.online_start:
+                # Complete data should not be executed online and no summaries should be calculated. Thus
+                # _transform is called directly.
                 return self._transform(x, None)
             else:
                 return self._comp(x, self.current_run_setting.summary_formatter, self.batch)[0]
@@ -211,13 +213,15 @@ class Pipeline(BaseTransformer):
 
         for step in self.id_to_step.values():
             step.reset()
-            step.set_run_setting(run_setting=self.current_run_setting)
+            step.set_run_setting(self.current_run_setting)
 
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
 
         if isinstance(data, xr.Dataset):
             if self.current_run_setting.online_start is not None:
+                # First only _transform should be called (no summary, no online) on the data before online_start.
+                # Afterwards, comp is called (_transform and summaries using online simulation)
                 index_name = _get_time_indexes(data)[0]
                 self._transform({key: data[key].sel(
                     **{index_name: data[key][index_name] < online_start}) for key in data.data_vars}, False)
@@ -252,9 +256,9 @@ class Pipeline(BaseTransformer):
             self.name
         )
 
-    def _comp(self, data, summary_formatter, batch, start=None, end=None):
+    def _comp(self, data, summary_formatter, batch, start=None):
         result = self._transform(data, batch)
-        sum = self._create_summary(summary_formatter, start, end)
+        sum = self._create_summary(summary_formatter, start, None)
         return (result, sum) if sum else result
 
     def add(self, *,

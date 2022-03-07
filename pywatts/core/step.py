@@ -69,7 +69,7 @@ class Step(BaseStep):
             message = "You added a refit_condition without setting the computation_mode to refit." \
                       " The conditoin will be ignored."
             warnings.warn(message)
-            logger.warn(message)
+            logger.warning(message)
         self.lag = lag
         self.train_if = train_if
         self.result_steps: Dict[str, ResultStep] = {}

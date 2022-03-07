@@ -7,6 +7,7 @@ from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterExce
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
 
+
 class Sampler(BaseTransformer):
     """
     This module creates samples with a size specified by sample_size. I.e., if sample_size is 24h. It creates for each
@@ -24,6 +25,11 @@ class Sampler(BaseTransformer):
         super().__init__(name)
         if indexes is None:
             indexes = []
+        if sample_size <= 0:
+            raise WrongParameterException(
+                "Sample size cannot be less than or equal to zero.",
+                "Please define a sample size greater than zero.",
+                module=self.name)
         self.sample_size = sample_size
         self.indexes = indexes
 
@@ -51,6 +57,11 @@ class Sampler(BaseTransformer):
         """
         if sample_size:
             self.sample_size = sample_size
+            if sample_size <= 0:
+                raise WrongParameterException(
+                    "Sample size cannot be less than or equal to zero.",
+                    "Please define a sample size greater than zero.",
+                    module=self.name)
         if indexes is not None:
             # Do not use if indexes here, since this would be false if indexes is empty.
             self.indexes = indexes
@@ -68,7 +79,7 @@ class Sampler(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(0, self.sample_size)]
+            r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(self.sample_size - 1, -1, -1)]
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",

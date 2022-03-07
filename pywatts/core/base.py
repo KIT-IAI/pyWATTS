@@ -130,6 +130,13 @@ class Base(ABC):
         name = load_information["name"]
         return cls(name=name, **params)
 
+    def refit(self, **kwargs):
+        """
+        This method refits the module. If not overwritten it is the same as fit.
+        :param kwargs: key word arguments as input. If the key word starts with target, then it is a target variable.
+        """
+        return self.fit(**kwargs)
+
     def __call__(self,
                  use_inverse_transform: bool = False,
                  use_prob_transform: bool = False,
@@ -138,6 +145,8 @@ class Base(ABC):
                  computation_mode: ComputationMode = ComputationMode.Default,
                  batch_size: Optional[pd.Timedelta] = None,
                  train_if: Optional[Union[Callable, bool]] = None,
+                 lag: Optional[int] = pd.Timedelta(hours=0),
+                 retrain_batch: Optional[int] = pd.Timedelta(hours=24),
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
                  ) -> StepInformation:
         """
@@ -167,6 +176,12 @@ class Base(ABC):
         :param computation_mode: Determines the computation mode of the step. Could be ComputationMode.Train,
                                  ComputationMode.Transform, and Computation.FitTransform
         :type computation_mode: ComputationMode
+        :param lag: Needed for online learning. Determines what data can be used for retraining.
+                    E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
+                    use future values as target values.
+        :type lag: pd.Timedelta
+        :param retrain_batch: Needed for online learning. Determines how much data should be used for retraining.
+        :type retrain_batch: pd.Timedelta
         :return: a step information.
         :rtype: StepInformation
         """
@@ -179,7 +194,9 @@ class Base(ABC):
                                          condition=condition,
                                          callbacks=callbacks,
                                          computation_mode=computation_mode, batch_size=batch_size,
-                                         train_if=train_if
+                                         train_if=train_if,
+                                         retrain_batch=retrain_batch,
+                                         lag=lag
                                          )
 
 
@@ -230,6 +247,6 @@ class BaseEstimator(Base, ABC):
         :return: The restored module
         :rtype: BaseEstimator
         """
-        module = super().__class__.load(load_information)
+        module = super(BaseEstimator, cls).load(load_information)
         module.is_fitted = load_information["is_fitted"]
         return module

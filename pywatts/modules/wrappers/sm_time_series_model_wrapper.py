@@ -29,7 +29,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
     """
 
     def __init__(self, module: Type[TimeSeriesModel], name: str = None, module_kwargs=None,
-                 fit_kwargs=None, predict_kwargs=None):
+                 fit_kwargs=None, predict_kwargs=None, use_exog=True):
         if name is None:
             name = module.__name__
         super().__init__(name)
@@ -43,6 +43,8 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         self.module_kwargs = module_kwargs
         self.fit_kwargs = fit_kwargs
         self.predict_kwargs = predict_kwargs
+        self.use_exog = use_exog
+
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -56,9 +58,10 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
             "module_kwargs": self.module_kwargs,
             "fit_kwargs": self.fit_kwargs,
             "predict_kwargs": self.predict_kwargs,
+            "use_exog" : self.use_exog
         }
 
-    def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None):
+    def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None, use_exog=None):
         """
         Set the parameters of the statsmodels wrappers
 
@@ -75,6 +78,8 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
             self.fit_kwargs = fit_kwargs
         if predict_kwargs:
             self.predict_kwargs = predict_kwargs
+        if use_exog is not None:
+            self.use_exog = use_exog
 
     def fit(self, **kwargs: xr.DataArray):
         """
@@ -89,7 +94,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
 
         # Check if the statsmodel accepts exogenous variables
         if len(x) > 0 and "exog" in inspect.signature(self.module).parameters or "kwargs" in inspect.signature(
-                self.module).parameters:
+                self.module).parameters and self.use_exog:
             self.model = self.module(endog=np.stack(y, axis=-1), exog=np.concatenate(x, axis=-1),
                                      **self.module_kwargs).fit(
                 **self.fit_kwargs)
@@ -115,14 +120,22 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
 
         if hasattr(self.model, "forecast"):
             if "exog" in inspect.signature(self.model.forecast).parameters or "kwargs" in inspect.signature(
-                    self.model.forecast).parameters:
+                    self.model.forecast).parameters and self.use_exog:
                 prediction = \
                     self.model.forecast(len(time_data), exog=np.concatenate(x, axis=-1), **self.predict_kwargs)[0]
 
             else:
                 prediction = self.model.forecast(len(time_data), **self.predict_kwargs)[0]
+        elif hasattr(self.model, "predict"):
+            if "exog" in inspect.signature(self.model.predict).parameters or "kwargs" in inspect.signature(
+                    self.model.predict).parameters and self.use_exog:
+                prediction = \
+                    self.model.predict(len(time_data), exog=np.concatenate(x, axis=-1), **self.predict_kwargs)[0]
+
+            else:
+                prediction = self.model.predict(len(time_data), **self.predict_kwargs)[0]
         else:
-            raise Exception(f"{self.module.__class__.__name__} has not forecast method...")
+            raise Exception(f"{self.module.__class__.__name__} has no forecast or predict method...")
 
         return numpy_to_xarray(prediction, list(kwargs.values())[0], self.name)
 

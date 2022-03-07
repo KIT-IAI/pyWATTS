@@ -24,6 +24,7 @@ from pywatts.core.step_information import StepInformation
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.core.summary_step import SummaryStep
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts.utils._pywatts_json_encoder import PyWATTSJsonEncoder
 from pywatts.core.summary_formatter import SummaryMarkdown, SummaryJSON, SummaryFormatter
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pywatts.log',
@@ -99,6 +100,7 @@ class Pipeline(BaseTransformer):
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)
                     logger.info(message)
+            self.refit(self.counter, self.counter + self.batch if self.batch is not None else self.counter)
             self.counter += self.batch
         return result
 
@@ -333,7 +335,7 @@ class Pipeline(BaseTransformer):
         }
         file_path = save_file_manager.get_path('pipeline.json')
         with open(file_path, 'w') as outfile:
-            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4)
+            json.dump(obj=stored_pipeline, fp=outfile, sort_keys=False, indent=4, cls=PyWATTSJsonEncoder)
 
     @staticmethod
     def from_folder(load_path, file_manager_path=None):
@@ -419,3 +421,15 @@ class Pipeline(BaseTransformer):
                 summaries.append(step.get_summary())
             summaries.extend([step.transform_time, step.training_time])
         return summary_formatter.create_summary(summaries, self.file_manager)
+
+    def refit(self, start, end):
+        """
+        Refits all steps inside of the pipeline.
+        :param start: The date of the first data used for retraining.
+        :param end: The date of the last data used for retraining.
+        """
+        for step in self.id_to_step.values():
+            # A lag is needed, since if we have a 24 hour forecast we can evaluate the forecast not until 24 hours
+            # are gone, since before not all target variables are available
+            if isinstance(step, Step):
+                step.refit(start - step.lag, end - step.lag)

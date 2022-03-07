@@ -4,28 +4,28 @@ import logging
 import xarray as xr
 import numpy as np
 
-from pywatts.core.base import BaseTransformer
+from pywatts.core.base import BaseEstimator
 from pywatts.core.exceptions import WrongParameterException
-from pywatts.core.step_information import StepInformation
+from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 
 logger = logging.getLogger(__name__)
 
 
-class Ensemble(BaseTransformer):
+class Ensemble(BaseEstimator):
     """
     Aggregation step to ensemble the given time series, ether by simple or weighted averaging.
     By default simple averaging is applied.
     """
 
     def __init__(self, weights: Union[str, list] = None, k_best: Union[str, int] = None,
-                 loss: list = None, name: str = "Ensemble"):
+                 loss_metric: str = "rmse", name: str = "Ensemble"):
         """ Initialize the ensemble step.
         :param weights: List of individual weights of the given forecasts for weighted averaging. Passing "auto"
         estimates the weights depending on the given loss values.
         :type weights: list, optional
-        :param loss: List of the loss of the given forecasts for automated optimal weight estimation.
-        :type loss: list, optional
+        :param loss_metric: Specifies the loss metric for automated optimal weight estimation.
+        :type loss_metric: str, optional
         :param k_best: Drop poor forecasts in the automated weight estimation. Passing "auto" drops poor forecasts based
         on the given loss values by applying the 1.5*IQR rule.
         :type k_best: str or int, optional
@@ -44,7 +44,8 @@ class Ensemble(BaseTransformer):
         super().__init__(name)
 
         self.weights = weights
-        self.loss = loss
+        self._weights = None
+        self.loss_metric = loss_metric
         self.k_best = k_best
         self.is_fitted = False
 
@@ -56,88 +57,54 @@ class Ensemble(BaseTransformer):
         return {
             "weights": self.weights,
             "k_best": self.k_best,
-            "loss": self.loss,
+            "loss_metric": self.loss_metric,
         }
 
-    def set_params(self, weights: Union[str, list] = None, loss: list = None, k_best: Union[str, int] = None):
+    def set_params(self, weights: Union[str, list] = None, loss_metric: str = None, k_best: Union[str, int] = None):
         """ Set or change Ensemble object parameters.
         :param weights: List of individual weights of the given forecasts for weighted averaging. Passing "auto"
         estimates the weights depending on the given loss values.
         :type weights: list, optional
-        :param loss: List of the loss of the given forecasts for automated optimal weight estimation.
-        :type loss: list, optional
+        :param loss_metric: List of the loss of the given forecasts for automated optimal weight estimation.
+        :type loss_metric: str, optional
         :param k_best: Drop poor forecasts in the automated weight estimation. Passing "auto" drops poor forecasts based
         on the given loss values by applying the 1.5*IQR rule.
         :type k_best: str or int, optional
         """
         if weights is not None:
             self.weights = weights
-        if loss is not None:
-            self.loss = loss
+        if loss_metric is not None:
+            self.loss_metric = loss_metric
         if k_best is not None:
             self.k_best = k_best
 
-    def fit(self, **kwargs) -> xr.DataArray:
-        if self.loss:
+    def fit(self, **kwargs):
+
+        forecasts, targets = split_kwargs(kwargs)
+
+        if self.weights == 'auto' or self.k_best is not None:
             # determine weights depending on in-sample loss
-            if len(self.loss) is not len(kwargs):
-                raise WrongParameterException(
-                        "The number of the given loss values does not match the number of given forecasts.",
-                        f"Make sure to pass {len(kwargs)} loss terms.",
-                        self.name
-                    )
 
-            loss_values = []
-            for item in self.loss:
-                # temporary solution! RmseCalculator will be removed.
-                if isinstance(item, StepInformation):
-                    loss_values += [float(value) for value in item.step.buffer.values()]
-                else:
-                    loss_values += [item]
-
-            loss_values_dropped = []
-            if self.k_best is not None:
-                # Do not sort the loss_values! Otherwise the weights do not match the given forecasts.
-                if self.k_best == "auto":
-                    q75, q25 = np.percentile(loss_values, [75, 25])
-                    iqr = q75 - q25
-                    upper_bound = q75 + 1.5 * iqr  # only check for outliers with high loss
-                    loss_values_dropped = [value for value in loss_values if not (value <= upper_bound)]
-                elif self.k_best > len(loss_values):
-                    raise WrongParameterException(
-                        "The given k is greater than the number of the given loss values.",
-                        f"Make sure to define k <= {len(loss_values)}.",
-                        self.name
-                    )
-                else:
-                    loss_values_dropped = sorted(loss_values)[self.k_best:]
+            loss_values = self._calculate_loss(ps=forecasts, ts=targets)
+            loss_values_dropped = self._drop_forecasts(loss=loss_values)
 
             # overwrite weights based on given loss values and zero weights of dropped forecasts
             if self.weights == "auto":  # weighted averaging depending on estimated weights
-                self.weights = [0 if value in loss_values_dropped else 1/value for value in loss_values]
+                self._weights = [0 if value in loss_values_dropped else 1 / value for value in loss_values]
             elif self.weights is None:  # averaging
-                self.weights = [0 if value in loss_values_dropped else 1 for value in loss_values]
+                self._weights = [0 if value in loss_values_dropped else 1 for value in loss_values]
             else:  # weighted averaging depending on specified weights
-                self.weights = [
-                    0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self.weights)
+                self._weights = [
+                    0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self._weights)
                 ]
-
-            self.is_fitted = True
         else:
-            if self.weights == 'auto':
-                raise WrongParameterException(
-                        "Automated weight estimation requires the input of loss values.",
-                        f"Make sure to pass a list of {len(kwargs)} loss values according to "
-                        "the sequence of the given forecasts.",
-                        self.name
-                    )
-            if self.k_best is not None:
-                raise WrongParameterException(
-                        "Averaging or weighted averaging of the k-best forecasts requires the input of loss values.",
-                        f"Make sure to pass a list of {len(kwargs)} loss values according to "
-                        "the sequence of the given forecasts.",
-                        self.name
-                    )
+            self._weights = self.weights
+
+        # normalize weights
+        if self._weights:
+            self._weights = [weight / sum(self._weights) for weight in self._weights]
+
+        self.is_fitted = True
 
     def transform(self, **kwargs) -> xr.DataArray:
         """ Ensemble the given time series by simple or weighted averaging.
@@ -145,17 +112,13 @@ class Ensemble(BaseTransformer):
         :rtype: xr.DataArray
         """
 
-        if self.weights:
-            if len(self.weights) is not len(kwargs):
+        if self.weights is not None:
+            if len(self._weights) is not len(kwargs):
                 raise WrongParameterException(
                     "The number of the given weights does not match the number of given forecasts.",
                     f"Make sure to pass {len(kwargs)} weights.",
                     self.name
                 )
-
-        # normalize weights
-        if self.weights:
-            self.weights = [weight / sum(self.weights) for weight in self.weights]
 
         list_of_series = []
         list_of_indexes = []
@@ -166,6 +129,45 @@ class Ensemble(BaseTransformer):
         if not all(all(index) == all(list_of_indexes[0]) for index in list_of_indexes):
             raise ValueError("The indexes of the given time series for averaging do not match")
 
-        result = np.average(list_of_series, axis=0, weights=self.weights)
+        result = np.average(list_of_series, axis=0, weights=self._weights)
 
         return numpy_to_xarray(result, series, self.name)
+
+    def _calculate_loss(self, ps, ts):
+
+        t_ = np.array([t.values for t in ts.values()])
+        loss_values = []
+        for p in ps.values():
+            p_ = p.values
+            if self.loss_metric == "rmse":
+                loss_values.append(np.sqrt(np.mean((p_ - t_) ** 2)))
+            elif self.loss_metric == "mae":
+                loss_values.append(np.mean(np.abs((p_ - t_))))
+            else:
+                WrongParameterException(
+                    "The specified loss metric is not implemented.",
+                    "Make sure to pass the loss metric 'rmse' or 'mae'.",
+                    self.name
+                )
+
+        return loss_values
+
+    def _drop_forecasts(self, loss: list):
+        loss_values_dropped = []
+        if self.k_best is not None:
+            # Do not sort the loss_values! Otherwise, the weights do not match the given forecasts.
+            if self.k_best == "auto":
+                q75, q25 = np.percentile(loss, [75, 25])
+                iqr = q75 - q25
+                upper_bound = q75 + 1.5 * iqr  # only check for outliers with high loss
+                loss_values_dropped = [value for value in loss if not (value <= upper_bound)]
+            elif self.k_best > len(loss):
+                raise WrongParameterException(
+                    "The given k is greater than the number of the given loss values.",
+                    f"Make sure to define k <= {len(loss)}.",
+                    self.name
+                )
+            else:
+                loss_values_dropped = sorted(loss)[self.k_best:]
+
+        return loss_values_dropped

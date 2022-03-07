@@ -42,7 +42,7 @@ class PipelineStep(Step):
 
     def _post_transform(self, result):
         self.module._create_summary(self.current_run_setting.summary_formatter)
-        super()._post_transform(result)
+        return super()._post_transform(result)
 
     def reset(self):
         """

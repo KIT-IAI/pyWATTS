@@ -153,9 +153,7 @@ class BaseStep(ABC):
         pass
 
     def _post_transform(self, result):
-        if isinstance(result, dict) and len(result) <= 1:
-            result = {self.name: list(result.values())[0]}
-        elif not isinstance(result, dict):
+        if not isinstance(result, dict):
             result = {self.name: result}
 
         if not self.buffer:

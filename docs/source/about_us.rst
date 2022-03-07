@@ -6,6 +6,8 @@ History
 This project was started in 2019 by the Research Group "Machine Learning for Time Series and Images" of the Institute for
 Automation and Applied Informatics at the Karlsruhe Institute of Technology.
 
+For more information on pyWATTS you can visit https://www.iai.kit.edu/english/1266_4162.php
+
 Authors
 -------
 The following people are currently involved in pyWATTS' core development and maintenance:
@@ -13,6 +15,7 @@ The following people are currently involved in pyWATTS' core development and mai
 * Andreas Bartschat
 * Benedikt Heidrich
 * Nicole Ludwig
+* Stefan Meisenbacher
 * Oliver Neumann
 * Kaleb Phipps
 * Marian Turowski
@@ -30,11 +33,10 @@ The following people have been active contributors in the past, but are no longe
 
 Citing pyWATTS
 --------------
-tbd
+If you use this framework in a scientific publication please cite the corresponding paper:
+
+Benedikt Heidrich, Andreas Bartschat, Marian Turowski, Oliver Neumann, Kaleb Phipps, Stefan Meisenbacher, Kai Schmieder, Nicole Ludwig, Ralf Mikut, Veit Hagenmeyer. “pyWATTS: Python Workflow Automation Tool for Time Series.” (2021).). arXiv:2106.10157. http://arxiv.org/abs/2106.10157
 
 Funding
 -------
-This project is supported by the Helmholtz Association under the Joint Initiative "Energy System 2050 - A Contribution
-of the Research Field Energy" and the Helmholtz AI Corporation Unit Energy as well as by the German Research Foundation
-(DFG) Research Training Group 2153 "Energy Status Data: Informatics Methods for its Collection, Analysis and
-Exploitation".
+This project is supported by the Helmholtz Association under the Program “Energy System Design”, by the Helmholtz Association’s Initiative and Networking Fund through Helmholtz AI, by the Helmholtz Association under the Joint Initiative "Energy System 2050 - A Contribution of the Research Field Energy", and by the German Research Foundation (DFG) Research Training Group 2153 "Energy Status Data: Informatics Methods for its Collection, Analysis and Exploitation".

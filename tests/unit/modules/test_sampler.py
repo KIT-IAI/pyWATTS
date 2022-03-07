@@ -8,7 +8,7 @@ from pywatts.modules import Sampler
 
 class TestSampler(unittest.TestCase):
     def setUp(self) -> None:
-        self.sampler = Sampler(sample_size=2)
+        self.sampler = Sampler(sample_size=3)
 
     def tearDown(self) -> None:
         self.sampler = None
@@ -18,14 +18,14 @@ class TestSampler(unittest.TestCase):
 
         self.assertEqual(params,
                          {
-                             "sample_size": 2,
+                             "sample_size": 3,
                              "indexes": [],
                          })
 
     def test_set_params(self):
         self.assertEqual(self.sampler.get_params(),
                          {
-                             "sample_size": 2,
+                             "sample_size": 3,
                              "indexes": [],
                          })
         self.sampler.set_params(indexes=["Foo"], sample_size=12)
@@ -38,14 +38,15 @@ class TestSampler(unittest.TestCase):
     def test_transform(self):
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
-        da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=['time'], coords={"time": time})
+        da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})
 
+        self.sampler.set_params(sample_size=3)
         result = self.sampler.transform(da)
 
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
 
-        expected_result = xr.DataArray([[2, 0], [3, 2], [4,3], [5,4], [6,5], [7,6], [8,7]], dims=["time", "horizon"],
-                                       coords={"time":time})
+        expected_result = xr.DataArray([[0, 0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7]],
+                                       dims=["time", "horizon"], coords={"time": time})
 
         xr.testing.assert_equal(result, expected_result)
 
@@ -60,3 +61,9 @@ class TestSampler(unittest.TestCase):
                          "Not all indexes (['FOO']) are in the indexes of x (['time']). "
                          "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.")
 
+    def test_set_params_exception(self):
+        with self.assertRaises(WrongParameterException) as context:
+            self.sampler.set_params(sample_size=-3)
+        self.assertEqual(context.exception.message,
+                         "Sample size cannot be less than or equal to zero. "
+                         "Please define a sample size greater than zero.")

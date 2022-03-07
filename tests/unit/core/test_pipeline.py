@@ -141,7 +141,7 @@ class TestPipeline(unittest.TestCase):
         assert kwargs["obj"]["steps"] == pipeline_json["steps"]
 
     @patch('pywatts.core.pipeline.FileManager')
-    @patch('pywatts.modules.sklearn_wrapper.pickle')
+    @patch('pywatts.modules.sklearn_wrapper.cloudpickle')
     @patch('pywatts.core.pipeline.json')
     @patch("builtins.open", new_callable=mock_open)
     @patch('pywatts.core.pipeline.os.path.isdir')

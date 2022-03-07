@@ -581,3 +581,14 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.refit(pd.Timestamp("2000.01.02"), pd.Timestamp("2022.01.02"))
 
         first_step.refit.assert_called_once_with(pd.Timestamp("2000.01.01"), pd.Timestamp("2022.01.01"))
+
+
+    def test_online_with_filled_buffer(self):
+        self.fail("Needs to be implemented")
+        # TODO Create online pipeline with two modules
+        #  Execute module with online_start
+        #  Check the buffers after the online execution. (all data should be part of the buffer)
+        #  Check number of calls (online steps + 1[fill buffer execution])
+
+    def test_save_online_pipeline_with_filled_buffer(self):
+        self.fail("Needs to be implemented")

@@ -134,6 +134,19 @@ class BaseStep(ABC):
             else:
                 return list(self.buffer.values())[0].sel(
                     **{time_index[0]: index[(index >= start) & (index < end.to_numpy())]})
+        elif start and end is None:
+            index = list(self.buffer.values())[0].indexes[time_index[0]]
+            start = max(index[0], start.to_numpy())
+            # After sel copy is not needed, since it returns a new array.
+            if buffer_element is not None:
+                return self.buffer[buffer_element].sel(
+                    **{time_index[0]: index[(index >= start)]})
+            elif return_all:
+                return {key: b.sel(**{time_index[0]: index[(index >= start)]}) for
+                        key, b in self.buffer.items()}
+            else:
+                return list(self.buffer.values())[0].sel(
+                    **{time_index[0]: index[(index >= start)]})
         else:
             self.finished = True
             if buffer_element is not None:
@@ -218,11 +231,13 @@ class BaseStep(ABC):
     def _input_stopped(input_data):
         return (input_data is not None and len(input_data) > 0 and any(map(lambda x: x is None, input_data.values())))
 
-    def reset(self):
+    def reset(self, keep_buffer=False):
         """
         Resets all information of the step concerning a specific run.
+        :param keep_buffer: Flag indicating if the buffer should be resetted too.
         """
-        self.buffer = {}
+        if not keep_buffer:
+            self.buffer = {}
         self.finished = False
         self.current_run_setting = self.default_run_setting.clone()
 

@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from sklearn.mixture import GaussianMixture
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.feature_selection import SelectKBest, f_regression
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, SVR
@@ -61,6 +62,36 @@ class TestSklearnWrapper(unittest.TestCase):
         result = wrapper.transform(bar=bar)
         assert result["target"].values[0] == 2.0
         self.assertEqual(result["target"].shape, (1, 1))
+
+    def test_fit_SelectorMixin(self):
+        kbest = SelectKBest(score_func=f_regression, k=1)
+        wrapper = SKLearnWrapper(module=kbest)
+
+        eps = 0.001
+        wrapper.fit(feature1=xr.DataArray([x+eps for x in [2, 2, 3, 4, 4]]),
+                    feature2=xr.DataArray([1, 2, 3, 4, 5]),
+                    target=xr.DataArray([2, 2, 3, 4, 4]))
+
+        self.assertTrue("scores_" in kbest.__dir__())
+        self.assertIsNotNone(kbest.scores_)
+
+    def test_transform_SelectorMixin(self):
+        kbest = SelectKBest(score_func=f_regression, k=1)
+        wrapper = SKLearnWrapper(module=kbest)
+        eps = 0.001
+        time = pd.date_range('2000-01-08', freq='24H', periods=5)
+        target = xr.DataArray([2, 2, 3, 4, 4], dims=["time"], coords={'time': time})
+        feature1 = target + eps
+        feature2 = xr.DataArray([4, 4, 3, 2, 2], dims=["time"], coords={'time': time}) + eps
+
+        wrapper.fit(feature1=feature1,
+                    feature2=feature2,
+                    target=target)
+
+        result = wrapper.transform(feature1=feature1, feature2=feature2)
+
+        self.assertListEqual(list(result), list(feature2))
+        self.assertEqual(result.shape, (5, 1))
 
     def test_DensityMixin(self):
         gauss_density = GaussianMixture(n_components=2)

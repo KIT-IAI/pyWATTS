@@ -39,6 +39,19 @@ class TestSklearnWrapper(unittest.TestCase):
         self.assertTrue("mean_" in scaler.__dir__())
         self.assertIsNotNone(scaler.mean_)
 
+    def test_transform_TransformerMixin(self):
+        scaler = StandardScaler()
+        wrapper = SKLearnWrapper(module=scaler)
+        self.assertFalse("mean_" in scaler.__dir__())
+        time = pd.date_range('2000-01-08', freq='24H', periods=5)
+        test = xr.DataArray([2, 2, 2, 2, 2], dims=["time"], coords={'time': time})
+
+        wrapper.fit(test=test)
+        result = wrapper.transform(test=test)
+
+        self.assertListEqual(list(result), [0, 0, 0, 0, 0])
+        self.assertEqual(result.shape, (5, 1))
+
     def test_fit_RegressorMixin(self):
         lin_reg = LinearRegression()
         wrapper = SKLearnWrapper(module=lin_reg)
@@ -68,7 +81,7 @@ class TestSklearnWrapper(unittest.TestCase):
         wrapper = SKLearnWrapper(module=kbest)
 
         eps = 0.001
-        wrapper.fit(feature1=xr.DataArray([x+eps for x in [2, 2, 3, 4, 4]]),
+        wrapper.fit(feature1=xr.DataArray([x + eps for x in [2, 2, 3, 4, 4]]),
                     feature2=xr.DataArray([1, 2, 3, 4, 5]),
                     target=xr.DataArray([2, 2, 3, 4, 4]))
 

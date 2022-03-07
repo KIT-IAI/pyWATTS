@@ -11,6 +11,8 @@
 
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))
+* The sklean-wrapper includes now methods based on the SelectorMixin ([#185](https://github.com/KIT-IAI/pyWATTS/issues/185))
+
 
 ### Fixed
 * Try to handle non matching shapes in metrics. If not possible raise an exception.  ([#154](https://github.com/KIT-IAI/pyWATTS/issues/154))
@@ -18,7 +20,6 @@
 * Fixed wrong check of if summary should be returned in _run method of pipeline ([#157](https://github.com/KIT-IAI/pyWATTS/issues/157))
 * Fixed Pipeline.to_folder() for modules that store parameters in numpy format by adding a special JSON-encoder for types that are not json-serializable by default ([#175](https://github.com/KIT-IAI/pyWATTS/issues/175))
 * Added missing summaries to pywatts.summaries.__init__.py ([#183](https://github.com/KIT-IAI/pyWATTS/issues/183))
-* Fixed the sklean-wrapper for transformers that require a target ([#185](https://github.com/KIT-IAI/pyWATTS/issues/185))
 
 
 ### Deprecated

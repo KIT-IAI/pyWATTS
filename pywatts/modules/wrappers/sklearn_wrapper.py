@@ -105,11 +105,11 @@ class SKLearnWrapper(BaseWrapper):
         :return: the transformed output
         """
         x_np = self._dataset_to_sklearn_input(kwargs)
-        targets = self.targets
+        target_names = self.targets
 
         if isinstance(self.module, TransformerMixin):
             prediction = self.module.transform(x_np)
-            targets = []  # output of transformer must not match the shape of the target
+            target_names = []  # output of transformer must not match the shape of the target
         elif "predict" in dir(self.module):
             prediction = self.module.predict(x_np)
         else:
@@ -117,7 +117,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, targets)
+        return self._sklearn_output_to_dataset(kwargs, prediction, target_names)
 
     def inverse_transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

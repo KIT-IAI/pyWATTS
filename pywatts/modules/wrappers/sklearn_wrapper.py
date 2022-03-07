@@ -126,14 +126,17 @@ class SKLearnWrapper(BaseWrapper):
         :return: the transformed output
         """
         x_np = self._dataset_to_sklearn_input(kwargs)
+        target_names = self.targets
+
         if self.has_inverse_transform:
             prediction = self.module.inverse_transform(x_np)
+            target_names = []  # output of transformer must not match the shape of the target
         else:
             raise KindOfTransformDoesNotExistException(
                 f"The sklearn-module in {self.name} does not have a inverse transform method",
                 KindOfTransform.INVERSE_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
+        return self._sklearn_output_to_dataset(kwargs, prediction, target_names)
 
     def predict_proba(self, **kwargs) -> xr.DataArray:
         """

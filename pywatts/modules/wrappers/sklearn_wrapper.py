@@ -160,6 +160,7 @@ class SKLearnWrapper(BaseWrapper):
 
     def save(self, fm: FileManager):
         json_module = super().save(fm)
+        json_module["targets"] = self.targets
         file_path = fm.get_path(f'{self.name}.pickle')
         with open(file_path, 'wb') as outfile:
             cloudpickle.dump(obj=self.module, file=outfile)
@@ -185,4 +186,5 @@ class SKLearnWrapper(BaseWrapper):
             module = cloudpickle.load(pickle_file)
         module = cls(module=module, name=name)
         module.is_fitted = load_information["is_fitted"]
+        module.targets = load_information["targets"]
         return module

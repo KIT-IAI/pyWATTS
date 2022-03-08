@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values
     # save it as csv file
-    rmse = RMSE()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"])
+    rmse = RMSE()(y_hat=inverse_power_scale, y=target_multiple_output)
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline

@@ -21,18 +21,14 @@ pipeline_json = {'id': 1,
                               'is_fitted': False,
                               'module': 'pywatts.modules.wrappers.sklearn_wrapper',
                               'name': 'StandardScaler',
-                              'params': {'copy': True, 'with_mean': True, 'with_std': True},
-                              'sklearn_module': os.path.join('test_pipeline', 'StandardScaler.pickle')},
+                              'sklearn_module': os.path.join('test_pipeline', 'StandardScaler.pickle'),
+                              'targets': []},
                              {'class': 'SKLearnWrapper',
                               'is_fitted': False,
                               'module': 'pywatts.modules.wrappers.sklearn_wrapper',
                               'name': 'LinearRegression',
-                              'params': {'copy_X': True,
-                                         'fit_intercept': True,
-                                         'n_jobs': None,
-                                         'positive': False,
-                                         'normalize': 'deprecated'},
-                              'sklearn_module': os.path.join('test_pipeline', 'LinearRegression.pickle')}],
+                              'sklearn_module': os.path.join('test_pipeline', 'LinearRegression.pickle'),
+                              'targets': []}],
                  'steps': [{'class': 'StartStep',
                             'default_run_setting': {'computation_mode': 4},
                             'id': 1,
@@ -147,7 +143,7 @@ class TestPipeline(unittest.TestCase):
         assert kwargs["obj"]["steps"] == pipeline_json["steps"]
 
     @patch('pywatts.core.pipeline.FileManager')
-    @patch('pywatts.modules.sklearn_wrapper.pickle')
+    @patch('pywatts.modules.sklearn_wrapper.cloudpickle')
     @patch('pywatts.core.pipeline.json')
     @patch("builtins.open", new_callable=mock_open)
     @patch('pywatts.core.pipeline.os.path.isdir')

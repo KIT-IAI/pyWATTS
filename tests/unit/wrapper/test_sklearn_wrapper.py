@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from sklearn.mixture import GaussianMixture
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.feature_selection import SelectKBest, f_regression
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, SVR
@@ -33,18 +34,31 @@ class TestSklearnWrapper(unittest.TestCase):
         wrapper = SKLearnWrapper(module=scaler)
         self.assertFalse("mean_" in scaler.__dir__())
 
-        wrapper.fit(test = xr.DataArray([1, 2, 3, 4, 5]))
+        wrapper.fit(test=xr.DataArray([1, 2, 3, 4, 5]))
 
         self.assertTrue("mean_" in scaler.__dir__())
         self.assertIsNotNone(scaler.mean_)
+
+    def test_transform_TransformerMixin(self):
+        scaler = StandardScaler()
+        wrapper = SKLearnWrapper(module=scaler)
+        self.assertFalse("mean_" in scaler.__dir__())
+        time = pd.date_range('2000-01-08', freq='24H', periods=5)
+        test = xr.DataArray([2, 2, 2, 2, 2], dims=["time"], coords={'time': time})
+
+        wrapper.fit(test=test)
+        result = wrapper.transform(test=test)
+
+        self.assertListEqual(list(result), [0, 0, 0, 0, 0])
+        self.assertEqual(result.shape, (5, 1))
 
     def test_fit_RegressorMixin(self):
         lin_reg = LinearRegression()
         wrapper = SKLearnWrapper(module=lin_reg)
         self.assertFalse("coef_" in lin_reg.__dir__())
 
-        wrapper.fit(test = xr.DataArray([1, 2, 3, 4, 5]),
-                    target= xr.DataArray([2, 2, 2, 2, 2]))
+        wrapper.fit(test=xr.DataArray([1, 2, 3, 4, 5]),
+                    target=xr.DataArray([2, 2, 2, 2, 2]))
 
         self.assertTrue("coef_" in lin_reg.__dir__())
         self.assertIsNotNone(lin_reg.coef_)
@@ -55,13 +69,42 @@ class TestSklearnWrapper(unittest.TestCase):
         time = pd.date_range('2000-01-08', freq='24H', periods=1)
         bar = xr.DataArray([1], dims=["time"], coords={'time': time})
 
-        wrapper.fit(test = xr.DataArray([1, 2, 3, 4, 5]),
-                    target= xr.DataArray([2, 2, 2, 2, 2]))
-
+        wrapper.fit(test=xr.DataArray([1, 2, 3, 4, 5]),
+                    target=xr.DataArray([2, 2, 2, 2, 2]))
 
         result = wrapper.transform(bar=bar)
         assert result["target"].values[0] == 2.0
-        self.assertEqual(result["target"].shape, (1,1))
+        self.assertEqual(result["target"].shape, (1, 1))
+
+    def test_fit_SelectorMixin(self):
+        kbest = SelectKBest(score_func=f_regression, k=1)
+        wrapper = SKLearnWrapper(module=kbest)
+
+        eps = 0.001
+        wrapper.fit(feature1=xr.DataArray([x + eps for x in [2, 2, 3, 4, 4]]),
+                    feature2=xr.DataArray([1, 2, 3, 4, 5]),
+                    target=xr.DataArray([2, 2, 3, 4, 4]))
+
+        self.assertTrue("scores_" in kbest.__dir__())
+        self.assertIsNotNone(kbest.scores_)
+
+    def test_transform_SelectorMixin(self):
+        kbest = SelectKBest(score_func=f_regression, k=1)
+        wrapper = SKLearnWrapper(module=kbest)
+        eps = 0.001
+        time = pd.date_range('2000-01-08', freq='24H', periods=5)
+        target = xr.DataArray([2, 2, 3, 4, 4], dims=["time"], coords={'time': time})
+        feature1 = target + eps
+        feature2 = xr.DataArray([4, 4, 3, 2, 2], dims=["time"], coords={'time': time}) + eps
+
+        wrapper.fit(feature1=feature1,
+                    feature2=feature2,
+                    target=target)
+
+        result = wrapper.transform(feature1=feature1, feature2=feature2)
+
+        self.assertListEqual(list(result), list(feature2))
+        self.assertEqual(result.shape, (5, 1))
 
     def test_DensityMixin(self):
         gauss_density = GaussianMixture(n_components=2)
@@ -159,10 +202,8 @@ class TestSklearnWrapper(unittest.TestCase):
 
         wrapper.fit(bar=bar, target1=target, target2=target2)
 
-
         result = wrapper.transform(bar=foo)
         self.assertAlmostEqual(result["target1"].values[0], 2.0)
         self.assertAlmostEqual(result["target2"].values[0], 3.0)
         self.assertEqual(result["target1"].shape, (1, 1))
         self.assertEqual(result["target2"].shape, (1, 1))
-

@@ -11,6 +11,8 @@
 
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))
+* The sklean-wrapper includes now methods based on the SelectorMixin ([#185](https://github.com/KIT-IAI/pyWATTS/issues/185))
+
 
 ### Fixed
 * Try to handle non matching shapes in metrics. If not possible raise an exception.  ([#154](https://github.com/KIT-IAI/pyWATTS/issues/154))

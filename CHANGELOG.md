@@ -12,6 +12,7 @@
 * Enable Multiple RefitConditions ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
 * Periodic Refit Condition ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
 * Add AnomalyGeneration modules ([#195](https://github.com/KIT-IAI/pyWATTS/issues/195))
+* Enable Multiple RefitConditions ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
 
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))

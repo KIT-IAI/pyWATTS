@@ -84,20 +84,21 @@ class Ensemble(BaseEstimator):
 
         if self.weights == 'auto' or self.k_best is not None:
             # determine weights depending on in-sample loss
-
             loss_values = self._calculate_loss(ps=forecasts, ts=targets)
+            # drop forecasts depending on in-sample loss
             loss_values_dropped = self._drop_forecasts(loss=loss_values)
 
-            # overwrite weights based on given loss values and zero weights of dropped forecasts
+            # overwrite weights based on given loss values and set weights of dropped forecasts to zero
             if self.weights == "auto":  # weighted averaging depending on estimated weights
                 self._weights = [0 if value in loss_values_dropped else 1 / value for value in loss_values]
             elif self.weights is None:  # averaging
                 self._weights = [0 if value in loss_values_dropped else 1 for value in loss_values]
-            else:  # weighted averaging depending on specified weights
+            else:  # weighted averaging depending on given weights
                 self._weights = [
-                    0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self._weights)
+                    0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self.weights)
                 ]
         else:
+            # use given weights
             self._weights = self.weights
 
         # normalize weights
@@ -112,17 +113,19 @@ class Ensemble(BaseEstimator):
         :rtype: xr.DataArray
         """
 
+        forecasts, _ = split_kwargs(kwargs)
+
         if self.weights is not None:
-            if len(self._weights) is not len(kwargs):
+            if len(self._weights) is not len(forecasts):
                 raise WrongParameterException(
                     "The number of the given weights does not match the number of given forecasts.",
-                    f"Make sure to pass {len(kwargs)} weights.",
+                    f"Make sure to pass {len(forecasts)} weights.",
                     self.name
                 )
 
         list_of_series = []
         list_of_indexes = []
-        for series in kwargs.values():
+        for series in forecasts.values():
             list_of_indexes.append(series.indexes)
             list_of_series.append(series.data)
 

@@ -20,7 +20,7 @@ class TestEnsemble(unittest.TestCase):
                          {
                              "weights": None,
                              "k_best": None,
-                             "loss": None
+                             "loss_metric": "rmse"
                          })
 
     def test_set_params(self):
@@ -28,14 +28,14 @@ class TestEnsemble(unittest.TestCase):
                          {
                              "weights": None,
                              "k_best": None,
-                             "loss": None
+                             "loss_metric": "rmse"
                          })
-        self.ensemble.set_params(weights=[0, 1, 2], k_best=5, loss=[3, 2, 1])
+        self.ensemble.set_params(weights=[0, 1, 2], k_best=5, loss_metric="mae")
         self.assertEqual(self.ensemble.get_params(),
                          {
                              "weights": [0, 1, 2],
                              "k_best": 5,
-                             "loss": [3, 2, 1]
+                             "loss_metric": "mae"
                          })
 
     def test_transform_averaging(self):
@@ -45,10 +45,18 @@ class TestEnsemble(unittest.TestCase):
         da1 = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
         da2 = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
 
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        # ensemble does not depend on the given target
+        da_target = xr.DataArray([100, 200, 300, 400, 500, 600, 700], dims=["time"], coords={'time': time})
+
+        self.ensemble.fit(y1=da1, y2=da2, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, target=da_target)
+
+        # weights must be None
+        expected_weights = None
+        weights = self.ensemble._weights
+        self.assertEqual(weights, expected_weights)
 
         expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_averaging_kbest_auto(self):
@@ -61,32 +69,46 @@ class TestEnsemble(unittest.TestCase):
         da4 = xr.DataArray([5, 6, 7, 8, 9, 10, 11], dims=["time"], coords={'time': time})
         da5 = xr.DataArray([12, 13, 14, 15, 16, 17, 18], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(k_best="auto", loss=[1, 2, 1, 4, 10])
+        # ensemble depends on the given target
+        da_target = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
 
-        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
-        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
+        self.ensemble.set_params(k_best="auto", loss_metric="rmse")
+
+        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+
+        # automated k-estimation based on loss  must set the weight of da5 to 0
+        expected_weights = [0.25, 0.25, 0.25, 0.25, 0.0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
 
         expected_result = xr.DataArray([3, 4, 5, 6, 7, 8, 9],
                                        dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_averaging_kbest(self):
-        # waveraging k-best with given k
+        # averaging k-best with given k
         time = pd.date_range('2002-01-01', freq='24H', periods=7)
 
         da1 = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
         da2 = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
         da3 = xr.DataArray([4, 5, 6, 7, 8, 9, 10], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(k_best=2, loss=[1, 2, 3])
+        # ensemble depends on the given target
+        da_target = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
 
-        self.ensemble.fit(y1=da1, y2=da2, y3=da3)
-        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3)
+        self.ensemble.set_params(k_best=2, loss_metric="rmse")
+
+        self.ensemble.fit(y1=da1, y2=da2, y3=da3, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, target=da_target)
+
+        # automated k-estimation based on loss must set the weight of da3 to 0
+        expected_weights = [0.5, 0.5, 0.0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
 
         expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5],
                                        dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_weighting(self):
@@ -96,28 +118,65 @@ class TestEnsemble(unittest.TestCase):
         da1 = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
         da2 = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
 
+        # ensemble does not depend on the given target
+        da_target = xr.DataArray([100, 200, 300, 400, 500, 600, 700], dims=["time"], coords={'time': time})
+
+        def _fit_transform():
+            self.ensemble.fit(y1=da1, y2=da2, target=da_target)
+            return self.ensemble.transform(y1=da1, y2=da2, target=da_target)
+
+        # drop da2 via weight
         self.ensemble.set_params(weights=[1, 0])
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        result = _fit_transform()
+
+        expected_weights = [1, 0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
+        # drop da1 via weight
         self.ensemble.set_params(weights=[0, 1])
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        result = _fit_transform()
+
+        expected_weights = [0, 1]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
+        # equal weights => averaging
         self.ensemble.set_params(weights=[1, 1])
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        result = _fit_transform()
+
+        expected_weights = [0.5, 0.5]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
-        self.ensemble.set_params(weights=[0.75, 0.25])
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        # overweight da1
+        self.ensemble.set_params(weights=[3, 1])
+        result = _fit_transform()
+
+        expected_weights = [0.75, 0.25]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.25, 3.25, 4.25, 5.25, 6.25, 7.25, 8.25], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
-        self.ensemble.set_params(weights=[0.25, 0.75])
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        # overweight da2
+        self.ensemble.set_params(weights=[1, 3])
+        result = _fit_transform()
+
+        expected_weights = [0.25, 0.75]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.75, 3.75, 4.75, 5.75, 6.75, 7.75, 8.75], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
@@ -131,14 +190,22 @@ class TestEnsemble(unittest.TestCase):
         da4 = xr.DataArray([5, 6, 7, 8, 9, 10, 11], dims=["time"], coords={'time': time})
         da5 = xr.DataArray([12, 13, 14, 15, 16, 17, 18], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(weights=[3, 1, 3, 1, 100], k_best="auto", loss=[1, 2, 1, 4, 10])
+        # ensemble depends on the given target
+        da_target = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
 
-        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
-        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
+        self.ensemble.set_params(weights=[3, 1, 3, 1, 100], k_best="auto", loss_metric="rmse")
+
+        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+
+        # although da5 was given a weight of 100, automated k-estimation on loss must set the weight to 0
+        # and weights must be normalized
+        expected_weights = [0.375, 0.125, 0.375, 0.125, 0.0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
 
         expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5],
                                        dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_weighting_kbest(self):
@@ -151,14 +218,21 @@ class TestEnsemble(unittest.TestCase):
         da4 = xr.DataArray([5, 6, 7, 8, 9, 10, 11], dims=["time"], coords={'time': time})
         da5 = xr.DataArray([12, 13, 14, 15, 16, 17, 18], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(weights=[1, 3, 3, 1, 100], k_best=2, loss=[1, 2, 3, 4, 10])
+        # ensemble depends on the given target
+        da_target = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
 
-        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
-        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
+        self.ensemble.set_params(weights=[1, 3, 3, 1, 100], k_best=2, loss_metric="rmse")
+
+        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+
+        # weights of da1 and da2 must be normalized and weights da3, da4 and da5 must be set to 0
+        expected_weights = [0.25, 0.75, 0.0, 0.0, 0.0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
 
         expected_result = xr.DataArray([2.75, 3.75, 4.75, 5.75, 6.75, 7.75, 8.75],
                                        dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_weighting_auto(self):
@@ -168,21 +242,45 @@ class TestEnsemble(unittest.TestCase):
         da1 = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
         da2 = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(weights="auto", loss=[2, 6])
-        self.ensemble.fit(y1=da1, y2=da2)
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        # ensemble depends on the given target
+        self.ensemble.set_params(weights="auto", loss_metric="rmse")
+
+        # overweight da1 since it closer to the target
+        da_target = xr.DataArray([1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5], dims=["time"], coords={'time': time})
+
+        self.ensemble.fit(y1=da1, y2=da2, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, target=da_target)
+
+        expected_weights = [0.75, 0.25]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.25, 3.25, 4.25, 5.25, 6.25, 7.25, 8.25], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
-        self.ensemble.set_params(weights="auto", loss=[6, 2])
-        self.ensemble.fit(y1=da1, y2=da2)
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        # overweight da2 since it closer to the target
+        da_target = xr.DataArray([3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5], dims=["time"], coords={'time': time})
+
+        self.ensemble.fit(y1=da1, y2=da2, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, target=da_target)
+
+        expected_weights = [0.25, 0.75]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.75, 3.75, 4.75, 5.75, 6.75, 7.75, 8.75], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
-        self.ensemble.set_params(weights="auto", loss=[2, 2])
-        self.ensemble.fit(y1=da1, y2=da2)
-        result = self.ensemble.transform(y1=da1, y2=da2)
+        # equal weights since the target is the average of da1 and da2
+        da_target = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
+
+        self.ensemble.fit(y1=da1, y2=da2, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, target=da_target)
+
+        expected_weights = [0.5, 0.5]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
         expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
         xr.testing.assert_equal(result, expected_result)
 
@@ -196,14 +294,22 @@ class TestEnsemble(unittest.TestCase):
         da4 = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
         da5 = xr.DataArray([12, 13, 14, 15, 16, 17, 18], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(weights="auto", k_best="auto", loss=[1, 1, 3, 3, 10])
+        # ensemble depends on the given target
+        da_target = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
 
-        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
-        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
+        self.ensemble.set_params(weights="auto", k_best="auto", loss_metric="rmse")
 
-        expected_result = xr.DataArray([2.25, 3.25, 4.25, 5.25, 6.25, 7.25, 8.25],
+        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+
+        # weights of da1, da2, da3, and da4 must be equal since the target is the average of da1, da2, da3, and da4
+        # and weight of da5 must be set to 0
+        expected_weights = [0.25, 0.25, 0.25, 0.25, 0.0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
+        expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5],
                                        dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_transform_weighting_auto_kbest(self):
@@ -216,14 +322,22 @@ class TestEnsemble(unittest.TestCase):
         da4 = xr.DataArray([5, 6, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
         da5 = xr.DataArray([12, 13, 14, 15, 16, 17, 18], dims=["time"], coords={'time': time})
 
-        self.ensemble.set_params(weights="auto", k_best=2, loss=[1, 3, 4, 5, 10])
+        # ensemble depends on the given target
+        da_target = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
 
-        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
-        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5)
+        self.ensemble.set_params(weights="auto", k_best=2, loss_metric="rmse")
 
-        expected_result = xr.DataArray([2.25, 3.25, 4.25, 5.25, 6.25, 7.25, 8.25],
+        self.ensemble.fit(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+        result = self.ensemble.transform(y1=da1, y2=da2, y3=da3, y4=da4, y5=da5, target=da_target)
+
+        # weights of da1, and da2 must be equal since the target is the average of da1 and da2
+        # and weights of da3, da4 and da5 must be set to 0
+        expected_weights = [0.5, 0.5, 0.0, 0.0, 0.0]
+        weights = self.ensemble._weights
+        self.assertListEqual(weights, expected_weights)
+
+        expected_result = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5],
                                        dims=["time"], coords={'time': time})
-
         xr.testing.assert_equal(result, expected_result)
 
     def test_wrong_parameter(self):
@@ -232,23 +346,9 @@ class TestEnsemble(unittest.TestCase):
         da1 = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
         da2 = xr.DataArray([3, 4, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
         da3 = xr.DataArray([4, 5, 5, 6, 7, 8, 9], dims=["time"], coords={'time': time})
-
-        # test if exception is thrown if number of loss values != number of forecasts
-        self.ensemble.set_params(weights="auto", k_best=2, loss=[1, 3, 4, 5, 10])
-        self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3))
-        self.ensemble = Ensemble()
+        da_target = xr.DataArray([2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5], dims=["time"], coords={'time': time})
 
         # test if exception is thrown if k > number of loss values
-        self.ensemble.set_params(k_best=4, loss=[1, 3, 4])
-        self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3))
-        self.ensemble = Ensemble()
-
-        # test if exception is thrown if weights="auto" but no loss is given
-        self.ensemble.set_params(weights="auto", loss=[])
-        self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3))
-        self.ensemble = Ensemble()
-
-        # test if exception is thrown if k_best is defined but no loss is given
-        self.ensemble.set_params(k_best=4, loss=[])
-        self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3))
+        self.ensemble.set_params(k_best=4, loss_metric="rmse")
+        self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3, target=da_target))
         self.ensemble = Ensemble()

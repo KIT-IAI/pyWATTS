@@ -104,5 +104,5 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    result = pipeline.test(test)
+    result = pipeline.test(test, online_start=pd.to_datetime("2018-12-30"))
     print("Testing finished")

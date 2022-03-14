@@ -39,16 +39,13 @@ class PipelineStep(Step):
         self.current_run_setting = self.default_run_setting.update(run_setting=run_setting)
         for step in self.module.id_to_step.values():
             step.set_run_setting(run_setting)
+        self.module.current_run_setting = self.current_run_setting
 
-    def _post_transform(self, result):
-        self.module._create_summary(self.current_run_setting.summary_formatter)
-        return super()._post_transform(result)
-
-    def reset(self):
+    def reset(self, keep_buffer=False):
         """
         Resets all information of the step concerning a specific run. Furthermore, it resets also all steps
         of the subpipeline.
         """
-        super().reset()
+        super().reset(keep_buffer=keep_buffer)
         for step in self.module.id_to_step.values():
-            step.reset()
+            step.reset(keep_buffer=keep_buffer)

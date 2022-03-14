@@ -1,5 +1,6 @@
 import logging
 import time
+import warnings
 from typing import Optional, Dict, Union, Callable, List
 
 import cloudpickle
@@ -64,6 +65,11 @@ class Step(BaseStep):
         self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
+        if self.current_run_setting.computation_mode is not ComputationMode.Refit and train_if is not None:
+            message = "You added a refit_condition without setting the computation_mode to refit." \
+                      " The condition will be ignored."
+            warnings.warn(message)
+            logger.warning(message)
         self.lag = lag
         self.train_if = train_if
         self.result_steps: Dict[str, ResultStep] = {}
@@ -75,13 +81,20 @@ class Step(BaseStep):
     def _callbacks(self):
         # plots and writs the data if the step is finished.
         for callback in self.callbacks:
+            dim = _get_time_indexes(self.buffer)[0]
+
+            if self.current_run_setting.online_start is not None:
+                to_plot = {k: self.buffer[k][self.buffer[k][dim] >= self.current_run_setting.online_start] for k in
+                           self.buffer.keys()}
+            else:
+                to_plot = self.buffer
             if isinstance(callback, BaseCallback):
                 callback.set_filemanager(self.file_manager)
             if isinstance(self.buffer, xr.DataArray) or isinstance(self.buffer, xr.Dataset):
                 # DEPRECATED: direct DataArray or Dataset passing is depricated
                 callback({"deprecated": self.buffer})
             else:
-                callback(self.buffer)
+                callback(to_plot)
 
     def _transform(self, input_step):
         if isinstance(self.module, BaseEstimator) and not self.module.is_fitted:

@@ -219,8 +219,8 @@ class TestPipeline(unittest.TestCase):
 
         for step in self.pipeline.id_to_step.values():
             assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
-
-        create_summary_mock.assert_has_calls([call(summary_formatter_mock), call(summary_formatter_mock)])
+        assert 2 == create_summary_mock.call_count
+        create_summary_mock.assert_has_calls([call(summary_formatter_mock, None), call(summary_formatter_mock, None)], any_order=True)
 
     @patch('pywatts.core.pipeline.FileManager')
     def test_add_pipeline_to_pipeline_and_test(self, fm_mock):
@@ -382,6 +382,7 @@ class TestPipeline(unittest.TestCase):
         pipeline.start_steps["foo"][0].last = False
         step_one.further_elements.side_effect = [True, True, True, True, False]
         pipeline.add(module=step_one, input_ids=[1])
+        pipeline.current_run_setting = RunSetting(computation_mode=ComputationMode.Transform)
 
         result = pipeline.transform(foo=da)
 
@@ -400,6 +401,7 @@ class TestPipeline(unittest.TestCase):
         step_two.name = "mock"
         step_two.get_result.return_value = {"mock": result_mock}
         self.pipeline.add(module=step_two, input_ids=[1])
+        self.pipeline.current_run_setting = RunSetting(computation_mode=ComputationMode.Transform)
 
         result = self.pipeline.transform(x=input_mock)
 
@@ -455,6 +457,7 @@ class TestPipeline(unittest.TestCase):
         pipeline.start_steps["foo"] = StartStep("foo"), None
         pipeline.start_steps["foo"][0].last = False
         step_one.further_elements.side_effect = [True, True, True, True, True, True, True, False]
+        pipeline.current_run_setting = RunSetting(computation_mode=ComputationMode.Transform)
         pipeline.add(module=step_one, input_ids=[1])
 
         result = pipeline.transform(foo=da)
@@ -577,3 +580,26 @@ class TestPipeline(unittest.TestCase):
         self.pipeline.refit(pd.Timestamp("2000.01.02"), pd.Timestamp("2022.01.02"))
 
         first_step.refit.assert_called_once_with(pd.Timestamp("2000.01.01"), pd.Timestamp("2022.01.01"))
+
+    def test_online_with_filled_buffer(self):
+
+        time = pd.date_range('2000-01-01', freq='1D', periods=7)
+        da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
+        pipeline = Pipeline(batch=pd.Timedelta(days=1))
+        step_one = MagicMock()
+        step_one.get_result.return_value = {"step": da}
+
+        pipeline.start_steps["foo"] = StartStep("foo"), None
+        pipeline.start_steps["foo"][0].last = False
+        step_one.further_elements.side_effect = [True, True, True, True, False]
+        pipeline.add(module=step_one, input_ids=[1])
+
+        pipeline.test(pd.DataFrame({"foo": [1, 2, 2, 3, 4,5,6]},
+                      index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=7))),
+                      online_start=pd.to_datetime('2000-01-04'))
+
+        self.assertEqual(5, step_one.get_result.call_count)
+        self.assertEqual(2, step_one.reset.call_count)
+        reset_calls = [call(), call(keep_buffer=True)]
+        step_one.reset.assert_has_calls(reset_calls)
+        self.assertEqual(5, step_one.further_elements.call_count)

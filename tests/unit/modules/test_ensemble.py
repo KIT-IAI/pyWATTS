@@ -351,4 +351,7 @@ class TestEnsemble(unittest.TestCase):
         # test if exception is thrown if k > number of loss values
         self.ensemble.set_params(k_best=4, loss_metric="rmse")
         self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3, target=da_target))
-        self.ensemble = Ensemble()
+
+        # test if exception is thrown if len(weights) != given forecasts
+        self.ensemble.set_params(weights=[1, 2], loss_metric="rmse")
+        self.assertRaises(WrongParameterException, lambda: self.ensemble.fit(y1=da1, y2=da2, y3=da3, target=da_target))

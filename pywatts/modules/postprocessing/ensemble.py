@@ -99,6 +99,13 @@ class Ensemble(BaseEstimator):
                 ]
         else:
             # use given weights
+            if isinstance(self.weights, list):
+                if len(self.weights) is not len(forecasts):
+                    raise WrongParameterException(
+                        "The number of the given weights does not match the number of given forecasts.",
+                        f"Make sure to pass {len(forecasts)} weights.",
+                        self.name
+                    )
             self._weights = self.weights
 
         # normalize weights
@@ -114,14 +121,6 @@ class Ensemble(BaseEstimator):
         """
 
         forecasts, _ = split_kwargs(kwargs)
-
-        if self.weights is not None:
-            if len(self._weights) is not len(forecasts):
-                raise WrongParameterException(
-                    "The number of the given weights does not match the number of given forecasts.",
-                    f"Make sure to pass {len(forecasts)} weights.",
-                    self.name
-                )
 
         list_of_series = []
         list_of_indexes = []

@@ -98,16 +98,16 @@ class Pipeline(BaseTransformer):
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
         if not batch:
             return self._collect_results(last_steps)
-        return self._collect_batches(last_steps, time_index, batch)
+        return self._collect_batches(last_steps, time_index)
 
-    def _collect_batches(self, last_steps, time_index, batch):
+    def _collect_batches(self, last_steps, time_index):
         result = dict()
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
             if not result:
-                result = self._collect_results(last_steps, batch=batch)
+                result = self._collect_results(last_steps)
             else:
-                input_results = self._collect_results(last_steps, batch=batch)
+                input_results = self._collect_results(last_steps)
                 if input_results is not None:
                     for key in input_results.keys():
                         result[key] = xr.concat([result[key], input_results[key]], dim=time_index[0])

@@ -8,7 +8,8 @@
 * Add custom scaler module for pre-processing ([#167](https://github.com/KIT-IAI/pyWATTS/issues/167))
 * Add a MASE Summary ([#148](https://github.com/KIT-IAI/pyWATTS/issues/148))
 * Online Start Feature ([#189](https://github.com/KIT-IAI/pyWATTS/issues/189))
-
+* Enable Multiple RefitConditions ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
+* Periodic Refit Condition ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
 
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))

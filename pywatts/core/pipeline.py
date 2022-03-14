@@ -105,9 +105,9 @@ class Pipeline(BaseTransformer):
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
             if not result:
-                result = self._collect_results(last_steps, batch=batch)
+                result = self._collect_results(last_steps, batch=self.batch)
             else:
-                input_results = self._collect_results(last_steps, batch=batch)
+                input_results = self._collect_results(last_steps, batch=self.batch)
                 if input_results is not None:
                     dim = _get_time_indexes(input_results)[0]
                     for key in input_results.keys():
@@ -120,9 +120,9 @@ class Pipeline(BaseTransformer):
             self.counter += self.batch
         return result
 
-    def _collect_results(self, inputs):
+    def _collect_results(self, inputs, batch=False):
         # Note the return value is None if none of the inputs provide a result for this step...
-        end = None if not self.batch else self.counter + self.batch
+        end = None if not batch else self.counter + self.batch
         result = dict()
         for i, step in enumerate(inputs):
             if not isinstance(step, SummaryStep):

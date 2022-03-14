@@ -224,7 +224,7 @@ class TestPipeline(unittest.TestCase):
         for step in self.pipeline.id_to_step.values():
             assert step.current_run_setting.computation_mode == ComputationMode.FitTransform
         assert 2 == create_summary_mock.call_count
-        create_summary_mock.assert_has_calls([call(summary_formatter_mock, None, None), call(summary_formatter_mock, None, None)], any_order=True)
+        create_summary_mock.assert_has_calls([call(summary_formatter_mock, None), call(summary_formatter_mock, None)], any_order=True)
 
     @patch('pywatts.core.pipeline.FileManager')
     def test_add_pipeline_to_pipeline_and_test(self, fm_mock):

@@ -65,9 +65,9 @@ class Step(BaseStep):
         self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
-        if self.current_run_setting.computation_mode not in [ComputationMode.Refit] and train_if is not None:
+        if self.current_run_setting.computation_mode is not ComputationMode.Refit and train_if is not None:
             message = "You added a refit_condition without setting the computation_mode to refit." \
-                      " The conditoin will be ignored."
+                      " The condition will be ignored."
             warnings.warn(message)
             logger.warning(message)
         self.lag = lag
@@ -83,10 +83,11 @@ class Step(BaseStep):
         for callback in self.callbacks:
             dim = _get_time_indexes(self.buffer)[0]
 
-            to_plot = self.buffer
             if self.current_run_setting.online_start is not None:
                 to_plot = {k: self.buffer[k][self.buffer[k][dim] >= self.current_run_setting.online_start] for k in
                            self.buffer.keys()}
+            else:
+                to_plot = self.buffer
             if isinstance(callback, BaseCallback):
                 callback.set_filemanager(self.file_manager)
             if isinstance(self.buffer, xr.DataArray) or isinstance(self.buffer, xr.Dataset):

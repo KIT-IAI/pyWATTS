@@ -585,7 +585,6 @@ class TestPipeline(unittest.TestCase):
 
         first_step.refit.assert_called_once_with(pd.Timestamp("2000.01.01"), pd.Timestamp("2022.01.01"))
 
-
     def test_online_with_filled_buffer(self):
 
         time = pd.date_range('2000-01-01', freq='1D', periods=7)
@@ -600,12 +599,11 @@ class TestPipeline(unittest.TestCase):
         pipeline.add(module=step_one, input_ids=[1])
 
         pipeline.test(pd.DataFrame({"foo": [1, 2, 2, 3, 4,5,6]},
-                                        index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=7))),
-                    online_start=pd.to_datetime('2000-01-04'))
+                      index=pd.DatetimeIndex(pd.date_range('2000-01-01', freq='24H', periods=7))),
+                      online_start=pd.to_datetime('2000-01-04'))
 
         self.assertEqual(5, step_one.get_result.call_count)
         self.assertEqual(2, step_one.reset.call_count)
         reset_calls = [call(), call(keep_buffer=True)]
         step_one.reset.assert_has_calls(reset_calls)
         self.assertEqual(5, step_one.further_elements.call_count)
-

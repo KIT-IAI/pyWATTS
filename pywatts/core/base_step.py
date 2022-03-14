@@ -125,7 +125,7 @@ class BaseStep(ABC):
             index = list(self.buffer.values())[0].indexes[time_index[0]]
             start = start.to_numpy()
             # If end is not set, all values should be considered. Thus we add a small timedelta to the last index entry.
-            end = end.to_numpy() if end is not None else index[-1].to_numpy() + pd.Timedelta(milliseconds=1)
+            end = end.to_numpy() if end is not None else (index[-1] + pd.Timedelta(nanoseconds=1)).to_numpy()
             # After sel copy is not needed, since it returns a new array.
             if buffer_element is not None:
                 return self.buffer[buffer_element].sel(

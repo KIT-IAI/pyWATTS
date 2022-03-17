@@ -218,7 +218,11 @@ class Pipeline(BaseTransformer):
 
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
-        elif isinstance(data, dict):
+            data = {key: data[key] for key in data.data_vars}
+        elif isinstance(data, xr.Dataset):
+            data = {key: data[key] for key in data.data_vars}
+
+        if isinstance(data,dict):
             for key in data:
                 if not isinstance(data[key], xr.DataArray):
                     raise WrongParameterException(
@@ -226,23 +230,20 @@ class Pipeline(BaseTransformer):
                         "Make sure to pass Dict[str, xr.DataArray].",
                         self.name
                     )
-            data = xr.Dataset(data)
-
-        if isinstance(data, xr.Dataset):
             if self.current_run_setting.online_start is not None:
                 # First only _transform should be called (no summary, no online) on the data before online_start.
                 # Afterwards, comp is called (_transform and summaries using online simulation)
                 index_name = _get_time_indexes(data)[0]
                 self._transform({key: data[key].sel(
-                    **{index_name: data[key][index_name] < self.current_run_setting.online_start }) for key in data.data_vars}, False)
+                    **{index_name: data[key][index_name] < self.current_run_setting.online_start }) for key in data}, False)
                 for step in self.id_to_step.values():
                     step.reset(keep_buffer=True)
                     step.set_run_setting(self.current_run_setting.clone())
                 return self._comp({key: data[key].sel(
-                    **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data.data_vars}
+                    **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data}
                     , summary_formatter, self.batch, start=self.current_run_setting.online_start)
             else:
-                return self._comp({key: data[key] for key in data.data_vars}, summary_formatter, self.batch)
+                return self._comp(data, summary_formatter, self.batch)
 
         raise WrongParameterException(
             "Unkown data type to pass to pipeline steps.",

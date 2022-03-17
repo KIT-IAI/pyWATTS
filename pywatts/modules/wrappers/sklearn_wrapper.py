@@ -96,7 +96,8 @@ class SKLearnWrapper(BaseWrapper):
             prediction = prediction.reshape(len(list(reference.coords.values())[0]), -1)
             for i, target in enumerate(targets):
                 result[target[0]] = xr.DataArray(prediction[:, position: position + target[1]], coords={
-                    time_index.name: time_index.values, "dim_0": list(range(target[1]))}, dims=[time_index.name, "dim_0"])
+                    time_index.name: time_index.values,
+                    "dim_0": list(range(target[1]))}, dims=[time_index.name, "dim_0"])
                 position += target[1]
         return result
 

@@ -89,7 +89,7 @@ class Pipeline(BaseTransformer):
             if not start_step.buffer:
                 start_step.buffer = {key: x[key].copy()}
             else:
-                dim = _get_time_indexes(x)[0]
+                dim = _get_time_indexes(start_step.buffer[key])[0]
                 last = start_step.buffer[key][dim].values[-1]
                 start_step.buffer[key] = xr.concat([start_step.buffer[key], x[key][x[key][dim] > last]], dim=dim)
             start_step.finished = True
@@ -98,9 +98,9 @@ class Pipeline(BaseTransformer):
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
         if not batch:
             return self._collect_results(last_steps)
-        return self._collect_batches(last_steps, time_index)
+        return self._collect_batches(last_steps)
 
-    def _collect_batches(self, last_steps, time_index):
+    def _collect_batches(self, last_steps):
         result = dict()
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
@@ -110,7 +110,8 @@ class Pipeline(BaseTransformer):
                 input_results = self._collect_results(last_steps)
                 if input_results is not None:
                     for key in input_results.keys():
-                        result[key] = xr.concat([result[key], input_results[key]], dim=time_index[0])
+                        dim = _get_time_indexes(result)[0]
+                        result[key] = xr.concat([result[key], input_results[key]], dim=dim)
                 else:
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)

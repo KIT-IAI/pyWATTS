@@ -13,19 +13,18 @@ from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 logger = logging.getLogger(__name__)
 
 
-class LossMetric(IntEnum):
-    """
-    Enum which contains the different loss metrics of the ensemble module.
-    """
-    RMSE = 1
-    MAE = 2
-
-
 class Ensemble(BaseEstimator):
     """
     Aggregation step to ensemble the given time series, ether by simple or weighted averaging.
     By default simple averaging is applied.
     """
+
+    class LossMetric(IntEnum):
+        """
+        Enum which contains the different loss metrics of the ensemble module.
+        """
+        RMSE = 1
+        MAE = 2
 
     def __init__(self, weights: Union[str, list] = None, k_best: Union[str, int] = None,
                  loss_metric: LossMetric = LossMetric.RMSE, name: str = "Ensemble"):
@@ -53,7 +52,7 @@ class Ensemble(BaseEstimator):
         super().__init__(name)
 
         self.weights = weights
-        self._weights = None
+        self.weights_ = None
         self.loss_metric = loss_metric
         self.k_best = k_best
         self.is_fitted = False
@@ -96,17 +95,16 @@ class Ensemble(BaseEstimator):
             # determine weights depending on in-sample loss
             loss_values = self._calculate_loss(ps=forecasts, ts=targets)
             # drop forecasts depending on in-sample loss
-            loss_values_dropped = self._drop_forecasts(loss=loss_values)
+            index_loss_dropped = self._drop_forecasts(loss=loss_values)
 
             # overwrite weights based on given loss values and set weights of dropped forecasts to zero
             if self.weights == "auto":  # weighted averaging depending on estimated weights
-                self._weights = [0 if value in loss_values_dropped else 1 / value for value in loss_values]
+                self.weights_ = [0 if i in index_loss_dropped else 1 / value for i, value in enumerate(loss_values)]
             elif self.weights is None:  # averaging
-                self._weights = [0 if value in loss_values_dropped else 1 for value in loss_values]
+                self.weights_ = [0 if i in index_loss_dropped else 1 for i, value in enumerate(loss_values)]
             else:  # weighted averaging depending on given weights
-                self._weights = [
-                    0 if value in loss_values_dropped else weight for (value, weight) in zip(loss_values, self.weights)
-                ]
+                self.weights_ = [0 if i in index_loss_dropped
+                                 else weight for i, (value, weight) in enumerate(zip(loss_values, self.weights))]
         else:
             # use given weights
             if isinstance(self.weights, list):
@@ -116,11 +114,11 @@ class Ensemble(BaseEstimator):
                         f"Make sure to pass {len(forecasts)} weights.",
                         self.name
                     )
-            self._weights = self.weights
+            self.weights_ = self.weights
 
         # normalize weights
-        if self._weights:
-            self._weights = [weight / sum(self._weights) for weight in self._weights]
+        if self.weights_:
+            self.weights_ = [weight / sum(self.weights_) for weight in self.weights_]
 
         self.is_fitted = True
 
@@ -141,7 +139,7 @@ class Ensemble(BaseEstimator):
         if not all(all(index) == all(list_of_indexes[0]) for index in list_of_indexes):
             raise ValueError("The indexes of the given time series for averaging do not match")
 
-        result = np.average(list_of_series, axis=0, weights=self._weights)
+        result = np.average(list_of_series, axis=0, weights=self.weights_)
 
         return numpy_to_xarray(result, series, self.name)
 
@@ -151,9 +149,9 @@ class Ensemble(BaseEstimator):
         loss_values = []
         for p in ps.values():
             p_ = p.values
-            if self.loss_metric == LossMetric.RMSE:
+            if self.loss_metric == self.LossMetric.RMSE:
                 loss_values.append(np.sqrt(np.mean((p_ - t_) ** 2)))
-            elif self.loss_metric == LossMetric.MAE:
+            elif self.loss_metric == self.LossMetric.MAE:
                 loss_values.append(np.mean(np.abs((p_ - t_))))
             else:
                 WrongParameterException(
@@ -165,14 +163,14 @@ class Ensemble(BaseEstimator):
         return loss_values
 
     def _drop_forecasts(self, loss: list):
-        loss_values_dropped = []
+        index_loss_dropped = []
         if self.k_best is not None:
             # Do not sort the loss_values! Otherwise, the weights do not match the given forecasts.
             if self.k_best == "auto":
                 q75, q25 = np.percentile(loss, [75, 25])
                 iqr = q75 - q25
                 upper_bound = q75 + 1.5 * iqr  # only check for outliers with high loss
-                loss_values_dropped = [value for value in loss if not (value <= upper_bound)]
+                index_loss_dropped = [i for i, value in enumerate(loss) if not (value <= upper_bound)]
             elif self.k_best > len(loss):
                 raise WrongParameterException(
                     "The given k is greater than the number of the given loss values.",
@@ -180,6 +178,6 @@ class Ensemble(BaseEstimator):
                     self.name
                 )
             else:
-                loss_values_dropped = sorted(loss)[self.k_best:]
+                index_loss_dropped = list(np.argpartition(np.array(loss), self.k_best))[self.k_best:]
 
-        return loss_values_dropped
+        return index_loss_dropped

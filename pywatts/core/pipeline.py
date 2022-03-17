@@ -109,8 +109,8 @@ class Pipeline(BaseTransformer):
             else:
                 input_results = self._collect_results(last_steps)
                 if input_results is not None:
+                    dim = _get_time_indexes(input_results)[0]
                     for key in input_results.keys():
-                        dim = _get_time_indexes(result)[0]
                         result[key] = xr.concat([result[key], input_results[key]], dim=dim)
                 else:
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"

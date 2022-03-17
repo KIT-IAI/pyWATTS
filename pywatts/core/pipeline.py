@@ -234,12 +234,14 @@ class Pipeline(BaseTransformer):
                 # Afterwards, comp is called (_transform and summaries using online simulation)
                 index_name = _get_time_indexes(data)[0]
                 self._transform({key: data[key].sel(
-                    **{index_name: data[key][index_name] < self.current_run_setting.online_start }) for key in data.data_vars}, False)
+                    **{index_name: data[key][index_name] < self.current_run_setting.online_start}) for key in
+                    data.data_vars}, False)
                 for step in self.id_to_step.values():
                     step.reset(keep_buffer=True)
                     step.set_run_setting(self.current_run_setting.clone())
                 return self._comp({key: data[key].sel(
-                    **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data.data_vars}
+                    **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in
+                    data.data_vars}
                     , summary_formatter, self.batch, start=self.current_run_setting.online_start)
             else:
                 return self._comp({key: data[key] for key in data.data_vars}, summary_formatter, self.batch)
@@ -254,7 +256,6 @@ class Pipeline(BaseTransformer):
         result = self._transform(data, batch)
         summary = self._create_summary(summary_formatter, start)
         return result, summary
-
 
     def add(self, *,
             module: Union[BaseStep],

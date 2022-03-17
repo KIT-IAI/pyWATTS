@@ -1,4 +1,5 @@
 from typing import Dict, Union
+from enum import IntEnum
 
 import logging
 import xarray as xr
@@ -12,6 +13,14 @@ from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 logger = logging.getLogger(__name__)
 
 
+class LossMetric(IntEnum):
+    """
+    Enum which contains the different loss metrics of the ensemble module.
+    """
+    RMSE = 1
+    MAE = 2
+
+
 class Ensemble(BaseEstimator):
     """
     Aggregation step to ensemble the given time series, ether by simple or weighted averaging.
@@ -19,13 +28,13 @@ class Ensemble(BaseEstimator):
     """
 
     def __init__(self, weights: Union[str, list] = None, k_best: Union[str, int] = None,
-                 loss_metric: str = "rmse", name: str = "Ensemble"):
+                 loss_metric: LossMetric = LossMetric.RMSE, name: str = "Ensemble"):
         """ Initialize the ensemble step.
         :param weights: List of individual weights of the given forecasts for weighted averaging. Passing "auto"
         estimates the weights depending on the given loss values.
         :type weights: list, optional
         :param loss_metric: Specifies the loss metric for automated optimal weight estimation.
-        :type loss_metric: str, optional
+        :type loss_metric: LossMetric, optional
         :param k_best: Drop poor forecasts in the automated weight estimation. Passing "auto" drops poor forecasts based
         on the given loss values by applying the 1.5*IQR rule.
         :type k_best: str or int, optional
@@ -60,13 +69,14 @@ class Ensemble(BaseEstimator):
             "loss_metric": self.loss_metric,
         }
 
-    def set_params(self, weights: Union[str, list] = None, loss_metric: str = None, k_best: Union[str, int] = None):
+    def set_params(self, weights: Union[str, list] = None, loss_metric: LossMetric = None,
+                   k_best: Union[str, int] = None):
         """ Set or change Ensemble object parameters.
         :param weights: List of individual weights of the given forecasts for weighted averaging. Passing "auto"
         estimates the weights depending on the given loss values.
         :type weights: list, optional
-        :param loss_metric: List of the loss of the given forecasts for automated optimal weight estimation.
-        :type loss_metric: str, optional
+        :param loss_metric: Specifies the loss metric for automated optimal weight estimation.
+        :type loss_metric: LossMetric, optional
         :param k_best: Drop poor forecasts in the automated weight estimation. Passing "auto" drops poor forecasts based
         on the given loss values by applying the 1.5*IQR rule.
         :type k_best: str or int, optional
@@ -141,14 +151,14 @@ class Ensemble(BaseEstimator):
         loss_values = []
         for p in ps.values():
             p_ = p.values
-            if self.loss_metric == "rmse":
+            if self.loss_metric == LossMetric.RMSE:
                 loss_values.append(np.sqrt(np.mean((p_ - t_) ** 2)))
-            elif self.loss_metric == "mae":
+            elif self.loss_metric == LossMetric.MAE:
                 loss_values.append(np.mean(np.abs((p_ - t_))))
             else:
                 WrongParameterException(
                     "The specified loss metric is not implemented.",
-                    "Make sure to pass the loss metric 'rmse' or 'mae'.",
+                    "Make sure to pass LossMetric.RMSE or LossMetric.MAE.",
                     self.name
                 )
 

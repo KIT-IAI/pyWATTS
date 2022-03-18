@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    pywatts.callbacks
+   pywatts.conditions
    pywatts.core
    pywatts.modules
    pywatts.summaries

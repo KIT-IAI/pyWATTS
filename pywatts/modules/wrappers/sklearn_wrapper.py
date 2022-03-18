@@ -1,10 +1,11 @@
-import pickle
+import cloudpickle
 from typing import List, Tuple
 
 import numpy as np
 import sklearn
 import xarray as xr
 from sklearn.base import TransformerMixin
+from sklearn.feature_selection import SelectorMixin
 
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
@@ -61,8 +62,9 @@ class SKLearnWrapper(BaseWrapper):
         self.targets = list(targets.keys())
         x = self._dataset_to_sklearn_input(inputs)
         target = self._dataset_to_sklearn_input(targets)
-        self.targets = list(
-            zip(targets.keys(), map(lambda x: x.shape[-1] if len(x.shape) > 1 else 1, list(targets.values()))))
+        self.targets = list(zip(targets.keys(),
+                                map(lambda t: t.values.reshape((t.shape[0], -1)).shape[-1] if len(t.shape) > 1 else 1,
+                                    list(targets.values()))))
         self.fit_result = self.module.fit(x, target)
         self.is_fitted = True
 
@@ -82,19 +84,20 @@ class SKLearnWrapper(BaseWrapper):
     def _sklearn_output_to_dataset(kwargs: xr.DataArray, prediction, targets: List[Tuple[str, int]]):
         reference = kwargs[list(kwargs)[0]]
         time_index = reference.indexes[_get_time_indexes(reference)[0]]
-        if len(targets) == 0:
+        if len(targets) == 0:  # sklearn module is a transformer
             coords = (
                 # first dimension is number of batches. We assume that this is the time.
-                ("time", time_index.values),
+                (time_index.name, time_index.values),
                 *[(f"dim_{j}", list(range(size))) for j, size in enumerate(prediction.shape[1:])])
             result = xr.DataArray(prediction, coords=coords)
-        else:
+        else:  # sklearn module is an estimator
             result = {}
             position = 0
             prediction = prediction.reshape(len(list(reference.coords.values())[0]), -1)
             for i, target in enumerate(targets):
                 result[target[0]] = xr.DataArray(prediction[:, position: position + target[1]], coords={
-                    "time": time_index.values, "dim_0": list(range(target[1]))}, dims=["time", "dim_0"])
+                    time_index.name: time_index.values,
+                    "dim_0": list(range(target[1]))}, dims=[time_index.name, "dim_0"])
                 position += target[1]
         return result
 
@@ -105,8 +108,12 @@ class SKLearnWrapper(BaseWrapper):
         :return: the transformed output
         """
         x_np = self._dataset_to_sklearn_input(kwargs)
+        target_names = self.targets
 
-        if isinstance(self.module, TransformerMixin):
+        if isinstance(self.module, SelectorMixin):
+            prediction = self.module.transform(x_np)
+            target_names = []  # output of selector must not match the shape of the target
+        elif isinstance(self.module, TransformerMixin):
             prediction = self.module.transform(x_np)
         elif "predict" in dir(self.module):
             prediction = self.module.predict(x_np)
@@ -115,7 +122,7 @@ class SKLearnWrapper(BaseWrapper):
                 f"The sklearn-module in {self.name} does not have a predict or transform method",
                 KindOfTransform.PREDICT_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
+        return self._sklearn_output_to_dataset(kwargs, prediction, target_names)
 
     def inverse_transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
@@ -124,14 +131,18 @@ class SKLearnWrapper(BaseWrapper):
         :return: the transformed output
         """
         x_np = self._dataset_to_sklearn_input(kwargs)
+        target_names = self.targets
+
         if self.has_inverse_transform:
             prediction = self.module.inverse_transform(x_np)
+            if isinstance(self.module, SelectorMixin):
+                target_names = []  # output of selector must not match the shape of the target
         else:
             raise KindOfTransformDoesNotExistException(
                 f"The sklearn-module in {self.name} does not have a inverse transform method",
                 KindOfTransform.INVERSE_TRANSFORM)
 
-        return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
+        return self._sklearn_output_to_dataset(kwargs, prediction, target_names)
 
     def predict_proba(self, **kwargs) -> xr.DataArray:
         """
@@ -150,12 +161,14 @@ class SKLearnWrapper(BaseWrapper):
         return self._sklearn_output_to_dataset(kwargs, prediction, self.targets)
 
     def save(self, fm: FileManager):
-        json = super().save(fm)
+        json_module = super().save(fm)
+        json_module["targets"] = self.targets
         file_path = fm.get_path(f'{self.name}.pickle')
         with open(file_path, 'wb') as outfile:
-            pickle.dump(obj=self.module, file=outfile)
-        json.update({"sklearn_module": file_path})
-        return json
+            cloudpickle.dump(obj=self.module, file=outfile)
+        json_module.update({"sklearn_module": file_path})
+        json_module.pop("params")
+        return json_module
 
     @classmethod
     def load(cls, load_information) -> 'SKLearnWrapper':
@@ -172,7 +185,8 @@ class SKLearnWrapper(BaseWrapper):
         """
         name = load_information["name"]
         with open(load_information["sklearn_module"], 'rb') as pickle_file:
-            module = pickle.load(pickle_file)
+            module = cloudpickle.load(pickle_file)
         module = cls(module=module, name=name)
         module.is_fitted = load_information["is_fitted"]
+        module.targets = load_information["targets"]
         return module

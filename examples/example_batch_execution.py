@@ -11,6 +11,7 @@ from sklearn.svm import SVR
 
 # Import the pyWATTS pipeline and the required modules
 from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.conditions.periodic_condition import PeriodicCondition
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper, Sampler, FunctionModule
@@ -40,15 +41,16 @@ def create_preprocessing_pipeline(power_scaler):
 def create_test_pipeline(regressor_svr):
     # Create test pipeline which works on a batch size of one hour.
     pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
-
+    periodic_condition = PeriodicCondition(21)
+    check_if_midnight = lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and \
+                                     x["historical_input"].indexes["time"][0].hour == 0
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
     regressor_svr_power_statistics = regressor_svr(historical_input=pipeline["historical_input"],
                                                    target=pipeline["load_power_statistics"],
                                                    computation_mode=ComputationMode.Refit,
                                                    callbacks=[LinePlotCallback('SVR')],
                                                    lag=pd.Timedelta(hours=24),
-                                                   train_if=lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and
-                                                                         x["historical_input"].indexes["time"][0].hour == 0)
+                                                   refit_conditions=[periodic_condition, check_if_midnight])
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
@@ -104,5 +106,5 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    result = pipeline.test(test)
+    result = pipeline.test(test, online_start=pd.to_datetime("2018-12-30"))
     print("Testing finished")

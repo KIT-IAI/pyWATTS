@@ -104,7 +104,7 @@ class Pipeline(BaseTransformer):
     def _collect_batches(self, last_steps):
         result = dict()
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
-            print(self.counter)
+            self.current_run_setting.set_progbar_description("", keep=str(self.counter))
             if not result:
                 result = self._collect_results(last_steps)
             else:
@@ -209,16 +209,6 @@ class Pipeline(BaseTransformer):
     def _run(self, data: Union[pd.DataFrame, xr.Dataset], mode: ComputationMode, summary: bool,
              summary_formatter: SummaryFormatter, online_start=None):
 
-        self.current_run_setting = RunSetting(computation_mode=mode,
-                                              summary_formatter=summary_formatter,
-                                              online_start=online_start,
-                                              return_summary=summary,
-                                              progbar = tqdm(total=self.get_number_steps()))
-
-        for step in self.id_to_step.values():
-            step.reset()
-            step.set_run_setting(self.current_run_setting)
-
         if isinstance(data, pd.DataFrame):
             data = data.to_xarray()
             data = {key: data[key] for key in data.data_vars}
@@ -237,6 +227,19 @@ class Pipeline(BaseTransformer):
                 "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
                 self.name)
 
+        self.current_run_setting = RunSetting(computation_mode=mode,
+                                              summary_formatter=summary_formatter,
+                                              online_start=online_start,
+                                              return_summary=summary,
+                                              progbar = tqdm(total=self.get_number_steps(sum(list(data.values())[0].indexes[_get_time_indexes(data)[0]] > online_start) if online_start else len(list(data.values())[0]),
+                                                                                         online_start,
+                                                                                         freq=list(data.values())[0][_get_time_indexes(data)[0]][1] - list(data.values())[0][_get_time_indexes(data)[0]][0]
+                                                                                         )))
+
+        for step in self.id_to_step.values():
+            step.reset()
+            step.set_run_setting(self.current_run_setting)
+
         if self.current_run_setting.online_start is not None:
             # First only _transform should be called (no summary, no online) on the data before online_start.
             # Afterwards, comp is called (_transform and summaries using online simulation)
@@ -253,13 +256,19 @@ class Pipeline(BaseTransformer):
         self.current_run_setting.progbar.close()
         return result
 
-    def get_number_steps(self):
+    def get_number_steps(self, length_data, online_start, freq):
         number = 0
         for step in self.id_to_step.values():
             if isinstance(step, Step) and isinstance(step.module, Pipeline):
-                number += step.module.get_number_steps()
+                number += step.module.get_number_steps(length_data, online_start, freq)
             elif isinstance(step, Step) and not isinstance(step, SummaryStep):
                 number +=1
+        if self.batch:
+
+            if online_start:
+                number *= int(length_data // (self.batch / freq).values + 1)
+            else:
+                number *= int(length_data // (self.batch / freq).values)
         return number
 
     def _comp(self, data, summary_formatter, batch, start=None):

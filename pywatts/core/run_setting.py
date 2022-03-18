@@ -21,6 +21,7 @@ class RunSetting:
         self.online_start = online_start
         self.return_summary = return_summary
         self.progbar = progbar
+        self.keep = ""
 
     def update(self, run_setting: 'RunSetting') -> 'RunSetting':
         """
@@ -83,8 +84,10 @@ class RunSetting:
         else:
             self.progbar.update(1)
 
-    def set_progbar_description(self, desc):
+    def set_progbar_description(self, desc, keep=None):
+        if keep is not None:
+            self.keep = keep
         if self.progbar is None:
             pass
         else:
-            self.progbar.set_description(desc)
+            self.progbar.set_description(self.keep + " " + desc)

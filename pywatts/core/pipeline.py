@@ -7,6 +7,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
+from tqdm import tqdm
 from typing import Union, List, Dict, Optional
 
 import pandas as pd
@@ -211,7 +212,8 @@ class Pipeline(BaseTransformer):
         self.current_run_setting = RunSetting(computation_mode=mode,
                                               summary_formatter=summary_formatter,
                                               online_start=online_start,
-                                              return_summary=summary)
+                                              return_summary=summary,
+                                              progbar = tqdm(total=self.get_number_steps()))
 
         for step in self.id_to_step.values():
             step.reset()
@@ -244,11 +246,21 @@ class Pipeline(BaseTransformer):
             for step in self.id_to_step.values():
                 step.reset(keep_buffer=True)
                 step.set_run_setting(self.current_run_setting.clone())
-            return self._comp({key: data[key].sel(**{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data},
+            result = self._comp({key: data[key].sel(**{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data},
                               summary_formatter, self.batch, start=self.current_run_setting.online_start)
         else:
-            return self._comp(data, summary_formatter, self.batch)
+            result = self._comp(data, summary_formatter, self.batch)
+        self.current_run_setting.progbar.close()
+        return result
 
+    def get_number_steps(self):
+        number = 0
+        for step in self.id_to_step.values():
+            if isinstance(step, Step) and isinstance(step.module, Pipeline):
+                number += step.module.get_number_steps()
+            elif isinstance(step, Step) and not isinstance(step, SummaryStep):
+                number +=1
+        return number
 
     def _comp(self, data, summary_formatter, batch, start=None):
         result = self._transform(data, batch)

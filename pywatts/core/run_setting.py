@@ -14,12 +14,13 @@ class RunSetting:
     :type summary_formatter: SummaryFormatter
     """
 
-    def __init__(self, computation_mode: ComputationMode, summary_formatter: SummaryFormatter = SummaryMarkdown(),
+    def __init__(self, computation_mode: ComputationMode, progbar=None, summary_formatter: SummaryFormatter = SummaryMarkdown(),
                  online_start=None, return_summary=False):
         self.computation_mode = computation_mode
         self.summary_formatter = summary_formatter
         self.online_start = online_start
         self.return_summary = return_summary
+        self.progbar = progbar
 
     def update(self, run_setting: 'RunSetting') -> 'RunSetting':
         """
@@ -36,6 +37,7 @@ class RunSetting:
         setting.summary_formatter = run_setting.summary_formatter
         setting.online_start = run_setting.online_start
         setting.return_summary = run_setting.return_summary
+        setting.progbar = run_setting.progbar
         return setting
 
     def clone(self) -> 'RunSetting':
@@ -48,7 +50,8 @@ class RunSetting:
             computation_mode=self.computation_mode,
             summary_formatter=self.summary_formatter,
             online_start=self.online_start,
-            return_summary=self.return_summary
+            return_summary=self.return_summary,
+            progbar=self.progbar
         )
 
     def save(self) -> Dict:
@@ -73,3 +76,15 @@ class RunSetting:
         :rtype: RunSetting
         """
         return RunSetting(**load_information)
+
+    def update_progbar(self):
+        if self.progbar is None:
+            pass
+        else:
+            self.progbar.update(1)
+
+    def set_progbar_description(self, desc):
+        if self.progbar is None:
+            pass
+        else:
+            self.progbar.set_description(desc)

@@ -145,6 +145,7 @@ class Step(BaseStep):
         return step
 
     def _compute(self, start, end):
+        self.current_run_setting.set_progbar_description(f"Processing {self.name}")
         input_data = self._get_input(start, end)
         target = self._get_target(start, end)
         if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
@@ -171,6 +172,7 @@ class Step(BaseStep):
             index = res.indexes[_get_time_indexes(result)[0]]
             start = max(index[0], start.to_numpy())
             result_dict[key] = res.sel(**{_get_time_indexes(res)[0]: index[(index >= start)]})
+        self.current_run_setting.update_progbar()
         return result_dict
 
     def _get_target(self, start, batch):

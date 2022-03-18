@@ -123,7 +123,7 @@ class Step(BaseStep):
         else:
             condition = None
         refit_conditions = []
-        for refit_condition in  stored_step["refit_conditions"]:
+        for refit_condition in stored_step["refit_conditions"]:
             with open(refit_condition, 'rb') as pickle_file:
                 refit_conditions.append(cloudpickle.load(pickle_file))
 
@@ -215,8 +215,7 @@ class Step(BaseStep):
         :param end: The date of the last data used for retraining.
         """
         if self.current_run_setting.computation_mode in [ComputationMode.Refit] and isinstance(self.module,
-                                                                                    BaseEstimator):
-
+                                                                                               BaseEstimator):
             for refit_condition in self.refit_conditions:
                 if isinstance(refit_condition, BaseCondition):
                     condition_input = {key: value.step.get_result(start, end) for key, value in

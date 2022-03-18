@@ -42,15 +42,15 @@ def create_test_pipeline(regressor_svr):
     # Create test pipeline which works on a batch size of one hour.
     pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
     periodic_condition = PeriodicCondition(21)
+    check_if_midnight = lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and \
+                                     x["historical_input"].indexes["time"][0].hour == 0
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
     regressor_svr_power_statistics = regressor_svr(historical_input=pipeline["historical_input"],
                                                    target=pipeline["load_power_statistics"],
                                                    computation_mode=ComputationMode.Refit,
                                                    callbacks=[LinePlotCallback('SVR')],
                                                    lag=pd.Timedelta(hours=24),
-                                                   refit_conditions=[periodic_condition,
-                                                       lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and
-                                                                         x["historical_input"].indexes["time"][0].hour == 0])
+                                                   refit_conditions=[periodic_condition, check_if_midnight])
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])

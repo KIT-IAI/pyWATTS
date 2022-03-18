@@ -89,7 +89,7 @@ class Pipeline(BaseTransformer):
             if not start_step.buffer:
                 start_step.buffer = {key: x[key].copy()}
             else:
-                dim = _get_time_indexes(x)[0]
+                dim = _get_time_indexes(start_step.buffer[key])[0]
                 last = start_step.buffer[key][dim].values[-1]
                 start_step.buffer[key] = xr.concat([start_step.buffer[key], x[key][x[key][dim] > last]], dim=dim)
             start_step.finished = True
@@ -98,9 +98,9 @@ class Pipeline(BaseTransformer):
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
         if not batch:
             return self._collect_results(last_steps)
-        return self._collect_batches(last_steps, time_index)
+        return self._collect_batches(last_steps)
 
-    def _collect_batches(self, last_steps, time_index):
+    def _collect_batches(self, last_steps):
         result = dict()
         while all(map(lambda step: step.further_elements(self.counter), last_steps)):
             print(self.counter)
@@ -109,8 +109,9 @@ class Pipeline(BaseTransformer):
             else:
                 input_results = self._collect_results(last_steps)
                 if input_results is not None:
+                    dim = _get_time_indexes(input_results)[0]
                     for key in input_results.keys():
-                        result[key] = xr.concat([result[key], input_results[key]], dim=time_index[0])
+                        result[key] = xr.concat([result[key], input_results[key]], dim=dim)
                 else:
                     message = f"From {self.counter} until {self.counter + self.batch} no data are calculated"
                     warnings.warn(message)
@@ -234,12 +235,14 @@ class Pipeline(BaseTransformer):
                 # Afterwards, comp is called (_transform and summaries using online simulation)
                 index_name = _get_time_indexes(data)[0]
                 self._transform({key: data[key].sel(
-                    **{index_name: data[key][index_name] < self.current_run_setting.online_start }) for key in data.data_vars}, False)
+                    **{index_name: data[key][index_name] < self.current_run_setting.online_start}) for key in
+                    data.data_vars}, False)
                 for step in self.id_to_step.values():
                     step.reset(keep_buffer=True)
                     step.set_run_setting(self.current_run_setting.clone())
                 return self._comp({key: data[key].sel(
-                    **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data.data_vars}
+                    **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in
+                    data.data_vars}
                     , summary_formatter, self.batch, start=self.current_run_setting.online_start)
             else:
                 return self._comp({key: data[key] for key in data.data_vars}, summary_formatter, self.batch)
@@ -254,7 +257,6 @@ class Pipeline(BaseTransformer):
         result = self._transform(data, batch)
         summary = self._create_summary(summary_formatter, start)
         return result, summary
-
 
     def add(self, *,
             module: Union[BaseStep],

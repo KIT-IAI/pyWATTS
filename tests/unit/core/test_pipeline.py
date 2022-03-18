@@ -50,7 +50,7 @@ pipeline_json = {'id': 1,
                             'module_id': 0,
                             'name': 'StandardScaler',
                             'target_ids': {},
-                            'train_if': None},
+                            'refit_conditions': []},
                            {'batch_size': None,
                             'callbacks': [],
                             'class': 'Step',
@@ -63,7 +63,7 @@ pipeline_json = {'id': 1,
                             'module_id': 1,
                             'name': 'LinearRegression',
                             'target_ids': {},
-                            'train_if': None}],
+                            'refit_conditions': []}],
                  'version': 1}
 
 

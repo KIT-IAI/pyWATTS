@@ -222,34 +222,33 @@ class Pipeline(BaseTransformer):
             data = {key: data[key] for key in data.data_vars}
         elif isinstance(data, xr.Dataset):
             data = {key: data[key] for key in data.data_vars}
-
-        if isinstance(data,dict):
+        elif isinstance(data, dict):
             for key in data:
                 if not isinstance(data[key], xr.DataArray):
                     raise WrongParameterException(
                         "Input Dict does not contain xr.DataArray objects.",
                         "Make sure to pass Dict[str, xr.DataArray].",
-                        self.name
-                    )
-            if self.current_run_setting.online_start is not None:
-                # First only _transform should be called (no summary, no online) on the data before online_start.
-                # Afterwards, comp is called (_transform and summaries using online simulation)
-                index_name = _get_time_indexes(data)[0]
-                self._transform({key: data[key].sel(
-                    **{index_name: data[key][index_name] < self.current_run_setting.online_start }) for key in data}, False)
-                for step in self.id_to_step.values():
-                    step.reset(keep_buffer=True)
-                    step.set_run_setting(self.current_run_setting.clone())
-                return self._comp({key: data[key].sel(**{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data},
-                                  summary_formatter, self.batch, start=self.current_run_setting.online_start)
-            else:
-                return self._comp(data, summary_formatter, self.batch)
+                        self.name)
+        else:
+            raise WrongParameterException(
+                "Unkown data type to pass to pipeline steps.",
+                "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
+                self.name)
 
-        raise WrongParameterException(
-            "Unkown data type to pass to pipeline steps.",
-            "Make sure to use pandas DataFrames, xarray Datasets, or Dict[str, xr.DataArray].",
-            self.name
-        )
+        if self.current_run_setting.online_start is not None:
+            # First only _transform should be called (no summary, no online) on the data before online_start.
+            # Afterwards, comp is called (_transform and summaries using online simulation)
+            index_name = _get_time_indexes(data)[0]
+            self._transform({key: data[key].sel(
+                **{index_name: data[key][index_name] < self.current_run_setting.online_start }) for key in data}, False)
+            for step in self.id_to_step.values():
+                step.reset(keep_buffer=True)
+                step.set_run_setting(self.current_run_setting.clone())
+            return self._comp({key: data[key].sel(**{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data},
+                              summary_formatter, self.batch, start=self.current_run_setting.online_start)
+        else:
+            return self._comp(data, summary_formatter, self.batch)
+
 
     def _comp(self, data, summary_formatter, batch, start=None):
         result = self._transform(data, batch)

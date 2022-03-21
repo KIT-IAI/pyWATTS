@@ -164,7 +164,8 @@ class BaseStep(ABC):
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indexes(result)[0]
             for key in self.buffer.keys():
-                self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
+                last = self.buffer[key][dim].values[-1]
+                self.buffer[key] = xr.concat([self.buffer[key], result[key][result[key][dim] > last]], dim=dim)
         return result
 
     def get_json(self, fm: FileManager) -> Dict:

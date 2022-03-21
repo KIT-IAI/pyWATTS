@@ -175,12 +175,13 @@ class Step(BaseStep):
 
     def _get_target(self, start, batch):
         return {
-            key: target.get_result(start, batch) for key, target in self.targets.items()
+            key: target.get_result(start - self.module.get_min_data(), batch) for key, target in self.targets.items()
         }
 
     def _get_input(self, start, batch):
         return {
-            key: input_step.get_result(start, batch) for key, input_step in self.input_steps.items()
+            key: input_step.get_result(start - self.module.get_min_data(), batch) for key, input_step in
+            self.input_steps.items()
         }
 
     def get_json(self, fm: FileManager):

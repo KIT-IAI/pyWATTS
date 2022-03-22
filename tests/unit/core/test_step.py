@@ -112,6 +112,7 @@ class TestStep(unittest.TestCase):
 
         self.module_mock.transform.return_value = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"],
                                                                coords={'time': time2})
+        self.module_mock.get_min_data.return_value = 2
         step = Step(self.module_mock, {"x": input_step}, file_manager=MagicMock())
         da = xr.DataArray([2, 3, 4, 3, 3, 1, 2], dims=["time"], coords={'time': time})
         step.buffer = {"test": da}
@@ -122,8 +123,10 @@ class TestStep(unittest.TestCase):
 
         # Two calls, once in should_stop and once in _transform
         input_step.get_result.assert_has_calls(
-            [call(pd.Timestamp('2000-01-07 00:00:00'), pd.Timestamp('2020-01-14 00:00:00')),
-             call(pd.Timestamp('2000-01-07 00:00:00'), pd.Timestamp('2020-01-14 00:00:00'))])
+            [call(pd.Timestamp('2000-01-07 00:00:00'), pd.Timestamp('2020-01-14 00:00:00'),
+                  minimum_data=(2, pd.Timedelta(0))),
+             call(pd.Timestamp('2000-01-07 00:00:00'), pd.Timestamp('2020-01-14 00:00:00'),
+                  minimum_data=(2, pd.Timedelta(0)))])
         xr_mock.concat.assert_called_once()
 
         xr.testing.assert_equal(da, list(xr_mock.concat.call_args_list[0])[0][0][0])
@@ -147,8 +150,10 @@ class TestStep(unittest.TestCase):
 
         # Two calls, once in should_stop and once in _transform
         input_step.get_result.assert_has_calls(
-            [call(pd.Timestamp('2000-01-01 '), pd.Timestamp('2020-12-12 ')),
-             call(pd.Timestamp('2000-01-01 '), pd.Timestamp('2020-12-12 '))])
+            [call(pd.Timestamp("2000-01-01"), pd.Timestamp('2020-12-12 '),
+                  minimum_data=(0, self.module_mock.get_min_data().__radd__())),
+             call(pd.Timestamp('2000-01-01 '), pd.Timestamp('2020-12-12 '),
+                  minimum_data=(0, self.module_mock.get_min_data().__radd__()))])
 
         self.module_mock.transform.assert_called_once_with(x=input_step_result_mock)
 
@@ -271,27 +276,33 @@ class TestStep(unittest.TestCase):
         assert step._should_stop(None, None) == False
         assert step.finished == False
 
+
+    @patch('pywatts.core.step.Step._get_target', return_value={"target": 1})
+    @patch('pywatts.core.step.Step._get_input', return_value={"x": 2})
     @patch('pywatts.core.step.isinstance', side_effect=[True, False, True])
-    def test_refit_refit_conditions_false(self, isinstance_mock):
+    def test_refit_refit_conditions_false(self, isinstance_mock, get_input_mock, get_target_mock):
         step = Step(self.module_mock, {"x": self.step_mock}, file_manager=None, refit_conditions=[lambda x, y: False],
                     computation_mode=ComputationMode.Refit)
         step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
         self.module_mock.refit.assert_not_called()
 
+    @patch('pywatts.core.step.Step._get_target', return_value={"target": 1})
+    @patch('pywatts.core.step.Step._get_input', return_value={"x": 2})
     @patch('pywatts.core.step.isinstance', side_effect=[True, False, True])
-    def test_refit_refit_conditions_true(self, isinstance_mock):
+    def test_refit_refit_conditions_true(self, isinstance_mock, get_input_mock, get_target_mock):
         step = Step(self.module_mock, {"x": self.step_mock},
                     targets={"target": self.step_mock}, file_manager=None, refit_conditions=[lambda x, y: True],
                     computation_mode=ComputationMode.Refit)
         step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
-        self.module_mock.refit.assert_called_once_with(x=self.step_mock.get_result(),
-                                                       target=self.step_mock.get_result())
+        self.module_mock.refit.assert_called_once_with(x=2, target=1)
 
+    @patch('pywatts.core.step.Step._get_target', return_value={"target": 1})
+    @patch('pywatts.core.step.Step._get_input', return_value={"x": 2})
     @patch('pywatts.core.step.isinstance', side_effect=[True, False, True, False, True])
-    def test_multiple_refit_conditions(self, isinstance_mock):
+    def test_multiple_refit_conditions(self, isinstance_mock, get_input_mock, get_target_mock):
         step = Step(self.module_mock, {"x": self.step_mock},
                     targets={"target": self.step_mock}, file_manager=None, refit_conditions=[lambda x, y: False, lambda x, y: True],
                     computation_mode=ComputationMode.Refit)
         step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
-        self.module_mock.refit.assert_called_once_with(x=self.step_mock.get_result(),
-                                                       target=self.step_mock.get_result())
+        self.module_mock.refit.assert_called_once_with(x=2, target=1)
+

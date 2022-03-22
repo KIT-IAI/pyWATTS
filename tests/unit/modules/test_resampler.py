@@ -88,3 +88,7 @@ class TestResampler(unittest.TestCase):
         expected_data = np.arange(0, self.times - 0.5, step=0.5)
         expected_time = pd.date_range(self.start_time, freq="1800s", periods=len(expected_data))
         self._test_base("linear", "1800s", "interpolate", expected_time, expected_data, method_args={"kind": "linear"})
+
+    def test_get_min_data(self):
+        resampler = Resampler(target_time="12h")
+        self.assertEqual(resampler.get_min_data(), pd.Timedelta(hours=12))

@@ -119,7 +119,7 @@ class BaseStep(ABC):
                 return False
         return True
 
-    def _pack_data(self, start, end, buffer_element=None, return_all=False, minimum_data=0):
+    def _pack_data(self, start, end, buffer_element=None, return_all=False, minimum_data=(0, pd.Timedelta(0))):
         # Provide requested data
         time_index = _get_time_indexes(self.buffer)
         if start:

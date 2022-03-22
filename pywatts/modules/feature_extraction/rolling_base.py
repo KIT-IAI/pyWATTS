@@ -131,7 +131,5 @@ class RollingBase(BaseTransformer, ABC):
     def _get_rolling(self, df):
         pass
 
-
     def get_min_data(self):
         return pd.Timedelta(f"{self.window_size}{self.window_size_unit}")
-

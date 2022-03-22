@@ -64,7 +64,7 @@ class KerasWrapper(DlWrapper):
             prediction = [prediction]
 
         result = {
-            key : numpy_to_xarray(pred, list(kwargs.values())[0], self.name) for key, pred in zip(self.targets, prediction)
+            key: numpy_to_xarray(pred, list(kwargs.values())[0]) for key, pred in zip(self.targets, prediction)
         }
         return result
 

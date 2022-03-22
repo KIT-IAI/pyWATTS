@@ -78,8 +78,8 @@ if __name__ == "__main__":
     preprocessing_pipeline = preprocessing_pipeline(scaler_power=train_pipeline["load_power_statistics"])
 
     target = FunctionModule(lambda x: numpy_to_xarray(
-        x.values.reshape((-1,)), x, "target"
-    ))(x=train_pipeline["load_power_statistics"])
+        x.values.reshape((-1,)), x
+    ), name="target")(x=train_pipeline["load_power_statistics"])
 
     # Addd the regressors to the train pipeline
     regressor_svr(hist_input=preprocessing_pipeline["sampled_data"],

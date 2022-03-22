@@ -31,11 +31,11 @@ def xarray_to_numpy(x: Dict[str, xr.DataArray]):
 
 
 def numpy_to_xarray(x: np.ndarray, reference: xr.DataArray, name: str) -> xr.DataArray:
+    time_index = reference.indexes[_get_time_indexes(reference)[0]]
     coords = {
         # first dimension is number of batches. We assume that this is the time.
-        "time": list(reference.coords.values())[0].to_dataframe().index.array}
-    coords.update(
-        {f"dim_{j}" : list(range(size)) for j, size in enumerate(x.shape[1:])}
-    )
+        time_index.name: time_index.values,
+        **{f"dim_{j}": list(range(size)) for j, size in enumerate(x.shape[1:])}
+    }
 
     return xr.DataArray(x, coords=coords, dims=list(coords.keys()))

@@ -80,9 +80,9 @@ class Pipeline(BaseTransformer):
                 # _transform is called directly.
                 return self._transform(x, None)
             else:
-                return self._comp(x, self.current_run_setting.summary_formatter, self.batch)[0]
+                return self._comp(x, False, self.current_run_setting.summary_formatter, self.batch)
         else:
-            return self._comp(x, self.current_run_setting.summary_formatter, self.batch)[0]
+            return self._comp(x, False, self.current_run_setting.summary_formatter, self.batch)
 
     def _transform(self, x, batch=None):
         for key, (start_step, _) in self.start_steps.items():
@@ -168,7 +168,7 @@ class Pipeline(BaseTransformer):
 
         # TODO built the graph which should be drawn by starting with the last steps...
 
-    def test(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False,
+    def test(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = True,
              summary_formatter: SummaryFormatter = SummaryMarkdown(), online_start=None):
         """
         Executes all modules in the pipeline in the correct order. This method call only transform on every module
@@ -186,7 +186,7 @@ class Pipeline(BaseTransformer):
         """
         return self._run(data, ComputationMode.Transform, summary, summary_formatter, online_start)
 
-    def train(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = False,
+    def train(self, data: Union[pd.DataFrame, xr.Dataset], summary: bool = True,
               summary_formatter: SummaryFormatter = SummaryMarkdown()):
         """
         Executes all modules in the pipeline in the correct order. This method calls fit and transform on each module
@@ -245,15 +245,15 @@ class Pipeline(BaseTransformer):
                 step.reset(keep_buffer=True)
                 step.set_run_setting(self.current_run_setting.clone())
             return self._comp({key: data[key].sel(**{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data},
-                              summary_formatter, self.batch, start=self.current_run_setting.online_start)
+                              self.current_run_setting.return_summary, summary_formatter, self.batch, start=self.current_run_setting.online_start)
         else:
-            return self._comp(data, summary_formatter, self.batch)
+            return self._comp(data, self.current_run_setting.return_summary, summary_formatter, self.batch)
 
 
-    def _comp(self, data, summary_formatter, batch, start=None):
+    def _comp(self, data, return_summary, summary_formatter, batch, start=None):
         result = self._transform(data, batch)
         summary = self._create_summary(summary_formatter, start)
-        return result, summary
+        return (result, summary) if return_summary else result
 
     def add(self, *,
             module: Union[BaseStep],

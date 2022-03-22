@@ -128,7 +128,7 @@ class PyTorchWrapper(DlWrapper):
 
         self.model.to("cpu")
 
-        ret = numpy_to_xarray(pred, list(kwargs.values())[0], self.name)
+        ret = numpy_to_xarray(pred, list(kwargs.values())[0])
         return ret
 
     def save(self, fm: FileManager):

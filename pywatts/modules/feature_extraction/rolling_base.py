@@ -124,7 +124,7 @@ class RollingBase(BaseTransformer, ABC):
                 module=self.__class__)
 
         rolling.fillna(inplace=True, value=0)
-        return numpy_to_xarray(rolling.values.reshape((len(rolling),)), x, self.name)
+        return numpy_to_xarray(rolling.values.reshape((len(rolling),)), x)
 
     @abstractmethod
     def _get_rolling(self, df):

@@ -30,7 +30,7 @@ def xarray_to_numpy(x: Dict[str, xr.DataArray]):
     return result
 
 
-def numpy_to_xarray(x: np.ndarray, reference: xr.DataArray, name: str) -> xr.DataArray:
+def numpy_to_xarray(x: np.ndarray, reference: xr.DataArray) -> xr.DataArray:
     time_index = reference.indexes[_get_time_indexes(reference)[0]]
     coords = {
         # first dimension is number of batches. We assume that this is the time.

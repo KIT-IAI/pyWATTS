@@ -57,4 +57,4 @@ class Average(BaseTransformer):
 
         result = np.average(list_of_data_arrays, axis=0, weights=self.weights)
 
-        return numpy_to_xarray(result, data_array, self.name)
+        return numpy_to_xarray(result, data_array)

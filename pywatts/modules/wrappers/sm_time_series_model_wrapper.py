@@ -45,7 +45,6 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         self.predict_kwargs = predict_kwargs
         self.use_exog = use_exog
 
-
     def get_params(self) -> Dict[str, object]:
         """
         Returns the parameters of the statsmodels module.
@@ -58,7 +57,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
             "module_kwargs": self.module_kwargs,
             "fit_kwargs": self.fit_kwargs,
             "predict_kwargs": self.predict_kwargs,
-            "use_exog" : self.use_exog
+            "use_exog": self.use_exog
         }
 
     def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None, use_exog=None):
@@ -137,7 +136,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         else:
             raise Exception(f"{self.module.__class__.__name__} has no forecast or predict method...")
 
-        return numpy_to_xarray(prediction, list(kwargs.values())[0], self.name)
+        return numpy_to_xarray(prediction, list(kwargs.values())[0])
 
     def save(self, fm: FileManager):
         """

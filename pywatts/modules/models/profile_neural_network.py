@@ -103,7 +103,7 @@ class ProfileNeuralNetwork(BaseEstimator):
                 [calendar.values, temperature.values.reshape(-1, self.horizon, 1),
                  humidity.values.reshape(-1, self.horizon, 1)], axis=-1)
         })
-        return numpy_to_xarray(result, historical_input, self.name)
+        return numpy_to_xarray(result, historical_input)
 
     def fit(self, historical_input, calendar, temperature, humidity, profile, trend, target):
         """

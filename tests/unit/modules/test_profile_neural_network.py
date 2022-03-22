@@ -90,7 +90,6 @@ class TestPNN(unittest.TestCase):
         np2xr_args = np2xr_mock.call_args
         self.assertEqual(np2xr_args[0][0], keras_result_mock)
         xr.testing.assert_equal(np2xr_args[0][1], hist_input)
-        self.assertEqual(np2xr_args[0][2], "PNN")
 
         keras_pnn.predict.assert_called_once()
         transform_args = keras_pnn.predict.call_args

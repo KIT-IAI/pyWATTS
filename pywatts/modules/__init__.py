@@ -13,6 +13,7 @@ from pywatts.modules.metrics.rolling_mae import RollingMAE
 from pywatts.modules.metrics.rolling_rmse import RollingRMSE
 from pywatts.modules.metrics.root_mean_squared_error import RmseCalculator
 from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
+from pywatts.modules.postprocessing.ensemble import Ensemble
 from pywatts.modules.preprocessing.average import Average
 from pywatts.modules.preprocessing.change_direction import ChangeDirection
 from pywatts.modules.preprocessing.clock_shift import ClockShift

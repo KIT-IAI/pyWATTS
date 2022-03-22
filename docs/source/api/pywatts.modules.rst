@@ -12,6 +12,7 @@ Subpackages
    pywatts.modules.models
    pywatts.modules.preprocessing
    pywatts.modules.wrappers
+   pywatts.modules.postprocessing
 
 Module contents
 ---------------

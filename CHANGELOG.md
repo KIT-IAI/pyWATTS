@@ -13,9 +13,6 @@
 * Periodic Refit Condition ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
 * Add AnomalyGeneration modules ([#195](https://github.com/KIT-IAI/pyWATTS/issues/195))
 
-
-
-
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))
 * The sklean-wrapper includes now methods based on the SelectorMixin ([#185](https://github.com/KIT-IAI/pyWATTS/issues/185))
@@ -28,6 +25,7 @@
 * Fixed Pipeline.to_folder() for modules that store parameters in numpy format by adding a special JSON-encoder for types that are not json-serializable by default ([#175](https://github.com/KIT-IAI/pyWATTS/issues/175))
 * Added missing summaries to pywatts.summaries.__init__.py ([#183](https://github.com/KIT-IAI/pyWATTS/issues/183))
 * Fixed wrong time dimension name in ComputationMode.Transform ([#199](https://github.com/KIT-IAI/pyWATTS/issues/199))
+* Fixed online execution of subpipeline ([#203](https://github.com/KIT-IAI/pyWATTS/issues/203))
 
 
 ### Deprecated

@@ -138,8 +138,7 @@ class Base(ABC):
         return self.fit(**kwargs)
 
     def get_min_data(self):
-        # TODO hacky solution
-        return pd.Timedelta("0h")
+        return 0
 
     def __call__(self,
                  use_inverse_transform: bool = False,

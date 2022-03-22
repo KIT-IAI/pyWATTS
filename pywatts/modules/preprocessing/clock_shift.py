@@ -79,5 +79,4 @@ class ClockShift(BaseTransformer):
                 module=self.name) from exc
 
     def get_min_data(self):
-        # TODO hacky probably should be either Timeldeta or int
-        return pd.Timedelta(f"{np.abs(self.lag)}h")
+        return np.abs(self.lag)

@@ -4,6 +4,7 @@ import warnings
 from typing import Optional, Dict, Union, Callable, List
 
 import cloudpickle
+import numpy as np
 import pandas as pd
 import xarray as xr
 
@@ -144,15 +145,15 @@ class Step(BaseStep):
 
         return step
 
-    def _compute(self, start, end):
-        input_data = self._get_input(start, end)
-        target = self._get_target(start, end)
+    def _compute(self, start, end, minimum_data):
+        input_data = self._get_input(start, end, minimum_data)
+        target = self._get_target(start, end, minimum_data)
         if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
                                                          ComputationMode.Train]:
             # Fetch input_data and target data
             if self.batch_size:
-                input_batch = self._get_input(end - self.batch_size, end)
-                target_batch = self._get_target(end - self.batch_size, end)
+                input_batch = self._get_input(end - self.batch_size, end, minimum_data)
+                target_batch = self._get_target(end - self.batch_size, end, minimum_data)
                 start_time = time.time()
                 self._fit(input_batch, target_batch)
                 self.training_time.set_kv("", time.time() - start_time)
@@ -173,15 +174,26 @@ class Step(BaseStep):
             result_dict[key] = res.sel(**{_get_time_indexes(res)[0]: index[(index >= start)]})
         return result_dict
 
-    def _get_target(self, start, batch):
+    def _get_target(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+        min_data_module = self.module.get_min_data()
+        if isinstance(min_data_module, (int, np.integer)):
+            minimum_data = minimum_data[0] + min_data_module, minimum_data[1]
+        else:
+            minimum_data = minimum_data[0], minimum_data[1] + min_data_module
         return {
-            key: target.get_result(start - self.module.get_min_data(), batch) for key, target in self.targets.items()
+            key: target.get_result(start, batch, minimum_data=minimum_data)
+            for key, target in self.targets.items()
         }
 
-    def _get_input(self, start, batch):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+        min_data_module = self.module.get_min_data()
+        if isinstance(min_data_module, (int, np.integer)):
+            minimum_data = minimum_data[0] + min_data_module, minimum_data[1]
+        else:
+            minimum_data = minimum_data[0], minimum_data[1] + min_data_module
         return {
-            key: input_step.get_result(start - self.module.get_min_data(), batch) for key, input_step in
-            self.input_steps.items()
+            key: input_step.get_result(start, batch, minimum_data=minimum_data) for
+            key, input_step in self.input_steps.items()
         }
 
     def get_json(self, fm: FileManager):

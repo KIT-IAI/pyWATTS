@@ -35,8 +35,7 @@ class Sampler(BaseTransformer):
         self.indexes = indexes
 
     def get_min_data(self):
-        # TODO hacky probably should be either Timeldeta or int
-        return pd.Timedelta(f"{self.sample_size}h")
+        return self.sample_size
 
     def get_params(self) -> Dict[str, object]:
         """

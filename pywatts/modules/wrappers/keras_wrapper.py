@@ -136,7 +136,7 @@ class KerasWrapper(DlWrapper):
         if "aux_models" in load_information.keys():
             for aux_name, path in load_information["aux_models"]:
                 try:
-                    aux_models[aux_name] = tf.keras.models.load_model(filepath=path)
+                    aux_models[aux_name] = tf.keras.models.load_model(filepath=path, custom_objects=custom_objects)
                 except Exception as exception:
                     logging.error("No model found in path %s", path)
                     raise exception

@@ -124,7 +124,10 @@ class BaseStep(ABC):
         time_index = _get_time_indexes(self.buffer)
         if start:
             index = list(self.buffer.values())[0].indexes[time_index[0]]
-            freq = index[1] - index[0]
+            if len(index) > 1:
+                freq = index[1] - index[0]
+            else:
+                freq = 0
             start = start.to_numpy() - pd.Timedelta(minimum_data[0] * freq) - minimum_data[1]
             # If end is not set, all values should be considered. Thus we add a small timedelta to the last index entry.
             end = end.to_numpy() if end is not None else (index[-1] + pd.Timedelta(nanoseconds=1)).to_numpy()

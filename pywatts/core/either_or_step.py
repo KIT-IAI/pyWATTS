@@ -22,7 +22,7 @@ class EitherOrStep(BaseStep):
     def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
         inputs = []
         for step in self.input_steps.values():
-            inp = step.get_result(start, batch, minimum_data)
+            inp = step.get_result(start, batch, minimum_data=minimum_data)
             inputs.append(inp)
         return inputs
 

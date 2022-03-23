@@ -18,7 +18,7 @@ from pywatts.core.pipeline import Pipeline
 # Import the pyWATTS pipeline and the required modules
 from pywatts.modules import ClockShift, LinearInterpolater, SKLearnWrapper, KerasWrapper
 from pywatts.summaries import RMSE
-
+from tensorflow.keras import backend as K
 
 def get_keras_model():
     # write the model with the Functional API, Sequential does not support multiple input tensors
@@ -59,8 +59,11 @@ if __name__ == "__main__":
     shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2")(x=scale_power_statistics)
 
     keras_wrapper = KerasWrapper(keras_model,
+                                 custom_objects={"<lambda>": lambda x, y: K.sqrt(K.mean(K.square(x - y)))},
                                  fit_kwargs={"batch_size": 8, "epochs": 1},
-                                 compile_kwargs={"loss": "mse", "optimizer": "Adam", "metrics": ["mse"]}) \
+                                 compile_kwargs={"loss": lambda x, y: K.sqrt(K.mean(K.square(x - y))),
+                                                 "optimizer": "Adam",
+                                                 "metrics": ["mse"]}) \
         (ClockShift_Lag1=shift_power_statistics,
          ClockShift_Lag2=shift_power_statistics2,
          target=scale_power_statistics)
@@ -82,3 +85,6 @@ if __name__ == "__main__":
 
     pipeline.train(data)
     pipeline.to_folder("../results/pipe_keras")
+
+    pipeline = Pipeline.from_folder("../results/pipe_keras")
+    pipeline.train(data)

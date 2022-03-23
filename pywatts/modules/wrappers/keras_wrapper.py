@@ -22,6 +22,10 @@ class KerasWrapper(DlWrapper):
     :type fit_kwargs: dict
     :param compile_kwargs: The compile keyword arguments necessary for compiling the model.
     :type compile_kwargs: dict
+    :param custom_objects: This dict contains all custom objects needed by the keras model. Note,
+                           users that uses such customs objects (e.g. Custom Loss) need to specify this to enable
+                           the loading of the stored Keras model.
+    :type custom_objects: dict
     """
 
     def __init__(self, model: Union[tf.keras.Model, Tuple[tf.keras.Model, Dict[str, tf.keras.Model]]],
@@ -164,6 +168,9 @@ class KerasWrapper(DlWrapper):
         Set the parameters of the deep learning wrappers
         :param fit_kwargs: keyword arguments for the fit method.
         :param compile_kwargs: keyword arguments for the compile methods.
+        :param custom_objects: This dict contains all custom objects needed by the keras model. Note,
+                               users that uses such customs objects (e.g. Custom Loss) need to specify this to enable
+                               the loading of the stored Keras model.
         """
         if fit_kwargs:
             self.fit_kwargs = fit_kwargs

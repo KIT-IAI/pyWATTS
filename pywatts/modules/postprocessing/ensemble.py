@@ -141,7 +141,7 @@ class Ensemble(BaseEstimator):
 
         result = np.average(list_of_series, axis=0, weights=self.weights_)
 
-        return numpy_to_xarray(result, series, self.name)
+        return numpy_to_xarray(result, series)
 
     def _calculate_loss(self, ps, ts):
 

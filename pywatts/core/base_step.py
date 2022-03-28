@@ -36,7 +36,6 @@ class BaseStep(ABC):
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
-        self.cached_result = {"cached": None, "start": None, "end": None}
 
         self.name = name
 
@@ -49,7 +48,7 @@ class BaseStep(ABC):
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False):
+                   return_all=False, minimum_data=(0, pd.Timedelta(0))):
         """
         This method is responsible for providing the result of this step.
         Therefore,
@@ -74,9 +73,7 @@ class BaseStep(ABC):
         # Only execute the module if the step is not finished and the results are not yet calculated
         if not self.finished and not (end is not None and self._current_end is not None and end <= self._current_end):
             if not self.buffer or not self._current_end or end > self._current_end:
-                self.cached_result["cached"] = self._compute(start, end)
-                self.cached_result["start"] = start
-                self.cached_result["end"] = end
+                self._compute(start, end, minimum_data)
                 self._current_end = end
             if not end:
                 self.finished = True
@@ -87,15 +84,9 @@ class BaseStep(ABC):
             if self.finished:
                 self._callbacks()
 
-        # Check if the cached results fits to the request, if yes return it.
-        if self.cached_result["cached"] is not None and self.cached_result["start"] == start and self.cached_result[
-            "end"] == end:
-            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(self.cached_result["cached"][
-                    buffer_element]) if buffer_element is not None else copy.deepcopy(list(self.cached_result["cached"].values())[
-                    0])
-        return self._pack_data(start, end, buffer_element, return_all=return_all)
+        return self._pack_data(start, end, buffer_element, return_all=return_all, minimum_data=minimum_data)
 
-    def _compute(self, start, end) -> Dict[str, xr.DataArray]:
+    def _compute(self, start, end, minimum_data) -> Dict[str, xr.DataArray]:
         pass
 
     def further_elements(self, counter: pd.Timestamp) -> bool:
@@ -118,12 +109,16 @@ class BaseStep(ABC):
                 return False
         return True
 
-    def _pack_data(self, start, end, buffer_element=None, return_all=False):
+    def _pack_data(self, start, end, buffer_element=None, return_all=False, minimum_data=(0, pd.Timedelta(0))):
         # Provide requested data
         time_index = _get_time_indexes(self.buffer)
         if start:
             index = list(self.buffer.values())[0].indexes[time_index[0]]
-            start = start.to_numpy()
+            if len(index) > 1:
+                freq = index[1] - index[0]
+            else:
+                freq = 0
+            start = start.to_numpy() - pd.Timedelta(minimum_data[0] * freq) - minimum_data[1]
             # If end is not set, all values should be considered. Thus we add a small timedelta to the last index entry.
             end = end.to_numpy() if end is not None else (index[-1] + pd.Timedelta(nanoseconds=1)).to_numpy()
             # After sel copy is not needed, since it returns a new array.
@@ -164,7 +159,8 @@ class BaseStep(ABC):
             # Time dimension is mandatory, consequently there dim has to exist
             dim = _get_time_indexes(result)[0]
             for key in self.buffer.keys():
-                self.buffer[key] = xr.concat([self.buffer[key], result[key]], dim=dim)
+                last = self.buffer[key][dim].values[-1]
+                self.buffer[key] = xr.concat([self.buffer[key], result[key][result[key][dim] > last]], dim=dim)
         return result
 
     def get_json(self, fm: FileManager) -> Dict:
@@ -201,10 +197,10 @@ class BaseStep(ABC):
         :return: The restored step.
         """
 
-    def _get_input(self, start, batch):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
         return None
 
-    def _get_target(self, start, batch):
+    def _get_target(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
         return None
 
     def _should_stop(self, start, end) -> bool:

@@ -83,3 +83,7 @@ class TestRollingMean(unittest.TestCase):
         expected_result = xr.DataArray([0., 0., 0., 0., 3, 3, 3.5, 3.5, 2, 2., 6.,6,4.5, 4.5], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
+
+    def test_get_min_data(self):
+        r_mean = RollingMean(window_size=12, window_size_unit="h")
+        self.assertEqual(r_mean.get_min_data(), pd.Timedelta(hours=12))

@@ -1,5 +1,6 @@
 from typing import Dict, Optional, Any
 
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
@@ -108,3 +109,6 @@ class Resampler(BaseTransformer):
         return getattr(
             x.resample(**{self.time_index: self.target_time}), self.method
         )(**args)
+
+    def get_min_data(self):
+        return pd.Timedelta(self.target_time)

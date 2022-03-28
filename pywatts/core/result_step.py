@@ -15,14 +15,16 @@ class ResultStep(BaseStep):
         super().__init__(input_steps=input_steps)
         self.buffer_element = buffer_element
 
-    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], *args, return_all=False, **kwargs):
+    def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
+                   return_all=False, minimum_data=(0, pd.Timedelta(0))):
         """
         Returns the specified result of the previous step.
         """
+
         if not return_all:
-            return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)
+            return list(self.input_steps.values())[0].get_result(start, end, self.buffer_element, minimum_data=minimum_data)
         else:
-            return {self.buffer_element: list(self.input_steps.values())[0].get_result(start, end, self.buffer_element)}
+            return {self.buffer_element: list(self.input_steps.values())[0].get_result(start, end, self.buffer_element, minimum_data=minimum_data)}
 
     def get_json(self, fm: FileManager) -> Dict:
         """

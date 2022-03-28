@@ -83,3 +83,6 @@ class TrendExtraction(BaseTransformer):
                   range(1, self.length + 1)]
         trend = xr.DataArray(np.stack(trends, axis=-1), dims=(*x.dims, "length"), coords=x.coords)
         return trend.transpose(_get_time_indexes(x)[0], "length", ...)
+
+    def get_min_data(self):
+        return self.period * (self.length + 1)

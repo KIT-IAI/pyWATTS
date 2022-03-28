@@ -49,3 +49,7 @@ class TestTrendExtraction(unittest.TestCase):
              [9, 7, 5]], dims=["time", "length"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
+
+    def test_get_min_data(self):
+        trend = TrendExtraction(period=12, length=2)
+        self.assertEqual(trend.get_min_data(), 36)

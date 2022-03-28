@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
@@ -32,6 +33,9 @@ class Sampler(BaseTransformer):
                 module=self.name)
         self.sample_size = sample_size
         self.indexes = indexes
+
+    def get_min_data(self):
+        return self.sample_size
 
     def get_params(self) -> Dict[str, object]:
         """

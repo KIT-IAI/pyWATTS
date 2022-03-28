@@ -8,6 +8,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.core.computation_mode import ComputationMode
+from pywatts.core.condition_object import ConditionObject
 from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
 from pywatts.core.filemanager import FileManager
@@ -33,6 +34,7 @@ class Base(ABC):
 
         self.has_inverse_transform = False
         self.has_predict_proba = False
+        # TODO each module needs a function for returning how much past values it needs for executing the transformation.
 
     @abstractmethod
     def get_params(self) -> Dict[str, object]:
@@ -191,7 +193,6 @@ class Base(ABC):
         """
 
         from pywatts.core.step_factory import StepFactory
-
         return StepFactory().create_step(self, kwargs=kwargs,
                                          use_inverse_transform=use_inverse_transform,
                                          use_predict_proba=use_prob_transform,

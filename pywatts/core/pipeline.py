@@ -94,11 +94,12 @@ class Pipeline(BaseTransformer):
                 start_step.buffer[key] = xr.concat([start_step.buffer[key], x[key][x[key][dim] > last]], dim=dim)
             start_step.finished = True
         time_index = _get_time_indexes(x)
-        self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
         if not batch:
             return self._collect_results(last_steps)
-        return self._collect_batches(last_steps)
+        else:
+            self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
+            return self._collect_batches(last_steps)
 
     def _collect_batches(self, last_steps):
         result = dict()

@@ -207,7 +207,7 @@ class TestStep(unittest.TestCase):
         input_dict = {'input_data': None}
         step = Step(self.module_mock, {"x": self.step_mock}, None)
         step._fit(input_dict, {})
-        step._transform(input_dict)
+        step._transform(input_dict,,
         self.module_mock.transform.assert_called_once_with(**input_dict)
 
     def test_load(self):

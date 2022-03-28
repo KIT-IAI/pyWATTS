@@ -24,7 +24,7 @@ class TestProbabilisticStep(unittest.TestCase):
 
     def test_transform(self):
         input_mock = MagicMock()
-        self.probabilistic_step._transform(input_mock)
+        self.probabilistic_step._transform(input_mock,,
 
         self.probabilistic_module.predict_proba.assert_called_once_with(input_mock)
 

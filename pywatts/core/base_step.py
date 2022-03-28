@@ -36,7 +36,6 @@ class BaseStep(ABC):
         self.input_steps: Dict[str, "BaseStep"] = dict() if input_steps is None else input_steps
         self.targets: Dict[str, "BaseStep"] = dict() if targets is None else targets
         self.condition = condition
-        self.cached_result = {"cached": None, "start": None, "end": None, "minimum_data": None}
 
         self.name = name
 
@@ -74,11 +73,8 @@ class BaseStep(ABC):
         # Only execute the module if the step is not finished and the results are not yet calculated
         if not self.finished and not (end is not None and self._current_end is not None and end <= self._current_end):
             if not self.buffer or not self._current_end or end > self._current_end:
-                self.cached_result["cached"] = self._compute(start, end, minimum_data)
-                self.cached_result["start"] = start
-                self.cached_result["end"] = end
+                self._compute(start, end, minimum_data)
                 self._current_end = end
-                self.minimum_data = minimum_data
             if not end:
                 self.finished = True
             else:
@@ -88,12 +84,6 @@ class BaseStep(ABC):
             if self.finished:
                 self._callbacks()
 
-        # Check if the cached results fits to the request, if yes return it.
-        if self.cached_result["cached"] is not None and self.cached_result["start"] == start and self.cached_result[
-            "end"] == end and self.cached_result["minimum_data"] == minimum_data:
-            return copy.deepcopy(self.cached_result["cached"]) if return_all else copy.deepcopy(self.cached_result["cached"][
-                    buffer_element]) if buffer_element is not None else copy.deepcopy(list(self.cached_result["cached"].values())[
-                    0])
         return self._pack_data(start, end, buffer_element, return_all=return_all, minimum_data=minimum_data)
 
     def _compute(self, start, end, minimum_data) -> Dict[str, xr.DataArray]:

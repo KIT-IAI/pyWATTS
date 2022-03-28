@@ -33,5 +33,4 @@ class ProbablisticStep(Step):
         if not self.module.has_predict_proba:
             raise KindOfTransformDoesNotExistException(f"The module {self.module.name} has no probablisitic transform",
                                                        KindOfTransform.PROBABILISTIC_TRANSFORM)
-
         return self._post_transform(self.module.predict_proba(input_step))

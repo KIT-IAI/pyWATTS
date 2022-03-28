@@ -48,7 +48,7 @@ class BaseStep(ABC):
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False, minimum_data=(0, pd.Timedelta(0))):
+                   return_all=False, minimum_data=(0, pd.Timedelta(0)), recalculate=False):
         """
         This method is responsible for providing the result of this step.
         Therefore,
@@ -71,9 +71,10 @@ class BaseStep(ABC):
             return None
 
         # Only execute the module if the step is not finished and the results are not yet calculated
-        if not self.finished and not (end is not None and self._current_end is not None and end <= self._current_end):
+        if recalculate or (not self.finished and not (
+                end is not None and self._current_end is not None and end <= self._current_end)):
             if not self.buffer or not self._current_end or end > self._current_end:
-                self._compute(start, end, minimum_data)
+                self._compute(start, end, minimum_data, recalculate)
                 self._current_end = end
             if not end:
                 self.finished = True
@@ -86,7 +87,7 @@ class BaseStep(ABC):
 
         return self._pack_data(start, end, buffer_element, return_all=return_all, minimum_data=minimum_data)
 
-    def _compute(self, start, end, minimum_data) -> Dict[str, xr.DataArray]:
+    def _compute(self, start, end, minimum_data, recalculate=False) -> Dict[str, xr.DataArray]:
         pass
 
     def further_elements(self, counter: pd.Timestamp) -> bool:
@@ -197,10 +198,10 @@ class BaseStep(ABC):
         :return: The restored step.
         """
 
-    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0)), recalculate=False):
         return None
 
-    def _get_target(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+    def _get_target(self, start, batch, minimum_data=(0, pd.Timedelta(0)), recalculate=False):
         return None
 
     def _should_stop(self, start, end) -> bool:

@@ -15,14 +15,14 @@ class EitherOrStep(BaseStep):
         super().__init__(input_steps)
         self.name = "EitherOr"
 
-    def _compute(self, start, end, minimum_data):
-        input_data = self._get_input(start, end, minimum_data)
+    def _compute(self, start, end, minimum_data, recalculate=False):
+        input_data = self._get_input(start, end, minimum_data, recalculate=recalculate)
         return self._transform(input_data)
 
-    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0)), recalculate=False):
         inputs = []
         for step in self.input_steps.values():
-            inp = step.get_result(start, batch, minimum_data=minimum_data)
+            inp = step.get_result(start, batch, minimum_data=minimum_data, recalculate=recalculate)
             inputs.append(inp)
         return inputs
 
@@ -30,7 +30,6 @@ class EitherOrStep(BaseStep):
         # Chooses the first input_step which calculation is not stopped.
         for in_step in input_step:
             if in_step is not None:
-                # This buffer is never changed in this step. Consequently, no copy is necessary..
                 return self._post_transform(in_step)
 
     @classmethod

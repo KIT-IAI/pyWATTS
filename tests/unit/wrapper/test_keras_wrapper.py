@@ -25,19 +25,8 @@ stored_model = {
     "module": "pywatts.wrappers.keras_wrapper",
     "name": "SimpleAE",
     'is_fitted': False,
-    "params": {
-        "compile_kwargs": {
-            "loss": "mse",
-            "metrics": [
-                "mse"
-            ],
-            "optimizer": "Adam"
-        },
-        "fit_kwargs": {
-            "batch_size": 512,
-            "epochs": 1
-        }
-    },
+    "params": "params_path",
+    "custom_objects" : "custom_path",
     "targets": []
 }
 
@@ -132,29 +121,41 @@ class TestKerasWrapper(unittest.TestCase):
     def test_get_params(self):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},
-                          'fit_kwargs': {'42': 24}})
+                          'fit_kwargs': {'42': 24},
+                          'custom_objects' : {}
+                          })
 
     def test_set_params(self):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},
-                          'fit_kwargs': {'42': 24}})
+                          'fit_kwargs': {'42': 24},
+                          'custom_objects': {}})
         self.keras_wrapper.set_params(fit_kwargs={"loss": "mse"},
                                       compile_kwargs={"optimizer": "Adam"})
         self.assertEqual(self.keras_wrapper.get_params(),
-                         {
-                             "fit_kwargs": {
-                                 "loss": "mse"
-                             }, "compile_kwargs": {
-                             "optimizer": "Adam"
-                         },
-                         })
+                         {"fit_kwargs": {"loss": "mse"},
+                          "compile_kwargs": {"optimizer": "Adam"},
+                          "custom_objects": {}})
 
-    def test_save(self):
+    @patch("pywatts.modules.wrappers.keras_wrapper.cloudpickle")
+    @patch("builtins.open")
+    def test_save(self, open_mock, pickle_mock):
         fm_mock = MagicMock()
-        fm_mock.get_path.return_value = os.path.join("new_path", "to_somewhere", "KerasWrapper.h5")
+        fm_mock.get_path.side_effect = [
+            "params_path",
+            "custom_path",
+            os.path.join("new_path", "to_somewhere", "KerasWrapper.h5")]
+        file_mock = MagicMock()
+        open_mock().__enter__.return_value = file_mock
+
         json = self.keras_wrapper.save(fm_mock)
         self.keras_mock.save.assert_called_once_with(
             filepath=os.path.join("new_path", "to_somewhere", "KerasWrapper.h5"))
+
+        open_mock.assert_has_calls([call("params_path", "wb"), call("custom_path", "wb")], any_order=True)
+
+        pickle_mock.dump.assert_has_calls([call(self.keras_wrapper.get_params(), file_mock),
+                                      call(self.keras_wrapper.custom_objects, file_mock)])
         fm_mock.get_path.has_calls(call(os.path.join("to_somewhere", "KerasWrapper.h5")),
                                    any_order=True)
         self.assertEqual(json, {'aux_models': [],
@@ -163,21 +164,28 @@ class TestKerasWrapper(unittest.TestCase):
                                 'model': os.path.join("new_path", "to_somewhere", "KerasWrapper.h5"),
                                 'module': 'pywatts.modules.wrappers.keras_wrapper',
                                 'name': 'KerasWrapper',
-                                'params': {'compile_kwargs': {"test": "arg1"}, 'fit_kwargs': {"42": 24}},
+                                'params': "params_path",
+                                "custom_objects" : "custom_path",
                                 "targets":[]
                                 })
 
+    @patch("pywatts.modules.wrappers.keras_wrapper.cloudpickle")
+    @patch("builtins.open")
     @patch('pywatts.modules.wrappers.keras_wrapper.tf.keras.models.load_model')
-    def test_load(self, load_model_mock):
+    def test_load(self, load_model_mock, open_mock, pickle_mock):
         new_keras_mock = MagicMock()
         load_model_mock.return_value = new_keras_mock
+        pickle_mock.load.side_effect = [{"compile_kwargs": {"loss": "mse", "metrics": ["mse"], "optimizer": "Adam"},
+                                         "fit_kwargs": {"batch_size": 512, "epochs": 1},
+                                         "custom_objects": {}, },
+                                        "custom_object"]
         new_keras_wrapper = KerasWrapper.load(stored_model)
-        calls_open = [call(filepath=os.path.join("pipe1", "SimpleAE_4decoder.h5")),
-                      call(filepath=os.path.join("pipe1", "SimpleAE_4encoder.h5")),
-                      call(filepath=os.path.join("pipe1", "SimpleAE_4.h5")),
+        calls_open = [call(filepath=os.path.join("pipe1", "SimpleAE_4decoder.h5"), custom_objects="custom_object"),
+                      call(filepath=os.path.join("pipe1", "SimpleAE_4encoder.h5"), custom_objects="custom_object"),
+                      call(filepath=os.path.join("pipe1", "SimpleAE_4.h5"), custom_objects="custom_object"),
                       ]
-
         load_model_mock.assert_has_calls(calls_open, any_order=True)
+        open_mock.assert_has_calls([call("params_path", "rb"), call("custom_path", "rb")], any_order=True)
         self.assertEqual(load_model_mock.call_count, 3)
         self.assertEqual(new_keras_mock, new_keras_wrapper.model)
         self.assertEqual(new_keras_wrapper.get_params(),
@@ -192,5 +200,6 @@ class TestKerasWrapper(unittest.TestCase):
                              "fit_kwargs": {
                                  "batch_size": 512,
                                  "epochs": 1
-                             }
+                             },
+                             "custom_objects": {}
                          })

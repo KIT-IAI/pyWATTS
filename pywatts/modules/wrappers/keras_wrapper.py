@@ -1,6 +1,7 @@
 import logging
 from typing import Tuple, Union, Dict
 
+import cloudpickle
 import tensorflow as tf
 import xarray as xr
 
@@ -21,10 +22,14 @@ class KerasWrapper(DlWrapper):
     :type fit_kwargs: dict
     :param compile_kwargs: The compile keyword arguments necessary for compiling the model.
     :type compile_kwargs: dict
+    :param custom_objects: This dict contains all custom objects needed by the keras model. Note,
+                           users that uses such customs objects (e.g. Custom Loss) need to specify this to enable
+                           the loading of the stored Keras model.
+    :type custom_objects: dict
     """
 
     def __init__(self, model: Union[tf.keras.Model, Tuple[tf.keras.Model, Dict[str, tf.keras.Model]]],
-                 name: str = "KerasWrapper", fit_kwargs=None, compile_kwargs=None):
+                 name: str = "KerasWrapper", fit_kwargs=None, compile_kwargs=None, custom_objects=None):
         self.aux_models = {}
         self.targets = []
         if isinstance(model, tuple):
@@ -35,6 +40,10 @@ class KerasWrapper(DlWrapper):
             self.compile_kwargs = {}
         else:
             self.compile_kwargs = compile_kwargs
+        if custom_objects is None:
+            self.custom_objects = {}
+        else:
+            self.custom_objects = custom_objects
 
     def fit(self, **kwargs: xr.DataArray):
         """
@@ -74,7 +83,22 @@ class KerasWrapper(DlWrapper):
         :param fm: The Filemanager, which contains the path where the model should be stored
         :return: The path where the model is stored.
         """
-        json = super().save(fm)
+        json = {"name": self.name,
+                "class": self.__class__.__name__,
+                "module": self.__module__}
+
+        params = self.get_params()
+        params_path = fm.get_path(f"{self.name}_params.pickle")
+        with open(params_path, "wb") as outfile:
+            cloudpickle.dump(params, outfile)
+        json["params"] = params_path
+        json["is_fitted"] = self.is_fitted
+
+        custom_path = fm.get_path(f"{self.name}_custom.pickle")
+        with open(custom_path, "wb") as outfile:
+            cloudpickle.dump(self.custom_objects, outfile)
+        json["custom_objects"] = custom_path
+
         json["targets"] = self.targets
         model_path = fm.get_path(f"{self.name}.h5")
         self.model.save(filepath=model_path)
@@ -98,10 +122,17 @@ class KerasWrapper(DlWrapper):
         (Note: This models should be taken from the pipeline json file)
         :return: A wrapped keras model.
         """
-        params = load_information["params"]
         name = load_information["name"]
+        params_path = load_information["params"]
+        with open(params_path, "rb") as infile:
+            params = cloudpickle.load(infile)
+
+        custom_path = load_information["custom_objects"]
+        with open(custom_path, "rb") as infile:
+            custom_objects = cloudpickle.load(infile)
+
         try:
-            model = tf.keras.models.load_model(filepath=load_information["model"])
+            model = tf.keras.models.load_model(filepath=load_information["model"], custom_objects=custom_objects)
         except Exception as exception:
             logging.error("No model found in %s.", load_information['model'])
             raise exception
@@ -109,7 +140,7 @@ class KerasWrapper(DlWrapper):
         if "aux_models" in load_information.keys():
             for aux_name, path in load_information["aux_models"]:
                 try:
-                    aux_models[aux_name] = tf.keras.models.load_model(filepath=path)
+                    aux_models[aux_name] = tf.keras.models.load_model(filepath=path, custom_objects=custom_objects)
                 except Exception as exception:
                     logging.error("No model found in path %s", path)
                     raise exception
@@ -128,16 +159,22 @@ class KerasWrapper(DlWrapper):
         """
         return {
             "fit_kwargs": self.fit_kwargs,
-            "compile_kwargs": self.compile_kwargs
+            "compile_kwargs": self.compile_kwargs,
+            "custom_objects": self.custom_objects
         }
 
-    def set_params(self, fit_kwargs=None, compile_kwargs=None):
+    def set_params(self, fit_kwargs=None, compile_kwargs=None, custom_objects=None):
         """
         Set the parameters of the deep learning wrappers
         :param fit_kwargs: keyword arguments for the fit method.
         :param compile_kwargs: keyword arguments for the compile methods.
+        :param custom_objects: This dict contains all custom objects needed by the keras model. Note,
+                               users that uses such customs objects (e.g. Custom Loss) need to specify this to enable
+                               the loading of the stored Keras model.
         """
         if fit_kwargs:
             self.fit_kwargs = fit_kwargs
         if compile_kwargs:
             self.compile_kwargs = compile_kwargs
+        if custom_objects:
+            self.custom_objects = custom_objects

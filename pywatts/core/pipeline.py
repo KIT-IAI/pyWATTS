@@ -85,6 +85,8 @@ class Pipeline(BaseTransformer):
             return self._comp(x, False, self.current_run_setting.summary_formatter, self.batch)
 
     def _transform(self, x, batch=None):
+        for step in self.id_to_step.values():
+            step.finished = False
         for key, (start_step, _) in self.start_steps.items():
             if not start_step.buffer:
                 start_step.buffer = {key: x[key].copy()}

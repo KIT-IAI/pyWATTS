@@ -88,7 +88,7 @@ class MetricBase(BaseSummary, ABC):
 
         y_ = y[self.offset:]
         kwargs_ = {key: value[self.offset:] for key, value in kwargs.items()}
-        self._transform({key: value for key, value in kwargs_.items()}, ": complete", summary, y_.values)
+        self._transform({key: value for key, value in kwargs_.items()}, "", summary, y_.values)
         for start, end in self.cuts:
             _kwargs = {key: value.loc[start:end] for key, value in kwargs_.items()}
             if not len(y_.loc[start:end].values) == 0:

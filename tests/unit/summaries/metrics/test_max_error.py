@@ -39,7 +39,7 @@ class TestMaxErr(BaseTestMetricBase, unittest.TestCase):
         np.testing.assert_equal(filter_mock.call_args[0][0], test_data["predictCol1"])
         np.testing.assert_equal(filter_mock.call_args[0][1], test_data["testCol"])
 
-        expected_result = {'pred1: complete': 4}
+        expected_result = {'pred1': 4}
 
         self.assertEqual(test_result.k_v, expected_result)
 
@@ -56,7 +56,7 @@ class TestMaxErr(BaseTestMetricBase, unittest.TestCase):
                                              pred1=test_data['predictCol1'],
                                              pred2=test_data['predictCol2'])
 
-        expected_result = {'gt: complete': 0, 'pred1: complete': 4, 'pred2: complete': 6}
+        expected_result = {'gt': 0, 'pred1': 4, 'pred2': 6}
 
         self.assertEqual(test_result.k_v, expected_result)
 
@@ -72,7 +72,7 @@ class TestMaxErr(BaseTestMetricBase, unittest.TestCase):
         self.metric.set_params(cuts=[(pd.Timestamp('2015-06-03 01:00:00'), pd.Timestamp('2015-06-03 03:00:00'))])
         test_result = self.metric.transform(file_manager=MagicMock(), y=test_data['testCol'],
                                           pred1=test_data['predictCol1'])
-        expected_result = {"pred1: complete": 4,
+        expected_result = {"pred1": 4,
                            "pred1: Cut from 2015-06-03 01:00:00 to 2015-06-03 03:00:00" : 3}
 
         self.assertEqual(test_result.k_v, expected_result)

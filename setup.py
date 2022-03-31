@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="pywatts",
-    version="0.2.0",
+    version="0.3.0",
     packages=setuptools.find_packages(),
 
     install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
@@ -23,7 +23,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
-        "License :: OSI Approved :: MIT License"
+        "License :: OSI Approved :: MIT License",
         "Topic :: Software Development :: Libraries",
         "Natural Language :: English",
         "Operating System :: OS Independent",

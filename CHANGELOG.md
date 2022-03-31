@@ -29,6 +29,7 @@
 * Fixed wrong time dimension name in ComputationMode.Transform ([#199](https://github.com/KIT-IAI/pyWATTS/issues/199))
 * Fixed online execution of subpipeline ([#203](https://github.com/KIT-IAI/pyWATTS/issues/203))
 * Enable to store a Keras Model with custom objects as custom loss functions ([#17](https://github.com/KIT-IAI/pyWATTS/issues/17))
+* Fixed online execution of stacked pipelines ([#213](https://github.com/KIT-IAI/pyWATTS/issues/213))
 
 ### Deprecated
 

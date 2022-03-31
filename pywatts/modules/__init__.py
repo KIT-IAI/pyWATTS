@@ -8,10 +8,8 @@ from pywatts.modules.feature_extraction.trend_extraction import TrendExtraction
 from pywatts.modules.generation.anomaly_generation_module import AnomalyGeneration
 from pywatts.modules.generation.energy_anomaly_generation_module import EnergyAnomalyGeneration
 from pywatts.modules.generation.power_anomaly_generation_module import PowerAnomalyGeneration
-from pywatts.modules.metrics.mean_absolute_error import MaeCalculator
 from pywatts.modules.metrics.rolling_mae import RollingMAE
 from pywatts.modules.metrics.rolling_rmse import RollingRMSE
-from pywatts.modules.metrics.root_mean_squared_error import RmseCalculator
 from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
 from pywatts.modules.postprocessing.ensemble import Ensemble
 from pywatts.modules.preprocessing.average import Average

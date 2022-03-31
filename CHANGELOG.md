@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2022-31-03
 
 ### Added
 * Add average module for pre-processing ([#166](https://github.com/KIT-IAI/pyWATTS/issues/166))
@@ -32,6 +32,9 @@
 * Fixed online execution of stacked pipelines ([#213](https://github.com/KIT-IAI/pyWATTS/issues/213))
 
 ### Deprecated
+
+### Removed
+* MAECalculator and RMSECalculator.
 
 ## 0.2.0 - 2021-30-09
 

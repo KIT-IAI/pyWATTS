@@ -67,3 +67,7 @@ class TestSampler(unittest.TestCase):
         self.assertEqual(context.exception.message,
                          "Sample size cannot be less than or equal to zero. "
                          "Please define a sample size greater than zero.")
+
+    def test_get_min_data(self):
+        sampler = Sampler(sample_size=24)
+        self.assertEqual(sampler.get_min_data(), 24)

@@ -7,8 +7,12 @@
 * Metric can be calculated on cutouts ([#149](https://github.com/KIT-IAI/pyWATTS/issues/149))
 * Add custom scaler module for pre-processing ([#167](https://github.com/KIT-IAI/pyWATTS/issues/167))
 * Add a MASE Summary ([#148](https://github.com/KIT-IAI/pyWATTS/issues/148))
+* Add ensemble module for post-processing ([#165](https://github.com/KIT-IAI/pyWATTS/issues/165))
 * Online Start Feature ([#189](https://github.com/KIT-IAI/pyWATTS/issues/189))
-
+* Enable Multiple RefitConditions ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
+* Periodic Refit Condition ([#192](https://github.com/KIT-IAI/pyWATTS/issues/192))
+* Add AnomalyGeneration modules ([#195](https://github.com/KIT-IAI/pyWATTS/issues/195))
+* Add get_min_data method in modules to enable them to specify how much data they need. ([#147](https://github.com/KIT-IAI/pyWATTS/issues/147))
 
 ### Changed
 * Retraining is triggered after all steps are transformed ([#117](https://github.com/KIT-IAI/pyWATTS/issues/117))
@@ -22,6 +26,9 @@
 * Fixed Pipeline.to_folder() for modules that store parameters in numpy format by adding a special JSON-encoder for types that are not json-serializable by default ([#175](https://github.com/KIT-IAI/pyWATTS/issues/175))
 * Added missing summaries to pywatts.summaries.__init__.py ([#183](https://github.com/KIT-IAI/pyWATTS/issues/183))
 * Naming in the Metric Summaries  ([#193](https://github.com/KIT-IAI/pyWATTS/issues/193))
+* Fixed wrong time dimension name in ComputationMode.Transform ([#199](https://github.com/KIT-IAI/pyWATTS/issues/199))
+* Fixed online execution of subpipeline ([#203](https://github.com/KIT-IAI/pyWATTS/issues/203))
+* Enable to store a Keras Model with custom objects as custom loss functions ([#17](https://github.com/KIT-IAI/pyWATTS/issues/17))
 
 ### Deprecated
 

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import Dict, Optional
 
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
@@ -124,8 +125,11 @@ class RollingBase(BaseTransformer, ABC):
                 module=self.__class__)
 
         rolling.fillna(inplace=True, value=0)
-        return numpy_to_xarray(rolling.values.reshape((len(rolling),)), x, self.name)
+        return numpy_to_xarray(rolling.values.reshape((len(rolling),)), x)
 
     @abstractmethod
     def _get_rolling(self, df):
         pass
+
+    def get_min_data(self):
+        return pd.Timedelta(f"{self.window_size}{self.window_size_unit}")

@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+import numpy as np
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
@@ -75,3 +77,6 @@ class ClockShift(BaseTransformer):
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the ClockShift.",
                 module=self.name) from exc
+
+    def get_min_data(self):
+        return np.abs(self.lag)

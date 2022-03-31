@@ -1,3 +1,4 @@
+import pandas as pd
 from pywatts.core.base_step import BaseStep
 
 
@@ -14,14 +15,14 @@ class EitherOrStep(BaseStep):
         super().__init__(input_steps)
         self.name = "EitherOr"
 
-    def _compute(self, start, end):
-        input_data = self._get_input(start, end)
+    def _compute(self, start, end, minimum_data):
+        input_data = self._get_input(start, end, minimum_data)
         return self._transform(input_data)
 
-    def _get_input(self, start, batch):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
         inputs = []
         for step in self.input_steps.values():
-            inp = step.get_result(start, batch)
+            inp = step.get_result(start, batch, minimum_data=minimum_data)
             inputs.append(inp)
         return inputs
 

@@ -60,3 +60,7 @@ class TestClockShift(unittest.TestCase):
         self.assertEqual(context.exception.message,
                          "Not all indexes (['FOO']) are in the indexes of x (['time']). "
                          "Perhaps you set the wrong indexes with set_params or during the initialization of the ClockShift.")
+
+    def test_get_min_data(self):
+        clock_shift = ClockShift(lag=24)
+        self.assertEqual(clock_shift.get_min_data(), 24)

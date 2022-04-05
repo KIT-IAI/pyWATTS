@@ -59,6 +59,7 @@ class Pipeline(BaseTransformer):
             self.file_manager = None
         else:
             self.file_manager = FileManager(path)
+        self.current_run_setting = RunSetting(ComputationMode.Default)
 
     def transform(self, **x: xr.DataArray) -> xr.DataArray:
         """
@@ -254,7 +255,9 @@ class Pipeline(BaseTransformer):
 
     def _comp(self, data, return_summary, summary_formatter, batch, start=None):
         result = self._transform(data, batch)
-        summary = self._create_summary(summary_formatter, start)
+        summary = None
+        if summary_formatter is not None:
+            summary = self._create_summary(summary_formatter, start)
         return (result, summary) if return_summary else result
 
     def add(self, *,

@@ -1,3 +1,5 @@
+import pandas as pd
+
 from pywatts.core.base_condition import BaseCondition
 
 
@@ -10,8 +12,9 @@ class PeriodicCondition(BaseCondition):
     :type name: str
     """
 
-    def __init__(self, num_steps=10, name="PeriodicCondition"):
-        super().__init__(name=name)
+    def __init__(self, num_steps=10, refit_batch: pd.Timedelta = pd.Timedelta(hours=10), refit_params: dict = None,
+                 name="PeriodicCondition"):
+        super().__init__(name, refit_batch, refit_params)
         self.num_steps = num_steps
         self.counter = 0
 

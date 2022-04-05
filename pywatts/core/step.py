@@ -48,8 +48,6 @@ class Step(BaseStep):
             E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
             use future values as target values.
     :type lag: pd.Timedelta
-    :param retrain_batch: Needed for online learning. Determines how much data should be used for retraining.
-    :type retrain_batch: pd.Timedelta
     """
 
     def __init__(self, module: Base, input_steps: Dict[str, BaseStep], file_manager, *,
@@ -59,13 +57,11 @@ class Step(BaseStep):
                  condition=None,
                  batch_size: Optional[None] = None,
                  refit_conditions=[],
-                 retrain_batch=pd.Timedelta(hours=24),
                  lag=pd.Timedelta(hours=24)):
         super().__init__(input_steps, targets, condition=condition,
                          computation_mode=computation_mode, name=module.name)
         self.file_manager = file_manager
         self.module = module
-        self.retrain_batch = retrain_batch
         self.callbacks = callbacks
         self.batch_size = batch_size
         if self.current_run_setting.computation_mode is not ComputationMode.Refit and len(refit_conditions) > 0:
@@ -162,7 +158,7 @@ class Step(BaseStep):
         result_dict = {}
         for key, res in result.items():
             index = res.indexes[_get_time_indexes(result)[0]]
-            start = max(index[0], start.to_numpy())
+            start = max(index[0], start.to_numpy()) if start is not None else index[0]
             result_dict[key] = res.sel(**{_get_time_indexes(res)[0]: index[(index >= start)]})
         return result_dict
 
@@ -221,13 +217,16 @@ class Step(BaseStep):
         """
         if self.current_run_setting.computation_mode in [ComputationMode.Refit] and isinstance(self.module,
                                                                                                BaseEstimator):
+            # first condition in the list prevails but we need to evaluate all conditions
+            refitted = False
             for refit_condition in self.refit_conditions:
                 if isinstance(refit_condition, BaseCondition):
                     condition_input = {key: value.step.get_result(start, end) for key, value in
                                        refit_condition.kwargs.items()}
-                    if refit_condition.evaluate(**condition_input):
-                        self._refit(end)
-                        break
+                    eval_ = refit_condition.evaluate(**condition_input)  # can this be placed direclty in the if? test
+                    if eval_ and not refitted:
+                        self._refit(end, refit_condition.refit_batch, refit_condition.refit_params)
+                        refitted = True
                 elif isinstance(refit_condition, Callable):
                     input_data = self._get_input(start, end, recalculate=False)
                     target = self._get_target(start, end, recalculate=False)
@@ -235,9 +234,11 @@ class Step(BaseStep):
                         self._refit(end)
                         break
 
-    def _refit(self, end):
-        refit_input = self._get_input(end - self.retrain_batch, end, recalculate=True)
-        refit_target = self._get_target(end - self.retrain_batch, end, recalculate=True)
+    def _refit(self, end, refit_batch, refit_params=None):
+        refit_input = self._get_input(end - refit_batch, end, recalculate=True)
+        refit_target = self._get_target(end - refit_batch, end, recalculate=True)
+        if refit_params is not None:
+            self.module.set_params(**refit_params)
         self.module.refit(**refit_input, **refit_target)
 
     def get_result_step(self, item: str):

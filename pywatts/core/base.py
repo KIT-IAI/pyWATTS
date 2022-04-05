@@ -149,7 +149,6 @@ class Base(ABC):
                  batch_size: Optional[pd.Timedelta] = None,
                  refit_conditions: List[Union[Callable, bool]] = [],
                  lag: Optional[int] = pd.Timedelta(hours=0),
-                 retrain_batch: Optional[int] = pd.Timedelta(hours=24),
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
                  ) -> StepInformation:
         """
@@ -184,8 +183,6 @@ class Base(ABC):
                     E.g., when 24 hour forecasts are performed, a lag of 24 hours is needed, else the retraining would
                     use future values as target values.
         :type lag: pd.Timedelta
-        :param retrain_batch: Needed for online learning. Determines how much data should be used for retraining.
-        :type retrain_batch: pd.Timedelta
         :return: a step information.
         :rtype: StepInformation
         """
@@ -201,7 +198,6 @@ class Base(ABC):
                                          refit_conditions=refit_conditions if isinstance(refit_conditions, list) else [
                                              refit_conditions
                                          ],
-                                         retrain_batch=retrain_batch,
                                          lag=lag
                                          )
 

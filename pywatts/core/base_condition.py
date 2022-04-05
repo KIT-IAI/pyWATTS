@@ -2,6 +2,7 @@ import inspect
 from abc import ABC, abstractmethod
 from typing import List
 
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.exceptions.step_creation_exception import StepCreationException
@@ -16,9 +17,11 @@ class BaseCondition(ABC):
     :type name: str
     """
 
-    def __init__(self, name):
+    def __init__(self, name, refit_batch: pd.Timedelta = pd.Timedelta(hours=24), refit_params: dict = None):
         self.name = name
         self.kwargs = {}
+        self.refit_batch = refit_batch
+        self.refit_params = refit_params
 
     @abstractmethod
     def evaluate(self, **kwargs: List[xr.DataArray]) -> bool:

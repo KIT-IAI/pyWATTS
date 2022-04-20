@@ -65,12 +65,12 @@ class SKLearnWrapper(BaseWrapper):
         self.targets = list(zip(targets.keys(),
                                 map(lambda t: t.values.reshape((t.shape[0], -1)).shape[-1] if len(t.shape) > 1 else 1,
                                     list(targets.values()))))
-        self.fit_result = self.module.fit(x, target)
+        self.fit_result = self.module.fit(x, target.ravel() if target is not None and target.shape[-1] == 1 else target)
         self.is_fitted = True
 
     @staticmethod
     def _dataset_to_sklearn_input(x):
-        if x is None:
+        if not x:
             return None
         result = None
         for data_array in x.values():

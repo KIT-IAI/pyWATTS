@@ -166,8 +166,8 @@ class Step(BaseStep):
         result_dict = {}
         for key, res in result.items():
             index = res.indexes[_get_time_indexes(result)[0]]
-            start = max(index[0], start.to_numpy()) if start is not None else index[0]
-            result_dict[key] = res.sel(**{_get_time_indexes(res)[0]: index[(index >= start)]})
+            start_ = max(index[0], start.to_numpy()) if start is not None else index[0]
+            result_dict[key] = res.sel(**{_get_time_indexes(res)[0]: index[(index >= start_)]})
         return result_dict
 
     def _get_target(self, start, batch, minimum_data=(0, pd.Timedelta(0))):

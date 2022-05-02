@@ -54,3 +54,10 @@ class ResultStep(BaseStep):
         step.name = stored_step["name"]
         step.last = stored_step["last"]
         return step
+
+
+    def further_elements(self, counter: pd.Timestamp) -> bool:
+        for input_step in self.input_steps.values():
+            if not input_step.further_elements(counter):
+                return False
+        return True

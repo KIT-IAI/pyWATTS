@@ -52,6 +52,14 @@ pywatts.modules.feature\_extraction.rolling\_variance module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.feature\_extraction.statistics\_extraction module
+-----------------------------------------------------------------
+
+.. automodule:: pywatts.modules.feature_extraction.statistics_extraction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.feature\_extraction.trend\_extraction module
 ------------------------------------------------------------
 

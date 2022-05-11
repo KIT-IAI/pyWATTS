@@ -1,5 +1,13 @@
 # Changelog
 
+
+
+## 0.X.X - Unreleased
+
+### Added
+* Add a module for statistic feature extraction ([#217](https://github.com/KIT-IAI/pyWATTS/issues/217))
+
+
 ## 0.3.0 - 2022-31-03
 
 ### Added

@@ -148,8 +148,8 @@ class Step(BaseStep):
                                                          ComputationMode.Train]:
             # Fetch input_data and target data
             if self.batch_size:
-                input_batch = self._get_input(end - self.batch_size, end, minimum_data)
-                target_batch = self._get_target(end - self.batch_size, end, minimum_data)
+                input_batch = self._get_input(end - self.batch_size, end, minimum_data, recalculate=recalculate)
+                target_batch = self._get_target(end - self.batch_size, end, minimum_data, recalculate=recalculate)
                 start_time = time.time()
                 self._fit(input_batch, target_batch)
                 self.training_time.set_kv("", time.time() - start_time)

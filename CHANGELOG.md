@@ -1,13 +1,7 @@
-# Changelog
-## 0.3.1 Unreleased
-
-### Added
-* Add alpha to rolling mean ([#225](https://github.com/KIT-IAI/pyWATTS/issues/225))
-
-
 ## 0.3.1 - Unreleased
 
 ### Added
+* Add alpha to rolling mean ([#225](https://github.com/KIT-IAI/pyWATTS/issues/225))
 * RiverDriftDetectionCondition for wrapping the river drift detection algorithms ([#221](https://github.com/KIT-IAI/pyWATTS/issues/221))
 
 

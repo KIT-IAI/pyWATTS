@@ -21,7 +21,7 @@ class RiverDriftDetectionCondition(BaseCondition):
     def evaluate(self, y: xr.DataArray, y_hat: xr.DataArray):
         """
         Returns True if the specified drift detection algorithm detects a drift.
-        :param y: GT Time series
+        :param y: GT Time Series
         :type y: xr.DataArray
         :param y_hat: Forecast Time Series
         :type y_hat: xr.DataArray

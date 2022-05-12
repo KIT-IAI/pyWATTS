@@ -146,9 +146,17 @@ class Step(BaseStep):
         target = self._get_target(start, end, minimum_data)
         if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
                                                          ComputationMode.Train]:
-            start_time = time.time()
-            self._fit(input_data, target)
-            self.training_time.set_kv("", time.time() - start_time)
+            # Fetch input_data and target data
+            if self.batch_size:
+                input_batch = self._get_input(end - self.batch_size, end, minimum_data)
+                target_batch = self._get_target(end - self.batch_size, end, minimum_data)
+                start_time = time.time()
+                self._fit(input_batch, target_batch)
+                self.training_time.set_kv("", time.time() - start_time)
+            else:
+                start_time = time.time()
+                self._fit(input_data, target)
+                self.training_time.set_kv("", time.time() - start_time)
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 

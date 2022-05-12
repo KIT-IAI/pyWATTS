@@ -6,7 +6,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
-                      'tensorflow>=2', 'workalendar',  'statsmodels', 'tabulate'],
+                      'tensorflow>=2', 'workalendar',  'statsmodels', 'tabulate', 'river'],
     extras_require={
         'dev': [
             "pytest",

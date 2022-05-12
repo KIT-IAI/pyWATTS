@@ -11,6 +11,7 @@ from sklearn.svm import SVR
 
 # Import the pyWATTS pipeline and the required modules
 from pywatts.callbacks import CSVCallback, LinePlotCallback
+from pywatts.conditions.cd_condition import RiverDriftDetectionCondition
 from pywatts.conditions.periodic_condition import PeriodicCondition
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
@@ -42,6 +43,7 @@ def create_test_pipeline(regressor_svr):
     # Create test pipeline which works on a batch size of one hour.
     pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
     periodic_condition = PeriodicCondition(21)
+    detection_condition = RiverDriftDetectionCondition()
     check_if_midnight = lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and \
                                      x["historical_input"].indexes["time"][0].hour == 0
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
@@ -50,7 +52,10 @@ def create_test_pipeline(regressor_svr):
                                                    computation_mode=ComputationMode.Refit,
                                                    callbacks=[LinePlotCallback('SVR')],
                                                    lag=pd.Timedelta(hours=24),
-                                                   refit_conditions=[periodic_condition, check_if_midnight])
+                                                   refit_conditions=[periodic_condition, check_if_midnight,
+                                                                     detection_condition])
+    detection_condition(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
+
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])

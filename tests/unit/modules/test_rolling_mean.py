@@ -18,6 +18,7 @@ class TestRollingMean(unittest.TestCase):
             self.rolling_mean.get_params(),
             {
                 "window_size": 3,
+                "alpha":None,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
@@ -33,10 +34,11 @@ class TestRollingMean(unittest.TestCase):
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
-                "continent": "Europe"
+                "continent": "Europe",
+                "alpha": None
             }
         )
-        self.rolling_mean.set_params(window_size=5)
+        self.rolling_mean.set_params(window_size=5, alpha=0.4)
         self.assertEqual(
             self.rolling_mean.get_params(),
             {
@@ -44,7 +46,8 @@ class TestRollingMean(unittest.TestCase):
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
-                "continent": "Europe"
+                "continent": "Europe",
+                "alpha":0.4
             }
         )
 
@@ -56,6 +59,18 @@ class TestRollingMean(unittest.TestCase):
         result = self.rolling_mean.transform(ds)
 
         expected_result = xr.DataArray([0., 2., 2.5, 3., 4., 5., 6.], dims=["time"], coords={'time': time})
+
+        xr.testing.assert_equal(result, expected_result)
+
+    def test_transform_groupbyNo_alpha(self):
+        time = pd.date_range('2002-01-01', freq='24H', periods=7)
+        self.rolling_mean.set_params(alpha=0.5)
+
+        ds = xr.DataArray([1, 2, 4, 8, 16, 32, 64], dims=["time"], coords={'time': time})
+        result = self.rolling_mean.transform(ds)
+
+        # Note we use an adjustment and not the standard recursive variant for calculating the EWMA
+        expected_result = xr.DataArray([0., 1, 2.5/1.5, 5.25/1.75, 6., 12., 24.], dims=["time"], coords={'time': time})
 
         xr.testing.assert_equal(result, expected_result)
 

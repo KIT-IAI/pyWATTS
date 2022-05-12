@@ -16,7 +16,7 @@ class ResultStep(BaseStep):
         self.buffer_element = buffer_element
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False, minimum_data=(0, pd.Timedelta(0))):
+                   return_all=False, minimum_data=(0, pd.Timedelta(0)), recalculate=False):
         """
         Returns the specified result of the previous step.
         """

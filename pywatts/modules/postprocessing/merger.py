@@ -10,25 +10,23 @@ from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 
 class Merger(BaseTransformer):
     """
-    The merger reduces a two-dimensional time series with multiple values per time step to a uni-variate time series.
-    The first dimension of the input time series is the time-index. The second dimension looks n-1 steps in the past.
-    I.e., the second dimension contains the following values: x(t - n + 1), x(t - n + 2), .. x(t), where t is the
-    current time-index.
+    The merger reduces a two-dimensional time series with multiple values per time step to a univariate time series.
+    The first dimension of the input time series is the time index. The second dimension looks n-1 steps into the past
+    so it contains the following values: x(t - n + 1), x(t - n + 2), .. x(t), where t is the current time index.
 
     :param name: The name of the module
     :type name: str
-    :param method: The method indicates the merging method. Method can be 'mean', 'median', or an integer between 0 and
-                   -1.
-                   For each time step, the 'mean' method takes all values of the input time series that corresponds
+    :param method: The method indicates the merging method. Method can be 'mean', 'median', or an integer.
+                   For each time step, the 'mean' method takes all values of the input time series that correspond
                    to the same time, and calculates the mean.
-                    For each time step, the 'median' method takes all values of the input time series that corresponds
-                   to the same time, and calculates the median.
+                   For each time step, the 'median' method takes all values of the input time series that correspond
+                   to the same time and calculates the median.
                    If the method is an integer k, the k-th value in the second dimension is taken for each time step.
-                   If k is negative, the k-th values in the second dimension before the last is selected.
+                   If k is negative, the k-th values in the second dimension before the last are selected.
                    If the absolute value of k is greater than the size of the horizon dimension, then the value is
                    clipped.
     :type method: Union[str,int]
-    :raises WrongParameterException: If method is not an integer, 'mean' or 'median'
+    :raises WrongParameterException: If the method is not an integer, 'mean', or 'median'
     """
     def __init__(self, name: str = "merger", method: Union[str, int] = "mean"):
         super().__init__(name)
@@ -57,7 +55,7 @@ class Merger(BaseTransformer):
         Set parameters for the Merger module.
         :param method:
         :type method: Union[str,int]
-        :raises WrongParameterException: If method is not an integer, 'mean' or 'median'
+        :raises WrongParameterException: If the method is not an integer, 'mean', or 'median'
         """
         if method is not None:
             self._check_and_set_method(method)
@@ -70,22 +68,10 @@ class Merger(BaseTransformer):
         """
         horizon = x.values.shape[-1]
         if self.method == "mean":
-            r = []
-            for i in range(horizon):
-                r.append(np.concatenate(
-                    [np.full(fill_value=np.nan, shape=(horizon - 1 - i)),
-                     x.values[:, i],
-                     np.full(fill_value=np.nan, shape=(i,))]))
-            result = np.stack(r).mean(axis=0)
+            result = self._align_temporal(horizon, x).mean(axis=0)
             return numpy_to_xarray(result[:-horizon + 1], x)
         elif self.method == "median":
-            r = []
-            for i in range(horizon):
-                r.append(np.concatenate(
-                    [np.full(fill_value=np.nan, shape=(horizon - 1 - i)),
-                     x.values[:, i],
-                     np.full(fill_value=np.nan, shape=(i,))]))
-            result = np.median(np.stack(r), axis=0)
+            result = np.median(self._align_temporal(horizon, x), axis=0)
             return numpy_to_xarray(result[:-horizon + 1], x)
         elif isinstance(self.method, int):
             method = self.method
@@ -93,3 +79,12 @@ class Merger(BaseTransformer):
                 method = -horizon if self.method < 0 else horizon - 1
             result = x[:, method].values
             return numpy_to_xarray(result, x)
+
+    def _align_temporal(self, horizon, x):
+        r = []
+        for i in range(horizon):
+            r.append(np.concatenate(
+                [np.full(fill_value=np.nan, shape=(horizon - 1 - i)),
+                 x.values[:, i],
+                 np.full(fill_value=np.nan, shape=(i,))]))
+        return np.stack(r)

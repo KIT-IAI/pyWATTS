@@ -3,14 +3,8 @@
 ### Added
 * Add alpha to rolling mean ([#225](https://github.com/KIT-IAI/pyWATTS/issues/225))
 * RiverDriftDetectionCondition for wrapping the river drift detection algorithms ([#221](https://github.com/KIT-IAI/pyWATTS/issues/221))
-
-
-
-
-## 0.X.X - Unreleased
-
-### Added
 * Add a module for statistic feature extraction ([#217](https://github.com/KIT-IAI/pyWATTS/issues/217))
+* Add a module for inserting synthetic concept drift ([#226](https://github.com/KIT-IAI/pyWATTS/issues/226))
 
 
 ## 0.3.0 - 2022-31-03

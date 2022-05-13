@@ -12,6 +12,14 @@ pywatts.modules.postprocessing.ensemble module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.postprocessing.merger module
+--------------------------------------------
+
+.. automodule:: pywatts.modules.postprocessing.merger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

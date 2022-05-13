@@ -15,7 +15,7 @@ class DriftInformation:
     The drift information describe one concept drift.
     :param manipulator: A callable that returns a one-dimensional numpy array which is added on the time series.
     :type manipulator: Callable[int, np.array]
-    :param position: The start position of the concept drift
+    :param position: The start position of the concept drift.
     :type position: pd.Timestamp
     :param length: The length of the inserted concept drift.
     :type length: int

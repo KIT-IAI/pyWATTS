@@ -24,7 +24,7 @@ class StatisticFeature(IntEnum):
 
 class StatisticExtraction(BaseTransformer):
     """
-    This module extract statistical features based on samples of timeseries defined by a DataArray input.
+    This module extracts statistical features based on samples of time series defined by a DataArray input.
     It can calculate the min, max, std, and mean of the samples.
 
     :param name: Name of this module.
@@ -57,7 +57,7 @@ class StatisticExtraction(BaseTransformer):
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Add statistic features to xarray dataarray as configured.
 
-        :param x: Xarray dataarray containing a timeseries
+        :param x: Xarray dataarray containing a time series
         :return: The xarray dataarray with statistic features.
         """
         time = _get_time_indexes(x)[0]

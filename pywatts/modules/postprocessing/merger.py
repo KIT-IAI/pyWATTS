@@ -11,22 +11,24 @@ from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 class Merger(BaseTransformer):
     """
     The merger reduces a two-dimensional time series with multiple values per time step to a uni-variate time series.
-    The two dimensions of the input time series is the time-index and a horizon. In the horizon dimension the next
-    n values starting at the coresponding time-index are given.
+    The first dimension of the input time series is the time-index. The second dimension looks n-1 steps in the past.
+    I.e., the second dimension contains the following values: x(t - n + 1), x(t - n + 2), .. x(t), where t is the
+    current time-index.
 
     :param name: The name of the module
     :type name: str
-    :param method: The method indicates the merging method. This can be mean, median, or an integer between 0 and
-                   horizon -1.
-                   If mean is selected. For each index in the time-series the mean of all values in the input time
-                   series that corresponds to the same index are given.
-                   If median is selected. For each index in the time-series the median of all values in the input time
-                   series that corresponds to the same index are given.
-                   If an integer n is selected. The n-th value of each sample is selected. If n is negative the n-th
-                   element before the last is selected. If the absolute value of n is greater than the size of the
-                   horizon dimension, then the method value is clipped.
+    :param method: The method indicates the merging method. Method can be 'mean', 'median', or an integer between 0 and
+                   -1.
+                   For each time step, the 'mean' method takes all values of the input time series that corresponds
+                   to the same time, and calculates the mean.
+                    For each time step, the 'median' method takes all values of the input time series that corresponds
+                   to the same time, and calculates the median.
+                   If the method is an integer k, the k-th value in the second dimension is taken for each time step.
+                   If k is negative, the k-th values in the second dimension before the last is selected.
+                   If the absolute value of k is greater than the size of the horizon dimension, then the value is
+                   clipped.
     :type method: Union[str,int]
-    :raises WrongParameterException: If method is not a non-negative integer or not 'mean' or 'median'
+    :raises WrongParameterException: If method is not an integer, 'mean' or 'median'
     """
     def __init__(self, name: str = "merger", method: Union[str, int] = "mean"):
         super().__init__(name)
@@ -52,10 +54,10 @@ class Merger(BaseTransformer):
 
     def set_params(self, method: Union[str, int] = None):
         """
-        Set parameters for the Merger module
+        Set parameters for the Merger module.
         :param method:
         :type method: Union[str,int]
-        :raises WrongParameterException: If method is not a non-negative integer or not 'mean' or 'median'
+        :raises WrongParameterException: If method is not an integer, 'mean' or 'median'
         """
         if method is not None:
             self._check_and_set_method(method)

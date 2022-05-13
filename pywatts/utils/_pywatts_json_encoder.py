@@ -1,8 +1,6 @@
 import json
 import numpy as np
 
-from pywatts.modules.generation.synthetic_concept_drift import DriftInformation
-
 
 class PyWATTSJsonEncoder(json.JSONEncoder):
     """
@@ -22,7 +20,5 @@ class PyWATTSJsonEncoder(json.JSONEncoder):
             return float(obj)
         elif isinstance(obj, (np.ndarray,)):
             return obj.tolist()
-        elif isinstance(obj, DriftInformation):
-            # TODO
-            pass
+
         return json.JSONEncoder.default(self, obj)

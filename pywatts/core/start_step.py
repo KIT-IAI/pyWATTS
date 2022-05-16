@@ -42,9 +42,9 @@ class StartStep(BaseStep):
         :return: True if there exist further data
         :rtype: bool
         """
-        indexes = _get_time_indexes(self.buffer)
+        indexes = _get_time_indexes(self.current_buffer)
         if len(indexes) == 0 or not all(
-                [counter < b.indexes[_get_time_indexes(self.buffer)[0]][-1] for b in self.buffer.values()]):
+                [counter < b.indexes[_get_time_indexes(self.current_buffer)[0]][-1] for b in self.current_buffer.values()]):
             return False
         else:
             return True
@@ -56,3 +56,9 @@ class StartStep(BaseStep):
         json = super().get_json(fm)
         json["index"] = self.index
         return json
+
+    def should_recalculate(self):
+        return False
+
+    def renew_current_buffer(self):
+        return

@@ -134,9 +134,10 @@ class TestStep(unittest.TestCase):
                                              coords={'time': time2}), list(xr_mock.concat.call_args_list[0])[0][0][1])
         assert {'dim': 'time'} == list(xr_mock.concat.call_args_list[0])[1]
 
-    def test_get_result(self):
-        # Tests if the get_result method calls correctly the previous step and the module
+    def test_get_result_recalculate(self):
+        pass
 
+    def test_get_result(self):
         input_step = MagicMock()
         input_step_result_mock = MagicMock()
         input_step.get_result.return_value = input_step_result_mock
@@ -151,9 +152,11 @@ class TestStep(unittest.TestCase):
         # Two calls, once in should_stop and once in _transform
         input_step.get_result.assert_has_calls(
             [call(pd.Timestamp("2000-01-01"), pd.Timestamp('2020-12-12 '),
-                  minimum_data=(0, self.module_mock.get_min_data().__radd__())),
+                  minimum_data=(0, self.module_mock.get_min_data().__radd__()),
+                  use_result_buffer=False),
              call(pd.Timestamp('2000-01-01 '), pd.Timestamp('2020-12-12 '),
-                  minimum_data=(0, self.module_mock.get_min_data().__radd__()))])
+                  minimum_data=(0, self.module_mock.get_min_data().__radd__()))],
+                  use_result_buffer=False)
 
         self.module_mock.transform.assert_called_once_with(x=input_step_result_mock)
 
@@ -306,3 +309,8 @@ class TestStep(unittest.TestCase):
         step.refit(pd.Timestamp("2000.01.01"), pd.Timestamp("2020.01.01"))
         self.module_mock.refit.assert_called_once_with(x=2, target=1)
 
+    def test_has_to_renew_buffer(self):
+        self.fail()
+
+    def test_renew_buffer(self):
+        self.fail()

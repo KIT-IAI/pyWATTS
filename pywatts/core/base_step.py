@@ -42,13 +42,32 @@ class BaseStep(ABC):
         self.id = -1
         self.finished = False
         self.last = True
+        self.refitted = True
         self._current_end = None
-        self.buffer: Dict[str, xr.DataArray] = {}
+        self.current_buffer: Dict[str, xr.DataArray] = {}
+        self.result_buffer: Dict[str, xr.DataArray] = {}
         self.training_time = SummaryObjectList(self.name + " Training Time", category=SummaryCategory.FitTime)
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
 
+
+    def should_recalculate(self):
+        if self.refitted == True:
+            self.renew_current_buffer()
+            return True
+        else:
+            for in_step in self.input_steps.values():
+                if in_step.should_recalculate:
+                    self.renew_current_buffer()
+                    return True
+            for in_step in self.input_steps.values():
+                if in_step.should_recalculate:
+                    self.renew_current_buffer()
+                    return True
+        return False
+
+
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
-                   return_all=False, minimum_data=(0, pd.Timedelta(0))):
+                   return_all=False, minimum_data=(0, pd.Timedelta(0)), use_result_buffer=False):
         """
         This method is responsible for providing the result of this step.
         Therefore,
@@ -71,8 +90,9 @@ class BaseStep(ABC):
             return None
 
         # Only execute the module if the step is not finished and the results are not yet calculated
-        if not self.finished and not (end is not None and self._current_end is not None and end <= self._current_end):
-            if not self.buffer or not self._current_end or end > self._current_end:
+        if not self.finished and not (
+                end is not None and self._current_end is not None and end <= self._current_end):
+            if not self.current_buffer or not self._current_end or end > self._current_end:
                 self._compute(start, end, minimum_data)
                 self._current_end = end
             if not end:
@@ -82,11 +102,13 @@ class BaseStep(ABC):
 
             # Only call callbacks if the step is finished
             if self.finished:
+                self.update_buffer(self.result_buffer, self.current_buffer)
                 self._callbacks()
 
-        return self._pack_data(start, end, buffer_element, return_all=return_all, minimum_data=minimum_data)
+        return self._pack_data(start, end, buffer_element, return_all=return_all, minimum_data=minimum_data,
+                               use_result_buffer=use_result_buffer)
 
-    def _compute(self, start, end, minimum_data) -> Dict[str, xr.DataArray]:
+    def _compute(self, start, end, minimum_data, recalculate=False) -> Dict[str, xr.DataArray]:
         pass
 
     def further_elements(self, counter: pd.Timestamp) -> bool:
@@ -98,8 +120,10 @@ class BaseStep(ABC):
         :return: True if there exist further data
         :rtype: bool
         """
-        if not self.buffer or all(
-                [counter < b.indexes[_get_time_indexes(self.buffer)[0]][-1] for b in self.buffer.values()]):
+        if not self.current_buffer or all(
+                [counter < b.indexes[
+                    _get_time_indexes(self.current_buffer)[0]][-1]
+                 for b in self.current_buffer.values()]):
             return True
         for input_step in self.input_steps.values():
             if not input_step.further_elements(counter):
@@ -109,11 +133,17 @@ class BaseStep(ABC):
                 return False
         return True
 
-    def _pack_data(self, start, end, buffer_element=None, return_all=False, minimum_data=(0, pd.Timedelta(0))):
+    def _pack_data(self, start, end, buffer_element=None, return_all=False, minimum_data=(0, pd.Timedelta(0)),
+                   use_result_buffer=False):
         # Provide requested data
-        time_index = _get_time_indexes(self.buffer)
+        if use_result_buffer:
+            buffer = self.result_buffer
+            self.update_buffer(self.result_buffer, self.current_buffer)
+        else:
+            buffer = self.current_buffer
+        time_index = _get_time_indexes(buffer)
         if start:
-            index = list(self.buffer.values())[0].indexes[time_index[0]]
+            index = list(buffer.values())[0].indexes[time_index[0]]
             if len(index) > 1:
                 freq = index[1] - index[0]
             else:
@@ -123,22 +153,20 @@ class BaseStep(ABC):
             end = end.to_numpy() if end is not None else (index[-1] + pd.Timedelta(nanoseconds=1)).to_numpy()
             # After sel copy is not needed, since it returns a new array.
             if buffer_element is not None:
-                return self.buffer[buffer_element].sel(
-                    **{time_index[0]: index[(index >= start) & (index < end)]})
+                return buffer[buffer_element].sel(**{time_index[0]: index[(index >= start) & (index < end)]})
             elif return_all:
                 return {key: b.sel(**{time_index[0]: index[(index >= start) & (index < end)]}) for
-                        key, b in self.buffer.items()}
+                        key, b in buffer.items()}
             else:
-                return list(self.buffer.values())[0].sel(
-                    **{time_index[0]: index[(index >= start) & (index < end)]})
+                return list(buffer.values())[0].sel(**{time_index[0]: index[(index >= start) & (index < end)]})
         else:
             self.finished = True
             if buffer_element is not None:
-                return self.buffer[buffer_element].copy()
+                return buffer[buffer_element].copy()
             elif return_all:
-                return copy.deepcopy(self.buffer)
+                return copy.deepcopy(buffer)
             else:
-                return list(self.buffer.values())[0].copy()
+                return list(buffer.values())[0].copy()
 
     def _transform(self, input_step):
         pass
@@ -153,14 +181,10 @@ class BaseStep(ABC):
         if not isinstance(result, dict):
             result = {self.name: result}
 
-        if not self.buffer:
-            self.buffer = result
+        if not self.current_buffer:
+            self.current_buffer = result
         else:
-            # Time dimension is mandatory, consequently there dim has to exist
-            dim = _get_time_indexes(result)[0]
-            for key in self.buffer.keys():
-                last = self.buffer[key][dim].values[-1]
-                self.buffer[key] = xr.concat([self.buffer[key], result[key][result[key][dim] > last]], dim=dim)
+            self.update_buffer(self.current_buffer, result)
         return result
 
     def get_json(self, fm: FileManager) -> Dict:
@@ -197,7 +221,7 @@ class BaseStep(ABC):
         :return: The restored step.
         """
 
-    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0)), use_result_buffer=False):
         return None
 
     def _get_target(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
@@ -222,7 +246,8 @@ class BaseStep(ABC):
         :param keep_buffer: Flag indicating if the buffer should be resetted too.
         """
         if not keep_buffer:
-            self.buffer = {}
+            self.current_buffer = {}
+            self.result_buffer = {}
         self.finished = False
         self.current_run_setting = self.default_run_setting.clone()
 
@@ -236,3 +261,23 @@ class BaseStep(ABC):
         :type computation_mode: ComputationMode
         """
         self.current_run_setting = self.default_run_setting.update(run_setting)
+
+    def renew_current_buffer(self):
+        """
+        Fill data from current buffer in to the result buffer reset the current buffer.
+        """
+        self.update_buffer(self.result_buffer, self.current_buffer)
+        self.current_buffer = {}
+
+    def update_buffer(self,buffer, new_data):
+        """
+        TODO
+        """
+        if not buffer:
+            for key in new_data:
+                buffer[key] = new_data[key]
+        time_index = _get_time_indexes(buffer)[0]
+        index = list(buffer.values())[0].indexes[time_index]
+        last = index[-1]
+        for key in buffer.keys():
+            buffer[key] = xr.concat([buffer[key],new_data[key][new_data[key][time_index] > last]], dim=time_index)

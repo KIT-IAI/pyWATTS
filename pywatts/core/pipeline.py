@@ -84,22 +84,23 @@ class Pipeline(BaseTransformer):
         else:
             return self._comp(x, False, self.current_run_setting.summary_formatter, self.batch)
 
-    def _transform(self, x, batch=None):
+    def _transform(self, x, batch=None, use_result_buffer=False):
         for step in self.id_to_step.values():
             step.finished = False
         for key, (start_step, _) in self.start_steps.items():
-            if not start_step.buffer:
-                start_step.buffer = {key: x[key].copy()}
+            if not start_step.current_buffer:
+                start_step.current_buffer = {key: x[key].copy()}
             else:
-                dim = _get_time_indexes(start_step.buffer[key])[0]
-                last = start_step.buffer[key][dim].values[-1]
-                start_step.buffer[key] = xr.concat([start_step.buffer[key], x[key][x[key][dim] > last]], dim=dim)
+                dim = _get_time_indexes(start_step.current_buffer[key])[0]
+                last = start_step.current_buffer[key][dim].values[-1]
+                start_step.current_buffer[key] = xr.concat([start_step.current_buffer[key], x[key][x[key][dim] > last]],
+                                                           dim=dim)
             start_step.finished = True
         time_index = _get_time_indexes(x)
         self.counter = list(x.values())[0].indexes[time_index[0]][0]  # The start date of the input time series.
         last_steps = list(filter(lambda x: x.last, self.id_to_step.values()))
         if not batch:
-            return self._collect_results(last_steps)
+            return self._collect_results(last_steps, use_result_buffer=use_result_buffer)
         return self._collect_batches(last_steps)
 
     def _collect_batches(self, last_steps):
@@ -122,13 +123,13 @@ class Pipeline(BaseTransformer):
             self.counter += self.batch
         return result
 
-    def _collect_results(self, inputs, use_batch=False):
+    def _collect_results(self, inputs, use_batch=False, use_result_buffer=False):
         # Note the return value is None if none of the inputs provide a result for this step...
         end = None if not use_batch else self.counter + self.batch
         result = dict()
         for i, step in enumerate(inputs):
             if not isinstance(step, SummaryStep):
-                res = step.get_result(self.counter, end, return_all=True)
+                res = step.get_result(self.counter, end, return_all=True, use_result_buffer=use_result_buffer)
                 for key, value in res.items():
                     result = self._add_to_result(i, key, value, result)
         return result
@@ -246,14 +247,17 @@ class Pipeline(BaseTransformer):
             for step in self.id_to_step.values():
                 step.reset(keep_buffer=True)
                 step.set_run_setting(self.current_run_setting.clone())
-            return self._comp({key: data[key].sel(**{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data},
-                              self.current_run_setting.return_summary, summary_formatter, self.batch, start=self.current_run_setting.online_start)
+            online_data = {key: data[key].sel(
+                **{index_name: data[key][index_name] >= self.current_run_setting.online_start}) for key in data}
+            return self._comp(online_data, self.current_run_setting.return_summary, summary_formatter, self.batch,
+                              start=self.current_run_setting.online_start, use_result_buffer=True)
         else:
-            return self._comp(data, self.current_run_setting.return_summary, summary_formatter, self.batch)
+            return self._comp(data, self.current_run_setting.return_summary, summary_formatter, self.batch,
+                              use_result_buffer=True)
 
 
-    def _comp(self, data, return_summary, summary_formatter, batch, start=None):
-        result = self._transform(data, batch)
+    def _comp(self, data, return_summary, summary_formatter, batch, start=None, use_result_buffer=False):
+        result = self._transform(data, batch, use_result_buffer=use_result_buffer)
         summary = self._create_summary(summary_formatter, start)
         return (result, summary) if return_summary else result
 

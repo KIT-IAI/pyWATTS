@@ -84,18 +84,18 @@ class Step(BaseStep):
     def _callbacks(self):
         # plots and writs the data if the step is finished.
         for callback in self.callbacks:
-            dim = _get_time_indexes(self.buffer)[0]
+            dim = _get_time_indexes(self.result_buffer)[0]
 
             if self.current_run_setting.online_start is not None:
-                to_plot = {k: self.buffer[k][self.buffer[k][dim] >= self.current_run_setting.online_start] for k in
-                           self.buffer.keys()}
+                to_plot = {k: self.result_buffer[k][self.result_buffer[k][dim] >= self.current_run_setting.online_start] for k in
+                           self.result_buffer.keys()}
             else:
-                to_plot = self.buffer
+                to_plot = self.result_buffer
             if isinstance(callback, BaseCallback):
                 callback.set_filemanager(self.file_manager)
-            if isinstance(self.buffer, xr.DataArray) or isinstance(self.buffer, xr.Dataset):
+            if isinstance(self.result_buffer, xr.DataArray) or isinstance(self.result_buffer, xr.Dataset):
                 # DEPRECATED: direct DataArray or Dataset passing is depricated
-                callback({"deprecated": self.buffer})
+                callback({"deprecated": self.result_buffer})
             else:
                 callback(to_plot)
 
@@ -145,22 +145,14 @@ class Step(BaseStep):
 
         return step
 
-    def _compute(self, start, end, minimum_data):
+    def _compute(self, start, end, minimum_data, recalculate=False):
         input_data = self._get_input(start, end, minimum_data)
         target = self._get_target(start, end, minimum_data)
         if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
                                                          ComputationMode.Train]:
-            # Fetch input_data and target data
-            if self.batch_size:
-                input_batch = self._get_input(end - self.batch_size, end, minimum_data)
-                target_batch = self._get_target(end - self.batch_size, end, minimum_data)
-                start_time = time.time()
-                self._fit(input_batch, target_batch)
-                self.training_time.set_kv("", time.time() - start_time)
-            else:
-                start_time = time.time()
-                self._fit(input_data, target)
-                self.training_time.set_kv("", time.time() - start_time)
+            start_time = time.time()
+            self._fit(input_data, target)
+            self.training_time.set_kv("", time.time() - start_time)
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 
@@ -185,14 +177,14 @@ class Step(BaseStep):
             for key, target in self.targets.items()
         }
 
-    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0))):
+    def _get_input(self, start, batch, minimum_data=(0, pd.Timedelta(0)), use_result_buffer=False):
         min_data_module = self.module.get_min_data()
         if isinstance(min_data_module, (int, np.integer)):
             minimum_data = minimum_data[0] + min_data_module, minimum_data[1]
         else:
             minimum_data = minimum_data[0], minimum_data[1] + min_data_module
         return {
-            key: input_step.get_result(start, batch, minimum_data=minimum_data) for
+            key: input_step.get_result(start, batch, minimum_data=minimum_data, use_result_buffer=use_result_buffer) for
             key, input_step in self.input_steps.items()
         }
 
@@ -235,6 +227,7 @@ class Step(BaseStep):
                                        refit_condition.kwargs.items()}
                     if refit_condition.evaluate(**condition_input):
                         self._refit(end)
+                        self.refitted = True
                         break
                 elif isinstance(refit_condition, Callable):
                     input_data = self._get_input(start, end)

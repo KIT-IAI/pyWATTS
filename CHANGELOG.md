@@ -1,4 +1,11 @@
-# Changelog
+## 0.3.1 - Unreleased
+
+### Added
+* Add alpha to rolling mean ([#225](https://github.com/KIT-IAI/pyWATTS/issues/225))
+* RiverDriftDetectionCondition for wrapping the river drift detection algorithms ([#221](https://github.com/KIT-IAI/pyWATTS/issues/221))
+* Add a module for merging shifted time series ([#2179](https://github.com/KIT-IAI/pyWATTS/issues/219))
+* Add a module for statistic feature extraction ([#217](https://github.com/KIT-IAI/pyWATTS/issues/217))
+
 
 ## 0.3.0 - 2022-31-03
 

@@ -14,25 +14,26 @@ class RiverDriftDetectionCondition(BaseCondition):
 
     def __init__(self, name="CDCondition", drift_detection=ADWIN()):
         super().__init__(name=name)
-        self.drift_occured = False
         self.drift_detection = drift_detection
-        self.counter = 0
 
-    def evaluate(self, y: xr.DataArray, y_hat: xr.DataArray):
+    def evaluate(self, start, end):
         """
         Returns True if the specified drift detection algorithm detects a drift.
-        :param y: GT Time Series
-        :type y: xr.DataArray
-        :param y_hat: Forecast Time Series
-        :type y_hat: xr.DataArray
+        :param start: start of the batch
+        :type start: pd.Timestamp
+        :param end: end of the batch
+        :type end: pd.Timestamp
         """
-        rmse = np.sqrt(np.mean((y_hat.values - y.values) ** 2))
-        if not np.isnan(rmse):
-            self.drift_detection.update(rmse)
-            self.counter += 1
+        y, y_hat = self._get_inputs(start, end)
+
+        if not self._is_evaluated:
+            if self.drift_detection.change_detected:
+                self.drift_detection.reset()
+            rmse = np.sqrt(np.mean((y_hat.values - y.values) ** 2))
+            if not np.isnan(rmse):
+                self.drift_detection.update(rmse)
 
         if self.drift_detection.change_detected:
-            self.drift_detection.reset()
             return True
         else:
             return False

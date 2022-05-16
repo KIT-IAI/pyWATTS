@@ -22,11 +22,16 @@ class BaseCondition(ABC):
         self.kwargs = {}
         self.refit_batch = refit_batch
         self.refit_params = refit_params
+        self._end = None
 
     @abstractmethod
-    def evaluate(self, **kwargs: List[xr.DataArray]) -> bool:
+    def evaluate(self, start, end) -> bool:
         """
         This method evaluates the Condition
+        :param start: start of the batch
+        :type start: pd.Timestamp
+        :param end: end of the batch
+        :type end: pd.Timestamp
         """
 
     def __call__(self, **kwargs: StepInformation):
@@ -43,3 +48,12 @@ class BaseCondition(ABC):
                 self
             )
         self.kwargs = kwargs
+
+    def _is_evaluated(self, end):
+        if end == self._end:
+            return True
+        self._end = end
+        return False
+
+    def _get_inputs(self, start, end):
+        return {key: value.step.get_result(start, end) for key, value in self.kwargs.items()}

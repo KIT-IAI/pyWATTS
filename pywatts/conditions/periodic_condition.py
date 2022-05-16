@@ -18,11 +18,16 @@ class PeriodicCondition(BaseCondition):
         self.num_steps = num_steps
         self.counter = 0
 
-    def evaluate(self):
+    def evaluate(self, start, end):
         """
         Returns True if it is num_steps times called else False.
+        :param start: start of the batch
+        :type start: pd.Timestamp
+        :param end: end of the batch
+        :type end: pd.Timestamp
         """
-        self.counter += 1
+        if not self._is_evaluated(end):
+            self.counter += 1
         self.counter = self.counter % self.num_steps
 
         if self.counter == 0:

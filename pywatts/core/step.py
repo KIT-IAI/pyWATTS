@@ -225,13 +225,14 @@ class Step(BaseStep):
         """
         if self.current_run_setting.computation_mode in [ComputationMode.Refit] and isinstance(self.module,
                                                                                                BaseEstimator):
-            # first condition in the list prevails but we need to evaluate all conditions
             refitted = False
+            # this flag is required if multiple refit conditions evaluate True at the same time, e.g.,
+            # [PeriodicCondition(28, refit_params_A), PeriodicCondition(7, refit_params_B).
+            # In this case, the first condition is dominant, applies the refit_params, and refits,
+            # but we also have to evaluate the second condition to increase its counter
             for refit_condition in self.refit_conditions:
                 if isinstance(refit_condition, BaseCondition):
-                    condition_input = {key: value.step.get_result(start, end) for key, value in
-                                       refit_condition.kwargs.items()}
-                    eval_ = refit_condition.evaluate(**condition_input)  # can this be placed direclty in the if? test
+                    eval_ = refit_condition.evaluate(start, end)
                     if eval_ and not refitted:
                         self._refit(end, refit_condition.refit_batch, refit_condition.refit_params)
                         refitted = True

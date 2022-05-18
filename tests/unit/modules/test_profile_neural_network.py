@@ -42,7 +42,7 @@ class TestPNN(unittest.TestCase):
         self.pnn.fit(historical_input=hist_input, calendar=cal_input, trend=trend, temperature=temperature,
                      profile=profile, humidity=humidity, target=target)
 
-        pnn_model.assert_called_once_with(2, n_steps_in=2, trend_length=1)
+        pnn_model.assert_called_once_with(2, n_steps_in=2, trend_length=1, dummy_dimension=3)
         keras_pnn.fit.assert_called_once()
         fit_args = keras_pnn.fit.call_args
 

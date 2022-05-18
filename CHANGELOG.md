@@ -7,6 +7,8 @@
 * Add a module for statistic feature extraction ([#217](https://github.com/KIT-IAI/pyWATTS/issues/217))
 * Add a module for inserting synthetic concept drift ([#226](https://github.com/KIT-IAI/pyWATTS/issues/226))
 
+### Changed
+* Make the inputs of the PNN more flexible ([#228](https://github.com/KIT-IAI/pyWATTS/issues/228))
 
 ## 0.3.0 - 2022-31-03
 

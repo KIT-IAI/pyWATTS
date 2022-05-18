@@ -234,7 +234,13 @@ class Step(BaseStep):
                 if isinstance(refit_condition, BaseCondition):
                     eval_ = refit_condition.evaluate(start, end)
                     if eval_ and not refitted:
-                        self._refit(end, refit_condition.refit_batch, refit_condition.refit_params)
+                        refit_batch = refit_condition.refit_batch.get(self.name) \
+                            if isinstance(refit_condition.refit_batch, dict) \
+                            else refit_condition.refit_batch
+                        refit_params = refit_condition.refit_params.get(self.name) \
+                            if all(isinstance(value, dict) for value in refit_condition.refit_params.values()) \
+                            else refit_condition.refit_params
+                        self._refit(end, refit_batch, refit_params)
                         refitted = True
                         self.refitted = True
                 elif isinstance(refit_condition, Callable):

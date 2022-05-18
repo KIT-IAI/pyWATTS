@@ -1,9 +1,8 @@
 import inspect
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Union
 
 import pandas as pd
-import xarray as xr
 
 from pywatts.core.exceptions.step_creation_exception import StepCreationException
 from pywatts.core.step_information import StepInformation
@@ -17,7 +16,7 @@ class BaseCondition(ABC):
     :type name: str
     """
 
-    def __init__(self, name, refit_batch: pd.Timedelta = pd.Timedelta(hours=24), refit_params: dict = None):
+    def __init__(self, name, refit_batch: Union[dict, pd.Timedelta] = pd.Timedelta(hours=24), refit_params: dict = None):
         self.name = name
         self.kwargs = {}
         self.refit_batch = refit_batch

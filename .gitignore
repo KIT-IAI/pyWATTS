@@ -9,3 +9,6 @@ results
 *.log
 __pycache__/
 docs/build
+pipeline2_results/*
+.idea/*
+__pycache__/*

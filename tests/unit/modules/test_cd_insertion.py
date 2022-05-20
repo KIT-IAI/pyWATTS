@@ -31,23 +31,23 @@ class TestCDInsertion(unittest.TestCase):
         self.drift_information.get_drift.return_value = np.array([1, 2])
         self.drift_information.position = pd.Timestamp(year=2000, month=1, day=1)
         self.drift_information.length = 2
-        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_informations=[self.drift_information])
+        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_information=[self.drift_information])
 
     def tearDown(self):
         self.manipulator_mock = None
-        self.drift_informations = None
+        self.drift_information = None
         self.cd_insertion = None
 
     def test_set_get_params(self):
         self.assertEqual(
             self.cd_insertion.get_params(),
-            {"drift_informations": [self.drift_information]}
+            {"drift_information": [self.drift_information]}
         )
         drift_information = MagicMock()
-        self.cd_insertion.set_params(drift_informations=[drift_information])
+        self.cd_insertion.set_params(drift_information=[drift_information])
         self.assertEqual(
             self.cd_insertion.get_params(),
-            {"drift_informations": [drift_information]}
+            {"drift_information": [drift_information]}
         )
 
     def test_add_one_cd(self):
@@ -63,7 +63,7 @@ class TestCDInsertion(unittest.TestCase):
         drift_information_2.get_drift.return_value = np.array([-2, -3, -4])
         drift_information_2.position = pd.Timestamp(year=2000, month=1, day=4)
         drift_information_2.length = 3
-        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_informations=[self.drift_information,
+        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_information=[self.drift_information,
                                                                                 drift_information_2])
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})
@@ -79,7 +79,7 @@ class TestCDInsertion(unittest.TestCase):
         drift_information.get_drift.return_value = np.array([-2, -3, -4])
         drift_information.position = pd.Timestamp(year=2000, month=1, day=6)
         drift_information.length = 3
-        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_informations=[drift_information])
+        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_information=[drift_information])
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})
 
@@ -93,7 +93,7 @@ class TestCDInsertion(unittest.TestCase):
         drift_information.get_drift.return_value = np.array([-2, -3, -4])
         drift_information.position = pd.Timestamp(year=2000, month=1, day=8)
         drift_information.length = 3
-        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_informations=[drift_information])
+        self.cd_insertion = SyntheticConcecptDriftInsertion(drift_information=[drift_information])
         time = pd.date_range('2000-01-01', freq='24H', periods=7)
         da = xr.DataArray([1, 2, 3, 4, 5, 6, 7], dims=['time'], coords={"time": time})
 
@@ -107,17 +107,17 @@ class TestCDInsertion(unittest.TestCase):
     @patch("builtins.open")
     def test_save(self, open_mock, cloudpickle_mock):
         fm_mock = MagicMock()
-        fm_mock.get_path.return_value = os.path.join("path", f"{self.cd_insertion.name}_drift_informations.pickle")
+        fm_mock.get_path.return_value = os.path.join("path", f"{self.cd_insertion.name}_drift_information.pickle")
         json = self.cd_insertion.save(fm_mock)
         open_mock.assert_called_once_with(
-            os.path.join("path", f"{self.cd_insertion.name}_drift_informations.pickle"), 'wb')
+            os.path.join("path", f"{self.cd_insertion.name}_drift_information.pickle"), 'wb')
         cloudpickle_mock.dump.assert_called_once()
         self.assertEqual(json, {
             "params": {},
             "name": self.cd_insertion.name,
             "class": "SyntheticConcecptDriftInsertion",
             "module": "pywatts.modules.generation.synthetic_concept_drift",
-            "drift_informations": os.path.join("path", f'{self.cd_insertion.name}_drift_informations.pickle')
+            "drift_information": os.path.join("path", f'{self.cd_insertion.name}_drift_information.pickle')
         })
 
 
@@ -129,7 +129,7 @@ class TestCDInsertion(unittest.TestCase):
             "name": self.cd_insertion.name,
             "class": "SyntheticConcecptDriftGeneration",
             "module": "pywatts.modules.generation.synthetic_concept_drift",
-            "drift_informations": "path_to_drift_information.pickle"
+            "drift_information": "path_to_drift_information.pickle"
         })
         open_mock.assert_called_once_with("path_to_drift_information.pickle", "rb")
         cloudpickle_mock.load.assert_called_once()

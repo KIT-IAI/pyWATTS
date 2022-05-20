@@ -6,6 +6,8 @@
 * Add a module for merging shifted time series ([#2179](https://github.com/KIT-IAI/pyWATTS/issues/219))
 * Add a module for statistic feature extraction ([#217](https://github.com/KIT-IAI/pyWATTS/issues/217))
 * Add a tsne summary module ([#229](https://github.com/KIT-IAI/pyWATTS/issues/229))
+* Add a module for inserting synthetic concept drift ([#226](https://github.com/KIT-IAI/pyWATTS/issues/226))
+
 
 
 ## 0.3.0 - 2022-31-03

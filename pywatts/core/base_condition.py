@@ -37,15 +37,15 @@ class BaseCondition(ABC):
         """
         This method adds a Condition to the pipeline.
         """
-        arguments = inspect.signature(self.evaluate).parameters.keys()
-
-        if arguments != kwargs.keys():
-            raise StepCreationException(
-                f"The given kwargs does not fit to the inputs of the Condition{self.__class__.__name__} {self.name}."
-                f"The module only needs and accepts {inspect.signature(self.evaluate).parameters.keys()} as input. "
-                f"However, {kwargs.keys()} are given as input. ",
-                self
-            )
+        # arguments = inspect.signature(self.evaluate).parameters.keys()
+        #
+        # if arguments != kwargs.keys():
+        #     raise StepCreationException(
+        #         f"The given kwargs does not fit to the inputs of the Condition{self.__class__.__name__} {self.name}."
+        #         f"The module only needs and accepts {inspect.signature(self.evaluate).parameters.keys()} as input. "
+        #         f"However, {kwargs.keys()} are given as input. ",
+        #         self
+        #     )
         self.kwargs = kwargs
 
     def _is_evaluated(self, end):

@@ -1,8 +1,8 @@
 import numpy as np
-import xarray as xr
 from river.drift import ADWIN
 
 from pywatts.core.base_condition import BaseCondition
+from pywatts.core.exceptions.invalid_input_exception import InvalidInputException
 
 
 class RiverDriftDetectionCondition(BaseCondition):
@@ -24,14 +24,21 @@ class RiverDriftDetectionCondition(BaseCondition):
         :param end: end of the batch
         :type end: pd.Timestamp
         """
-        y, y_hat = self._get_inputs(start, end)
+        inputs = self._get_inputs(start, end)
 
-        if not self._is_evaluated:
+        if not self._is_evaluated(end):
             if self.drift_detection.change_detected:
                 self.drift_detection.reset()
-            rmse = np.sqrt(np.mean((y_hat.values - y.values) ** 2))
-            if not np.isnan(rmse):
-                self.drift_detection.update(rmse)
+            if len(inputs) == 1:
+                self.drift_detection.update(inputs)
+            elif len(inputs) == 2:
+                y, y_hat = inputs.values()
+                rmse = np.sqrt(np.mean((y_hat.values - y.values) ** 2))
+                if not np.isnan(rmse):
+                    self.drift_detection.update(rmse)
+            else:
+                raise InvalidInputException(
+                    f"More than two inputs are given for the instance {self.name} of class {self.__class__.__name__}.")
 
         if self.drift_detection.change_detected:
             return True

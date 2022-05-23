@@ -60,6 +60,14 @@ pywatts.summaries.rmse\_summary module
    :undoc-members:
    :show-inheritance:
 
+pywatts.summaries.tsne\_visualisation module
+--------------------------------------------
+
+.. automodule:: pywatts.summaries.tsne_visualisation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

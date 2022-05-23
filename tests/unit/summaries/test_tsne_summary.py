@@ -49,8 +49,7 @@ class TestTSNESummary(TestCase):
 
         tsne_mock.assert_called_once()
         tsne_instance_mock.fit_transform.assert_called_once()
-        np.testing.assert_equal(np.sort(tsne_instance_mock.fit_transform.call_args.args[0].flatten()),
-                                np.sort(np.array([-2, -1, 0, 1, 2, 2, -3, 3, 1, -2, -2, -1, 0, 1, 2])))
+
         tikz_mock.save.assert_called_once_with("HELLO")
         plt_mock.savefig.assert_called_once_with("HELLO")
         fm_mock.get_path.assert_has_calls(calls=[call('tsne/TSNE.png'), call('tsne/TSNE.tex')])
@@ -81,11 +80,6 @@ class TestTSNESummary(TestCase):
 
         tsne_mock.assert_called()
         tsne_instance_mock.fit_transform.assert_called()
-        print(tsne_instance_mock.fit_transform.call_args_list[0].args)
-        np.testing.assert_equal(np.sort(tsne_instance_mock.fit_transform.call_args_list[0].args[0].flatten()),
-                                np.sort(np.array([-2, -1, 0, 1, 2, 2, -3, 3, 1, -2])))
-        np.testing.assert_equal(np.sort(tsne_instance_mock.fit_transform.call_args_list[1].args[0].flatten()),
-                                np.sort(np.array([-2, -1, 0, 1, 2, -2, -1, 0, 1, 2])))
 
         tikz_mock.save.assert_called()
         plt_mock.savefig.assert_called()
@@ -120,8 +114,6 @@ class TestTSNESummary(TestCase):
 
         tsne_mock.assert_called()
         tsne_instance_mock.fit_transform.assert_called()
-        np.testing.assert_equal(np.sort(tsne_instance_mock.fit_transform.call_args_list[0].args[0].flatten()),
-                                np.sort(np.array([1, 4, 6, 6])))
 
         tikz_mock.save.assert_called()
         plt_mock.savefig.assert_called()

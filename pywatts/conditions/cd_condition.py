@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from river.drift import ADWIN
 
 from pywatts.core.base_condition import BaseCondition
@@ -12,8 +13,9 @@ class RiverDriftDetectionCondition(BaseCondition):
     :param drift_detection: The Drift Detection Algorithm from the River library. The default algorithm is ADWIN.
     """
 
-    def __init__(self, name="CDCondition", drift_detection=ADWIN()):
-        super().__init__(name=name)
+    def __init__(self, name="CDCondition", refit_batch: pd.Timedelta = pd.Timedelta(hours=10), refit_params: dict = None,
+                 drift_detection=ADWIN()):
+        super().__init__(name=name, refit_batch=refit_batch, refit_params=refit_params)
         self.drift_detection = drift_detection
 
     def evaluate(self, start, end):

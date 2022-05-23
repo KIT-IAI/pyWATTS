@@ -14,7 +14,7 @@ class PeriodicCondition(BaseCondition):
 
     def __init__(self, num_steps=10, refit_batch: pd.Timedelta = pd.Timedelta(hours=10), refit_params: dict = None,
                  name="PeriodicCondition"):
-        super().__init__(name, refit_batch, refit_params)
+        super().__init__(name=name, refit_batch=refit_batch, refit_params=refit_params)
         self.num_steps = num_steps
         self.counter = 0
 

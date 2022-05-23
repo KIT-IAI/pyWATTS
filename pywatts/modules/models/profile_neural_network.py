@@ -76,9 +76,10 @@ class ProfileNeuralNetwork(BaseEstimator):
         if validation_split:
             self.validation_split = validation_split
 
-    def transform(self, historical_input, calendar, temperature, humidity, profile, trend) -> xr.DataArray:
+    def transform(self, **kwargs) -> xr.DataArray:
         """
-        Forecast the electrical load for the given input.
+        Forecast the electrical load for the given input. Note that historical_input, trend, and profile have to be
+        provided. All other inputs are merged into the external/dummy feature vector.
 
         :param historical_input: The historical input
         :type historical_input: xr.DataArray
@@ -95,19 +96,23 @@ class ProfileNeuralNetwork(BaseEstimator):
         :return: The prediction
         :rtype: xr.DataArray
         """
-        result = self.pnn.predict({
-            "hist_input": historical_input.values,
-            "full_trend": trend.values,
-            "profile": profile.values,
-            "dummy_input": np.concatenate(
-                [calendar.values, temperature.values.reshape(-1, self.horizon, 1),
-                 humidity.values.reshape(-1, self.horizon, 1)], axis=-1)
-        })
-        return numpy_to_xarray(result, historical_input)
+        reference = kwargs["historical_input"]
 
-    def fit(self, historical_input, calendar, temperature, humidity, profile, trend, target):
+        historical_input, trend, profile, dummy_input = self._get_inputs(kwargs, 0)
+
+        result = self.pnn.predict({
+            "hist_input": historical_input,
+            "full_trend": trend,
+            "profile": profile,
+            "dummy_input": dummy_input
+        })
+        return numpy_to_xarray(result, reference)
+
+    def fit(self, target, **kwargs):
         """
-        Fit the Profile Neural Network.
+
+        Fit the Profile Neural Network. Note that historical_input, trend, and profile have to be provided.
+        All other inputs are merged into the external/dummy feature vector.
 
         :param historical_input: The historical input
         :type historical_input: xr.DataArray
@@ -124,21 +129,37 @@ class ProfileNeuralNetwork(BaseEstimator):
         :param target: The ground truth of the desired prediction
         :type target: xr.DataArray
         """
+        self.horizon = target.shape[-1]
+        historical_input, trend, profile, dummy_input = self._get_inputs(kwargs, self.offset)
         input_length = historical_input.shape[-1]
         trend_length = trend.shape[-1]
-        self.horizon = target.shape[-1]
-        self.pnn = _PNN(self.horizon, n_steps_in=input_length, trend_length=trend_length)
+        self.pnn = _PNN(self.horizon, n_steps_in=input_length, trend_length=trend_length,
+                        dummy_dimension=dummy_input.shape[-1])
 
         input, t = self._clean_dataset({
-            "hist_input": historical_input.values[self.offset:],
-            "full_trend": trend.values[self.offset:],
-            "profile": profile.values[self.offset:],
-            "dummy_input": np.concatenate(
-                [calendar.values, temperature.values.reshape(-1, self.horizon, 1),
-                 humidity.values.reshape(-1, self.horizon, 1)], axis=-1)[self.offset:]
+            "hist_input": historical_input,
+            "full_trend": trend,
+            "profile": profile,
+            "dummy_input": dummy_input
         }, target.values[self.offset:])
         self.pnn.fit(input, t, epochs=self.epochs, batch_size=self.batch_size, validation_split=self.validation_split)
         self.is_fitted = True
+
+    def _get_inputs(self, kwargs, offset):
+        """
+        Extract the input from kwargs.
+        """
+        historical_input = kwargs["historical_input"].values[offset:]
+        trend = kwargs["trend"].values[offset:]
+        profile = kwargs["profile"].values[offset:]
+        del kwargs["historical_input"]
+        del kwargs["trend"]
+        del kwargs["profile"]
+        dummy_input = np.concatenate(
+            [data.values[offset:].reshape((len(historical_input), self.horizon, -1)) for data in kwargs.values()],
+            axis=-1)
+        return historical_input, trend, profile, dummy_input
+
 
     def save(self, fm: FileManager) -> Dict:
         """
@@ -231,7 +252,7 @@ def _root_mean_squared_error(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true), axis=-1))
 
 
-def _PNN(n_steps_out, n_steps_in=36, trend_length=5) -> tensorflow.keras.Model:
+def _PNN(n_steps_out, n_steps_in=36, trend_length=5, dummy_dimension=16) -> tensorflow.keras.Model:
     activation = activations.elu
 
     def hist_encoder(conv_input):
@@ -271,7 +292,7 @@ def _PNN(n_steps_out, n_steps_in=36, trend_length=5) -> tensorflow.keras.Model:
     conv_input = keras.Input(shape=(n_steps_in,), name="hist_input")
     trend_input = keras.Input(shape=(n_steps_out, trend_length), name="full_trend")
     profile_input = keras.Input(shape=(n_steps_out,), name="profile")
-    dummy_input = keras.Input(shape=(n_steps_out, 16), name="dummy_input")
+    dummy_input = keras.Input(shape=(n_steps_out, dummy_dimension), name="dummy_input")
 
     conv = hist_encoder(conv_input)
 

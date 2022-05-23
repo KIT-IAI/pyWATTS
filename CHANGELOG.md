@@ -7,6 +7,7 @@
 * Add a module for statistic feature extraction ([#217](https://github.com/KIT-IAI/pyWATTS/issues/217))
 * Add a tsne summary module ([#229](https://github.com/KIT-IAI/pyWATTS/issues/229))
 * Add a module for inserting synthetic concept drift ([#226](https://github.com/KIT-IAI/pyWATTS/issues/226))
+* Add a TSTR Summary ([#232](https://github.com/KIT-IAI/pyWATTS/issues/232))
 
 ### Changed
 * Make the inputs of the PNN more flexible ([#228](https://github.com/KIT-IAI/pyWATTS/issues/228))

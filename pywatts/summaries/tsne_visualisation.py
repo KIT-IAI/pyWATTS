@@ -12,14 +12,15 @@ from pywatts.core.summary_object import SummaryObjectList
 
 class TSNESummary(BaseSummary):
     """
-    Summary that performs a TSNE to visualise the data. It is possible to specify mask by providing kwargs
-    to the transform method that end with _masked.
-    :param max_point: The maximum number of points per data that should be plotted
+    Summary that performs a t-distributed stochastic neighbor embedding (t-SNE) to visualise the data.
+    It is possible to specify masks by providing kwargs to the transform method that end with _masked.
+    :param max_point: The maximum number of points per data set that should be plotted
     :type max_point: int
     :param all_in_one_plot: Flag indicating if all input data should be visualised in the same plot. If not the column
-                            GT is visualised with all other in separate plots.
+                            GT is visualised like all other in separate plots.
     :type all_in_one_plot: Boolean
-    :param tsne_params: Params for the TSNE Visualisation. See sklearn.
+    :param tsne_params: Params for the t-SNE visualisation (see sklearn
+                        at `sklearn https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html`_).
     :type tsne_params: Dict
     """
 
@@ -33,7 +34,8 @@ class TSNESummary(BaseSummary):
     def get_params(self) -> Dict[str, object]:
         """"
         Get the params of the TSNE Summary
-        :return: A dict containing all parameter of the tsne_summary
+        :return: A dict containing all parameters of the TSNE Summary
+
         :rtype: Dict
         """
         return {
@@ -44,13 +46,14 @@ class TSNESummary(BaseSummary):
 
     def set_params(self, max_points=None, all_in_one_plot=None, tsne_params=None):
         """
-        Set the params of the tsne summary.
+        Set the params of the TSNE Summary
         :param max_point: The maximum number of points per data that should be plotted
         :type max_point: int
-        :param all_in_one_plot: Flag indicating if all input data should be visualised in the same plot. If not the column
-                                GT is visualised with all other in separate plots.
+        :param all_in_one_plot: Flag indicating if all input data set should be visualised in the same plot. If not the
+                                column GT is visualised like all other in separate plots.
         :type all_in_one_plot: Boolean
-        :param tsne_params: Params for the TSNE Visualisation. See sklearn.
+        :param tsne_params: Params for the t-SNE visualisation (see sklearn
+                            at `sklearn https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html`_).
         :type tsne_params: Dict
         """
         if max_points is not None:
@@ -62,8 +65,8 @@ class TSNESummary(BaseSummary):
 
     def transform(self, file_manager, gt: xr.DataArray, **kwargs: xr.DataArray):
         """
-        Calculates the TSNE and visualise it. kwargs that end with _masked are masks for the other input. E.g. gt_masked
-        is a mask for gt.
+        Calculates the TSNE and visualises it. kwargs that end with _masked are masks for the other input. For example,
+        gt_masked is a mask for gt.
         :param file_manager: The filemanager, it can be used to store data that corresponds to the summary as a file.
         :type: file_manager: FileManager
         :param gt: the gt dataset
@@ -98,8 +101,8 @@ class TSNESummary(BaseSummary):
             plt.scatter(result[len(gt_data) * i:len(gt_data) * (i + 1), 0],
                         result[len(gt_data) * i:len(gt_data) * (i + 1), 1], alpha=0.5,
                         label=key)
-        plt.xlabel("x-tsne")
-        plt.ylabel("y-tsne")
+        plt.xlabel("x-t-SNE")
+        plt.ylabel("y-t-SNE")
         plt.legend()
         path_png = file_manager.get_path(f"tsne/{self.name}{'_' + suffix if suffix is not None else ''}.png")
         path_tex = file_manager.get_path(f"tsne/{self.name}{'_' + suffix if suffix is not None else ''}.tex")

@@ -81,7 +81,7 @@ class TestTSNESummary(TestCase):
 
         tsne_mock.assert_called()
         tsne_instance_mock.fit_transform.assert_called()
-        print(tsne_instance_mock.fit_transform.call_args_list[0].args[0])
+        print(tsne_instance_mock.fit_transform.call_args_list[0].args)
         np.testing.assert_equal(np.sort(tsne_instance_mock.fit_transform.call_args_list[0].args[0].flatten()),
                                 np.sort(np.array([-2, -1, 0, 1, 2, 2, -3, 3, 1, -2])))
         np.testing.assert_equal(np.sort(tsne_instance_mock.fit_transform.call_args_list[1].args[0].flatten()),

@@ -78,7 +78,8 @@ class ProfileNeuralNetwork(BaseEstimator):
 
     def transform(self, **kwargs) -> xr.DataArray:
         """
-        Forecast the electrical load for the given input.
+        Forecast the electrical load for the given input. Note that historical_input, trend, and profile have to be
+        provided. All other inputs are merged into the external/dummy feature vector.
 
         :param historical_input: The historical input
         :type historical_input: xr.DataArray
@@ -109,7 +110,9 @@ class ProfileNeuralNetwork(BaseEstimator):
 
     def fit(self, target, **kwargs):
         """
-        Fit the Profile Neural Network.
+
+        Fit the Profile Neural Network. Note that historical_input, trend, and profile have to be provided.
+        All other inputs are merged into the external/dummy feature vector.
 
         :param historical_input: The historical input
         :type historical_input: xr.DataArray
@@ -143,6 +146,9 @@ class ProfileNeuralNetwork(BaseEstimator):
         self.is_fitted = True
 
     def _get_inputs(self, kwargs, offset):
+        """
+        Extract the input from kwargs.
+        """
         historical_input = kwargs["historical_input"].values[offset:]
         trend = kwargs["trend"].values[offset:]
         profile = kwargs["profile"].values[offset:]

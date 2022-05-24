@@ -4,6 +4,14 @@ pywatts.summaries package
 Submodules
 ----------
 
+pywatts.summaries.confusion\_matrix module
+------------------------------------------
+
+.. automodule:: pywatts.summaries.confusion_matrix
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.summaries.mae\_summary module
 -------------------------------------
 

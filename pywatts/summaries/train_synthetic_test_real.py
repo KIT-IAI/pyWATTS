@@ -37,7 +37,11 @@ class TrainSyntheticTestReal(BaseSummary):
     :type get_model: Callable
     :param n_targets: The number of classes for the classifaction task or the horizon for the regression task.
     :type n_targets: int
-
+    :param task: Specifies if the TSTR should solve a regression task or a classification task
+    :type task: TSTRTask
+    :param metrics: A list of strings specifying metrics. Currently implemented are 'mae', 'rmse' 'mape' 'accuracy',
+                    and 'f1'
+    :type metrics: List[str]
     """
 
     def __init__(self, name: str = "TSTR", train_test_split=0.66,
@@ -58,7 +62,6 @@ class TrainSyntheticTestReal(BaseSummary):
             self.fit_kwargs = {"epochs": 100, "validation_split": 0.2}
         else:
             self.fit_kwargs = fit_kwargs
-
         if get_model is None:
             self._get_model = self._get_regressor if task == TSTRTask.Regression else self._get_classifier
         else:
@@ -67,12 +70,15 @@ class TrainSyntheticTestReal(BaseSummary):
     @staticmethod
     def _get_regressor(horizon, pred_horizon):
         """
-        Default Regressor
+        Default regressor
+        :param horizon: the length of the input horizon
+        :type horizon: int
+        :param pred_horizon: The length of the values to be predicted
+        :type pred_horizon: int
         """
         input = keras.layers.Input((horizon))
         state = keras.layers.Dense(10, activation="relu")(input)
         output = keras.layers.Dense(pred_horizon, activation="linear")(state)
-
         model = keras.Model(input, output)
         model.compile(loss="mse")
         return model
@@ -81,6 +87,10 @@ class TrainSyntheticTestReal(BaseSummary):
     def _get_classifier(horizon, n_targets):
         """
         Default classifier
+        :param horizon: the length of the input horizon
+        :type horizon: int
+        :param n_targets: The number of classes that should be predicted.
+        :type n_targets: int
         """
         input = keras.layers.Input((horizon))
         state = keras.layers.Dense(10, activation="relu")(input)
@@ -121,6 +131,11 @@ class TrainSyntheticTestReal(BaseSummary):
         :type get_model: Callable
         :param n_targets: The number of classes for the classifaction task or the horizon for the regression task.
         :type n_targets: int
+        :param task: Specifies if the TSTR should solve a regression task or a classification task
+        :type task: TSTRTask
+        :param metrics: A list of strings specifying metrics. Currently implemented are 'mae', 'rmse' 'mape' 'accuracy',
+                        and 'f1'
+        :type metrics: List[str]
         """
         if repetitions is not None:
             self.repetitions = repetitions
@@ -226,7 +241,11 @@ class TrainSyntheticTestReal(BaseSummary):
 
     def _get_regression_data(self, real, synthetic):
         """
-        Get a data set for the regression task
+        Get a data set for the regression task.
+        :param real: The dataset containing the real data.
+        :type param: np.array
+        :param synthetic: The dataset containing the synthetic data.
+        :type synthetic: np.array
         """
         split_index = int(self.train_test_split * len(real))
         X_train = synthetic[:split_index, :-self.n_targets]
@@ -237,7 +256,11 @@ class TrainSyntheticTestReal(BaseSummary):
 
     def _get_classification_data(self, real, synthetic, real_label, synthetic_label):
         """
-        Get a data set for the classification task
+        Get a data set for the classification task.
+        :param real: The dataset containing the real data.
+        :type param: np.array
+        :param synthetic: The dataset containing the synthetic data.
+        :type synthetic: np.array
         """
         split_index = int(self.train_test_split * len(real))
         X_train = synthetic[:split_index]
@@ -248,7 +271,21 @@ class TrainSyntheticTestReal(BaseSummary):
 
     def _evaluate(self, train_x, train_y, test_x, test_y, n_targets, name):
         """
-        Evaluate the synthetic data
+        Evaluate the synthetic data.
+        :param train_x: The input training data.
+        :type train_x: np.array
+        :param train_y: The target training data.
+        :type test_y: np.array
+        :param test_x: The input test data.
+        :type test_x: np.array
+        :param test_y: The target test data
+        :type test_y: np.array.
+        :param n_targets: The number of values that should be predicted or the number of classes.
+        :type n_targets: int
+        :param name: The name of the currently evaluated data.
+        :type name: str
+        :return: The results of the evaluation.
+        :rtype: Dict
         """
         r_temp = {}
         for metric_name in self.metrics:

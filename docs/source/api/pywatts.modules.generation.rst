@@ -36,6 +36,14 @@ pywatts.modules.generation.synthetic\_concept\_drift module
    :undoc-members:
    :show-inheritance:
 
+pywatts.modules.generation.unusual\_behaviour\_generation module
+----------------------------------------------------------------
+
+.. automodule:: pywatts.modules.generation.unusual_behaviour_generation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

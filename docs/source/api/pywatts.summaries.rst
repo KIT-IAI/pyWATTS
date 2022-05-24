@@ -20,6 +20,14 @@ pywatts.summaries.confusion\_matrix module
    :undoc-members:
    :show-inheritance:
 
+pywatts.summaries.discriminative\_score module
+----------------------------------------------
+
+.. automodule:: pywatts.summaries.discriminative_score
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.summaries.mae\_summary module
 -------------------------------------
 

@@ -10,7 +10,7 @@ from sklearn.metrics import confusion_matrix
 
 class ConfusionMatrix(BaseSummary):
     """
-    Summary to calculate the Confusion Matrix
+    Summary to calculate the confusion matrix
 
     :param name: Name of the confusion matrix
     :type name: str

@@ -31,6 +31,6 @@ class PeriodicCondition(BaseCondition):
         self.counter = self.counter % self.num_steps
 
         if self.counter == 0:
-            return True
+           return True
         else:
             return False

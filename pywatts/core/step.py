@@ -72,6 +72,7 @@ class Step(BaseStep):
         self.lag = lag
         self.refit_conditions = refit_conditions
         self.result_steps: Dict[str, ResultStep] = {}
+        self.recalculate_batch = None
 
     def _fit(self, inputs: Dict[str, BaseStep], target_step):
         # Fit the encapsulate module, if the input and the target is not stopped.
@@ -246,6 +247,7 @@ class Step(BaseStep):
                             if all(isinstance(value, dict) for value in refit_condition.refit_params.values()) \
                             else refit_condition.refit_params
                         self._refit(end, refit_batch, refit_params)
+                        self._recalculate(end, refit_batch)
                         refitted = True
                 elif isinstance(refit_condition, Callable):
                     input_data = self._get_input(start, end)
@@ -253,6 +255,15 @@ class Step(BaseStep):
                     if refit_condition(input_data, target):
                         self._refit(end)
                         break
+        else:
+            recalculate_batch_inputs = [input_step.recalculate_batch for input_step in self.input_steps.values()
+                    if hasattr(input_step, 'recalculate_batch')]
+            recalculate_batch_targets = [input_step.recalculate_batch for input_step in self.input_steps.values()
+                    if hasattr(input_step, 'recalculate_batch')]
+            recalculate_batches = recalculate_batch_inputs + recalculate_batch_targets
+            if any(recalculate_batches):
+                self._recalculate(end, max(recalculate_batches))
+                print('something')
 
     def _refit(self, end, refit_batch, refit_params=None):
         refit_input = self._get_input(end - refit_batch, end)
@@ -260,10 +271,15 @@ class Step(BaseStep):
         if refit_params is not None:
             self.module.set_params(**refit_params)
         self.module.refit(**refit_input, **refit_target)
+
+    def _recalculate(self, end, recalculate_batch):
+        self.recalculate_batch = recalculate_batch
+        recalculate_input = self._get_input(end - self.recalculate_batch, end)
+
         # We need to call the transform already here, otherwise following steps would not get the recalculated data.
         # Move data from the current buffer to the result buffer and fill the current buffer with the recalculated data.
         self.renew_current_buffer()
-        self._transform(refit_input)
+        self._transform(recalculate_input)
 
     def get_result_step(self, item: str):
         if item not in self.result_steps:

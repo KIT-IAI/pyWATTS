@@ -16,12 +16,17 @@ class BaseCondition(ABC):
     :type name: str
     """
 
-    def __init__(self, name, refit_batch: Union[dict, pd.Timedelta] = pd.Timedelta(hours=24), refit_params: dict = None):
+    def __init__(self, name, refit_batch: Union[dict, pd.Timedelta] = pd.Timedelta(hours=24), refit_params=None):
+        if refit_params is None:
+            refit_params = {}
+
         self.name = name
         self.kwargs = {}
         self.refit_batch = refit_batch
         self.refit_params = refit_params
         self._end = None
+
+        self.is_fitted = False
 
     @abstractmethod
     def evaluate(self, start, end) -> bool:
@@ -47,6 +52,9 @@ class BaseCondition(ABC):
         #         self
         #     )
         self.kwargs = kwargs
+
+    def fit(self, x, y):
+        pass
 
     def _is_evaluated(self, end):
         if end == self._end:

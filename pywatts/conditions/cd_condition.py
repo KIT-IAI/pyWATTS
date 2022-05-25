@@ -32,7 +32,7 @@ class RiverDriftDetectionCondition(BaseCondition):
             if self.drift_detection.change_detected:
                 self.drift_detection.reset()
             if len(inputs) == 1:
-                self.drift_detection.update(inputs)
+                self.drift_detection.update(inputs.values())
             elif len(inputs) == 2:
                 y, y_hat = inputs.values()
                 rmse = np.sqrt(np.mean((y_hat.values - y.values) ** 2))

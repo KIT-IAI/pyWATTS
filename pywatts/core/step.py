@@ -156,6 +156,11 @@ class Step(BaseStep):
             else:
                 start_time = time.time()
                 self._fit(input_data, target)
+                for refit_condition in self.refit_conditions:
+                    if isinstance(refit_condition, BaseCondition):
+                        if refit_condition.is_fitted == False:
+                            # the refit_condition could already be fitted in a previous step
+                            refit_condition.fit(start, end)
                 self.training_time.set_kv("", time.time() - start_time)
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)

@@ -9,6 +9,7 @@
 * Add a module for inserting synthetic concept drift ([#226](https://github.com/KIT-IAI/pyWATTS/issues/226))
 * Add a confusion matrix summary ([#236](https://github.com/KIT-IAI/pyWATTS/issues/236))
 * Add a module to insert unusual behaviour into a time series ([#240](https://github.com/KIT-IAI/pyWATTS/issues/240))
+* Add F1Score Summary ([#234](https://github.com/KIT-IAI/pyWATTS/issues/234))
 
 ### Changed
 * Make the inputs of the PNN more flexible ([#228](https://github.com/KIT-IAI/pyWATTS/issues/228))

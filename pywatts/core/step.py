@@ -261,9 +261,9 @@ class Step(BaseStep):
             recalculate_batch_targets = [input_step.recalculate_batch for input_step in self.input_steps.values()
                     if hasattr(input_step, 'recalculate_batch')]
             recalculate_batches = recalculate_batch_inputs + recalculate_batch_targets
+            # todo: recalculate_batch -> recalculated (boolean flag)
             if any(recalculate_batches):
                 self._recalculate(end, max(recalculate_batches))
-                print('something')
 
     def _refit(self, end, refit_batch, refit_params=None):
         refit_input = self._get_input(end - refit_batch, end)
@@ -274,7 +274,11 @@ class Step(BaseStep):
 
     def _recalculate(self, end, recalculate_batch):
         self.recalculate_batch = recalculate_batch
-        recalculate_input = self._get_input(end - self.recalculate_batch, end)
+        # todo: recalculate_batch -> recalculated (boolean flag)
+
+        index = _get_time_indexes(self.result_buffer)
+        start = pd.Timestamp(list(self.result_buffer.values())[0][index[0]].data[0])
+        recalculate_input = self._get_input(start, end)
 
         # We need to call the transform already here, otherwise following steps would not get the recalculated data.
         # Move data from the current buffer to the result buffer and fill the current buffer with the recalculated data.

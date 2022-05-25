@@ -14,21 +14,21 @@ class F1Score(MetricBase):
     """
     Module to calculate the F1Score
 
-    :param offset: Offset, which determines the number of ignored values in the beginning for calculating the MAE.
+    :param offset: Offset, which determines the number of ignored values in the beginning for calculating the F1 Score.
                    Default 0
     :type offset: int
-    :param filter_method: Filter which should performed on the data before calculating the MAE.
+    :param filter_method: Filter which should performed on the data before calculating the F1 Score.
     :type filter_method: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]
-    :param cuts: A list of Tuple of pd.Timestamps which specify intervals on which the metric should be calculated.
+    :param cuts: A list of Tuples of pd.Timestamps which specify intervals on which the metric should be calculated.
     :type cuts: List[Tuple[pd.Timestamp, pd.Timestamp]]
-    :param average: The average param for the f1 score sklearn implementation
+    :param average: The average param for the f1 score sklearn implementation. See
+                    `SKLearn https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html`_
     :type average: str
     """
 
-    def __init__(self, name: str = "F1Score", average="micro",  **kwargs):
+    def __init__(self, name: str = "F1Score", average="micro", **kwargs):
         super().__init__(name=name, **kwargs)
         self.average = average
-
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -39,16 +39,17 @@ class F1Score(MetricBase):
         """
         return {"offset": self.offset,
                 "cuts": self.cuts,
-                "average":self.average}
+                "average": self.average}
 
     def set_params(self, offset: Optional[int] = None, cuts=Optional[List[Tuple[pd.Timestamp, pd.Timestamp]]],
-                   average:str=None):
+                   average: str = None):
         """
         Set parameters of the Metric.
 
-        :param offset: Offset, which determines the number of ignored values in the beginning for calculating the Metric.
+        :param offset: Offset, which determines the number of ignored values in the beginning for calculating the
+                       Metric.
         :type offset: int
-        :param cuts: The cutouts on which the metric should be additionally calculated.
+        :param cuts: A list of Tuples of pd.Timestamps which specify intervals on which the metric should be calculated.
         :type cuts: List[Tuple[pd.Timestamp, pd.Timestamp]]
         :param average: The average param for the f1 score sklearn implementation
         :type average: str

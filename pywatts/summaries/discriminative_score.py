@@ -16,7 +16,21 @@ from pywatts.core.summary_object import SummaryObjectTable
 
 
 class DiscriminativeScore(BaseSummary):
-
+    """
+    The discriminative score aims to measure how similar the synthetic and real data are. Therefore, the discriminative
+    score trains a classifier to distinguish both. The resulting discriminative score is the accuracy on the test data
+    minus 0.5.
+    :param name: Name of the discriminative score.
+    :type name: str
+    :param fit_kwargs: Kwargs that are passed to the classifier if fit is called.
+    :type fit_kwargs: Dict
+    :param repititions: The number of repeititions the discriminative score should be calculated.
+    :type repititions: int
+    :param get_model: A function that returns a classifier. Default: A simple FC network.
+    :type get_model: Callable
+    :param test_size: The share of data that is used for testing
+    :type test_size: float
+    """
     @staticmethod
     def _get_model(horizon):
         input = keras.layers.Input(((horizon)))
@@ -43,6 +57,13 @@ class DiscriminativeScore(BaseSummary):
             self.get_model = self._get_model
 
     def get_params(self) -> Dict[str, object]:
+        """
+        Returns the parameter of the discriminative score as a Dict.
+
+        :returns: A Dcit containing all parameters of the discriminative score.
+        :rytpe: Dict
+        """
+
         return {
             "fit_kwargs": self.fit_kwargs,
             "repetitions": self.repetitions,
@@ -51,6 +72,18 @@ class DiscriminativeScore(BaseSummary):
         }
 
     def set_params(self, fit_kwargs=None, repetitions=None, get_model=None, test_size=None):
+        """
+        Set the parameters of the discriminative score.
+
+        :param fit_kwargs: Kwargs that are passed to the classifier if fit is called.
+        :type fit_kwargs: Dict
+        :param repititions: The number of repeititions the discriminative score should be calculated.
+        :type repititions: int
+        :param get_model: A function that returns a classifier. Default: A simple FC network.
+        :type get_model: Callable
+        :param test_size: The share of data that is used for testing
+        :type test_size: float
+        """
         if fit_kwargs is not None:
             self.fit_kwargs = fit_kwargs
         if repetitions is not None:
@@ -61,6 +94,17 @@ class DiscriminativeScore(BaseSummary):
             self.test_size = test_size
 
     def transform(self, file_manager: FileManager, gt: xr.DataArray = None, **kwargs) -> SummaryObjectTable:
+        """
+        Calculates the discriminative score.
+
+        :param gt: A data set containing the real data.
+        :type gt: xr.DataArray.
+        :param kwargs: The data sets containing the synthetic data.
+        :type kwargs: xr.DataArray
+        :return: A summary containing all the discriminative scores.
+        :rtype: SummaryObjectTable
+        """
+
         real_data_x = gt.values
         horizon = real_data_x.shape[-1]
         df_result = pd.DataFrame(columns=["Model", "ScoreSum", "ScoreMin", "ScoreMax", "ScoreMean"])

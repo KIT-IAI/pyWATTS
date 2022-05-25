@@ -76,6 +76,14 @@ pywatts.summaries.rmse\_summary module
    :undoc-members:
    :show-inheritance:
 
+pywatts.summaries.train\_synthetic\_test\_real module
+-----------------------------------------------------
+
+.. automodule:: pywatts.summaries.train_synthetic_test_real
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.summaries.tsne\_visualisation module
 --------------------------------------------
 

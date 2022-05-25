@@ -4,6 +4,22 @@ pywatts.summaries package
 Submodules
 ----------
 
+pywatts.summaries.f1\_summary module
+------------------------------------
+
+.. automodule:: pywatts.summaries.f1_summary
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pywatts.summaries.confusion\_matrix module
+------------------------------------------
+
+.. automodule:: pywatts.summaries.confusion_matrix
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.summaries.mae\_summary module
 -------------------------------------
 

@@ -6,13 +6,18 @@ class BaseTestMetricBase(ABC):
     def setUp(self) -> None:
         self.metric = self.get_metric()(name="NAME")
 
+    def get_default_params(self):
+        return {'offset': 0, "cuts":[]}
+
+    def get_load_params(self):
+        return {'offset': 24, "cuts":[]}
 
     def tearDown(self) -> None:
         self.metric = None
 
     def test_get_params(self):
         self.assertEqual(self.metric.get_params(),
-                         {'offset': 0, "cuts":[]})
+                         self.get_default_params())
 
     def test_set_params(self):
         self.metric.set_params(offset=24, cuts=[("Test", "test")])
@@ -37,7 +42,7 @@ class BaseTestMetricBase(ABC):
 
         cloudpickle_mock.dump.assert_called_once_with(filter_mock, open_mock().__enter__.return_value)
         self.assertEqual(json["filter"], "filter_path")
-        self.assertEqual(json["params"], {"offset": 0, "cuts" : []})
+        self.assertEqual(json["params"], self.get_default_params())
 
 
     @patch("builtins.open")
@@ -53,7 +58,7 @@ class BaseTestMetricBase(ABC):
 
         self.assertEqual(metric.name, "NAME")
         self.assertEqual(metric.filter_method, filter_mock)
-        self.assertEqual(metric.get_params(), {"offset": 24, "cuts": []})
+        self.assertEqual(metric.get_params(), self.get_load_params())
 
     @abstractmethod
     def get_metric(self):

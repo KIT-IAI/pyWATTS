@@ -141,7 +141,7 @@ class Step(BaseStep):
 
         return step
 
-    def _compute(self, start, end, minimum_data, recalculate=False):
+    def _compute(self, start, end, minimum_data):
         input_data = self._get_input(start, end, minimum_data)
         target = self._get_target(start, end, minimum_data)
         if self.current_run_setting.computation_mode in [ComputationMode.Default, ComputationMode.FitTransform,
@@ -247,7 +247,6 @@ class Step(BaseStep):
                             else refit_condition.refit_params
                         self._refit(end, refit_batch, refit_params)
                         refitted = True
-                        self.refitted = True
                 elif isinstance(refit_condition, Callable):
                     input_data = self._get_input(start, end)
                     target = self._get_target(start, end)
@@ -261,6 +260,10 @@ class Step(BaseStep):
         if refit_params is not None:
             self.module.set_params(**refit_params)
         self.module.refit(**refit_input, **refit_target)
+        # We need to call the transform already here, otherwise following steps would not get the recalculated data.
+        # Move data from the current buffer to the result buffer and fill the current buffer with the recalculated data.
+        self.renew_current_buffer()
+        self._transform(refit_input)
 
     def get_result_step(self, item: str):
         if item not in self.result_steps:

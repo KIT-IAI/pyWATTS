@@ -42,29 +42,11 @@ class BaseStep(ABC):
         self.id = -1
         self.finished = False
         self.last = True
-        self.refitted = True
         self._current_end = None
         self.current_buffer: Dict[str, xr.DataArray] = {}
         self.result_buffer: Dict[str, xr.DataArray] = {}
         self.training_time = SummaryObjectList(self.name + " Training Time", category=SummaryCategory.FitTime)
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
-
-
-    def should_recalculate(self):
-        if self.refitted == True:
-            self.renew_current_buffer()
-            return True
-        else:
-            for in_step in self.input_steps.values():
-                if in_step.should_recalculate:
-                    self.renew_current_buffer()
-                    return True
-            for in_step in self.input_steps.values():
-                if in_step.should_recalculate:
-                    self.renew_current_buffer()
-                    return True
-        return False
-
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
                    return_all=False, minimum_data=(0, pd.Timedelta(0)), use_result_buffer=False):
@@ -108,7 +90,7 @@ class BaseStep(ABC):
         return self._pack_data(start, end, buffer_element, return_all=return_all, minimum_data=minimum_data,
                                use_result_buffer=use_result_buffer)
 
-    def _compute(self, start, end, minimum_data, recalculate=False) -> Dict[str, xr.DataArray]:
+    def _compute(self, start, end, minimum_data) -> Dict[str, xr.DataArray]:
         pass
 
     def further_elements(self, counter: pd.Timestamp) -> bool:
@@ -269,7 +251,7 @@ class BaseStep(ABC):
         self.update_buffer(self.result_buffer, self.current_buffer)
         self.current_buffer = {}
 
-    def update_buffer(self,buffer, new_data):
+    def update_buffer(self, buffer, new_data):
         """
         TODO
         """
@@ -280,4 +262,4 @@ class BaseStep(ABC):
         index = list(buffer.values())[0].indexes[time_index]
         last = index[-1]
         for key in buffer.keys():
-            buffer[key] = xr.concat([buffer[key],new_data[key][new_data[key][time_index] > last]], dim=time_index)
+            buffer[key] = xr.concat([buffer[key], new_data[key][new_data[key][time_index] > last]], dim=time_index)

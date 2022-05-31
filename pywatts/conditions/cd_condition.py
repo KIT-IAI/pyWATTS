@@ -31,11 +31,13 @@ class RiverDriftDetectionCondition(BaseCondition):
         if not self._is_evaluated(end):
             if self.drift_detection.change_detected:
                 self.drift_detection.reset()
+
+            inputs = list(inputs.values())
             if len(inputs) == 1:
-                self.drift_detection.update(inputs.values())
+                for value in inputs[0].values:
+                    self.drift_detection.update(value)
             elif len(inputs) == 2:
-                y, y_hat = inputs.values()
-                rmse = np.sqrt(np.mean((y_hat.values - y.values) ** 2))
+                rmse = np.sqrt(np.mean((inputs[1].values - inputs[0].values) ** 2))
                 if not np.isnan(rmse):
                     self.drift_detection.update(rmse)
             else:

@@ -475,5 +475,5 @@ class Pipeline(BaseTransformer):
             # A lag is needed, since if we have a 24 hour forecast we can evaluate the forecast not until 24 hours
             # are gone, since before not all target variables are available
             if isinstance(step, Step):
-                step.recalculate_batch = None
+                step.recalculated = False
                 step.refit(start - step.lag, end - step.lag)

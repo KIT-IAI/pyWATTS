@@ -72,7 +72,7 @@ class Step(BaseStep):
         self.lag = lag
         self.refit_conditions = refit_conditions
         self.result_steps: Dict[str, ResultStep] = {}
-        self.recalculate_batch = None
+        self.recalculated = False
 
     def _fit(self, inputs: Dict[str, BaseStep], target_step):
         # Fit the encapsulate module, if the input and the target is not stopped.
@@ -84,7 +84,8 @@ class Step(BaseStep):
             dim = _get_time_indexes(self.result_buffer)[0]
 
             if self.current_run_setting.online_start is not None:
-                to_plot = {k: self.result_buffer[k][self.result_buffer[k][dim] >= self.current_run_setting.online_start] for k in
+                to_plot = {k: self.result_buffer[k][self.result_buffer[k][dim] >= self.current_run_setting.online_start]
+                           for k in
                            self.result_buffer.keys()}
             else:
                 to_plot = self.result_buffer
@@ -247,7 +248,7 @@ class Step(BaseStep):
                             if all(isinstance(value, dict) for value in refit_condition.refit_params.values()) \
                             else refit_condition.refit_params
                         self._refit(end, refit_batch, refit_params)
-                        self._recalculate(end, refit_batch)
+                        self._recalculate(end)
                         refitted = True
                 elif isinstance(refit_condition, Callable):
                     input_data = self._get_input(start, end)
@@ -256,14 +257,13 @@ class Step(BaseStep):
                         self._refit(end)
                         break
         else:
-            recalculate_batch_inputs = [input_step.recalculate_batch for input_step in self.input_steps.values()
-                    if hasattr(input_step, 'recalculate_batch')]
-            recalculate_batch_targets = [input_step.recalculate_batch for input_step in self.input_steps.values()
-                    if hasattr(input_step, 'recalculate_batch')]
-            recalculate_batches = recalculate_batch_inputs + recalculate_batch_targets
-            # todo: recalculate_batch -> recalculated (boolean flag)
-            if any(recalculate_batches):
-                self._recalculate(end, max(recalculate_batches))
+            recalculated_inputs = [input_step.recalculated for input_step in self.input_steps.values()
+                                   if hasattr(input_step, 'recalculated')]
+            recalculated_targets = [input_step.recalculated for input_step in self.input_steps.values()
+                                    if hasattr(input_step, 'recalculated')]
+            recalculated = recalculated_inputs + recalculated_targets
+            if any(recalculated):
+                self._recalculate(end)
 
     def _refit(self, end, refit_batch, refit_params=None):
         refit_input = self._get_input(end - refit_batch, end)
@@ -272,10 +272,7 @@ class Step(BaseStep):
             self.module.set_params(**refit_params)
         self.module.refit(**refit_input, **refit_target)
 
-    def _recalculate(self, end, recalculate_batch):
-        self.recalculate_batch = recalculate_batch
-        # todo: recalculate_batch -> recalculated (boolean flag)
-
+    def _recalculate(self, end):
         index = _get_time_indexes(self.result_buffer)
         start = pd.Timestamp(list(self.result_buffer.values())[0][index[0]].data[0])
         recalculate_input = self._get_input(start, end)
@@ -284,6 +281,7 @@ class Step(BaseStep):
         # Move data from the current buffer to the result buffer and fill the current buffer with the recalculated data.
         self.renew_current_buffer()
         self._transform(recalculate_input)
+        self.recalculated = True
 
     def get_result_step(self, item: str):
         if item not in self.result_steps:

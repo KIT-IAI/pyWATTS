@@ -16,7 +16,8 @@ class BaseCondition(ABC):
     :type name: str
     """
 
-    def __init__(self, name, refit_batch: Union[dict, pd.Timedelta] = pd.Timedelta(hours=24), refit_params=None):
+    def __init__(self, name, refit_batch: Union[dict, pd.Timedelta] = pd.Timedelta(hours=24), refit_params: dict = None,
+                 delay_refit: int = None):
         if refit_params is None:
             refit_params = {}
 
@@ -24,6 +25,7 @@ class BaseCondition(ABC):
         self.kwargs = {}
         self.refit_batch = refit_batch
         self.refit_params = refit_params
+        self.delay_refit = delay_refit
         self._end = None
 
         self.is_fitted = False

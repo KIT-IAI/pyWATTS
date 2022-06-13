@@ -12,6 +12,7 @@ from pywatts.callbacks import BaseCallback
 from pywatts.core.base import Base, BaseEstimator
 from pywatts.core.base_condition import BaseCondition
 from pywatts.core.base_step import BaseStep
+from pywatts.core.base_summary import BaseSummary
 from pywatts.core.run_setting import RunSetting
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.exceptions.not_fitted_exception import NotFittedException
@@ -273,6 +274,9 @@ class Step(BaseStep):
         self.module.refit(**refit_input, **refit_target)
 
     def _recalculate(self, end):
+        if isinstance(self.module, BaseSummary):
+            self.recalculated = True
+            return None  # summaries have no buffer
         index = _get_time_indexes(self.result_buffer)
         start = pd.Timestamp(list(self.result_buffer.values())[0][index[0]].data[0])
         recalculate_input = self._get_input(start, end)

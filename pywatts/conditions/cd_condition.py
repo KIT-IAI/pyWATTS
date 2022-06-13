@@ -14,10 +14,9 @@ class RiverDriftDetectionCondition(BaseCondition):
     """
 
     def __init__(self, name="CDCondition", refit_batch: pd.Timedelta = pd.Timedelta(hours=10), refit_params: dict = None,
-                 drift_detection=ADWIN(), delay_refit: int = None):
+                 drift_detection=ADWIN(), delay_refit: int = None, cooldown: int = None):
         super().__init__(name=name, refit_batch=refit_batch, refit_params=refit_params, delay_refit=delay_refit)
         self.drift_detection = drift_detection
-        self._counter = 0
 
     def evaluate(self, start, end):
         """
@@ -46,12 +45,13 @@ class RiverDriftDetectionCondition(BaseCondition):
                     f"More than two inputs are given for the instance {self.name} of class {self.__class__.__name__}.")
 
         if self.drift_detection.change_detected:
-            if self.delay_refit is not None:
-                self._counter += 1
-                self._counter = self._counter % self.delay_refit
-                if self._counter == 0:
-                    return True
+            if not self._cooldown_expired():
                 return False
+            self._counter_cooldown = None  # turn off cooldown
+
+            if not self._delay_expired():
+                return False
+
+            self._counter_cooldown = 0  # turn on cooldown
             return True
-        else:
-            return False
+        return False

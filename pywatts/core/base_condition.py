@@ -1,6 +1,5 @@
 import inspect
 from abc import ABC, abstractmethod
-from typing import Union
 
 import pandas as pd
 
@@ -16,8 +15,8 @@ class BaseCondition(ABC):
     :type name: str
     """
 
-    def __init__(self, name, refit_batch: Union[dict, pd.Timedelta] = pd.Timedelta(hours=24), refit_params: dict = None,
-                 delay_refit: int = None):
+    def __init__(self, name, refit_batch: pd.Timedelta = pd.Timedelta(hours=24), refit_params: dict = None,
+                 delay_refit: int = None, cooldown: int = None):
         if refit_params is None:
             refit_params = {}
 
@@ -26,7 +25,10 @@ class BaseCondition(ABC):
         self.refit_batch = refit_batch
         self.refit_params = refit_params
         self.delay_refit = delay_refit
+        self.cooldown = cooldown
         self._end = None
+        self._counter_delay = 0
+        self._counter_cooldown = None
 
         self.is_fitted = False
 
@@ -66,3 +68,22 @@ class BaseCondition(ABC):
 
     def _get_inputs(self, start, end):
         return {key: value.step.get_result(start, end) for key, value in self.kwargs.items()}
+
+    def _cooldown_expired(self):
+        if self.cooldown is not None:
+            if self._counter_cooldown is not None:
+                self._counter_cooldown += 1
+                self._counter_cooldown = self._counter_cooldown % self.cooldown
+                if not self._counter_cooldown == 0:
+                    return False
+            return True
+        return True
+
+    def _delay_expired(self):
+        if self.delay_refit is not None:
+            self._counter_delay += 1
+            self._counter_delay = self._counter_delay % self.delay_refit
+            if not self._counter_delay == 0:
+                return False
+            return True
+        return True

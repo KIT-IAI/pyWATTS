@@ -16,6 +16,14 @@ To install this project, perform the following steps.
    if you want to install the project editable. If you aim to develop code for pyWATTS, you should
    use:  ``pip install -e .[dev]``
 
+### TensorFlow for Mac
+If you want to use pyWATTS on an Apple computer, you currently have to install TensorFlow separately:
+1. Install Apple TensorFlow dependencies: ``conda install -c apple tensorflow-deps``
+2. Install TensorFlow for macOS: ``pip install tensorflow-macos``
+3. Install TensorFlow metal for GPU usage: ``pip install tensorflow-metal``
+
+More information regarding TensorFlow for macOS can be found through this helpful [installation guide](https://caffeinedev.medium.com/how-to-install-tensorflow-on-m1-mac-8e9b91d93706).
+
 ---
 **NOTE**
 If you want to use torch, you have to install it by yourself, since it is not possible to install torch via pypi on

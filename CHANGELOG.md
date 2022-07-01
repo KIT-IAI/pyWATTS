@@ -18,7 +18,7 @@
 
 
 ### Fixed
-* Enabled installation for macOS
+* Enabled installation for macOS([#241](https://github.com/KIT-IAI/pyWATTS/issues/241))
 
 
 ## 0.3.0 - 2022-31-03

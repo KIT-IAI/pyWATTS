@@ -6,7 +6,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
-                      "tensorflow>=2; platform_system!='darwin'",
+                      "tensorflow>=2 ; platform_system!='Darwin'",
                       'workalendar',  'statsmodels', 'tabulate', 'river', 'tikzplotlib'],
     extras_require={
         'dev': [

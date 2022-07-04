@@ -17,6 +17,10 @@
 * Make the inputs of the PNN more flexible ([#228](https://github.com/KIT-IAI/pyWATTS/issues/228))
 
 
+### Fixed
+* Enabled installation for macOS([#241](https://github.com/KIT-IAI/pyWATTS/issues/241))
+
+
 ## 0.3.0 - 2022-31-03
 
 ### Added

@@ -271,7 +271,9 @@ class Step(BaseStep):
         refit_target = self._get_target(end - refit_batch, end)
         if refit_params is not None:
             self.module.set_params(**refit_params)
+        start_time = time.time()
         self.module.refit(**refit_input, **refit_target)
+        self.refit_time.set_kv(f"refit at position {end}", time.time() - start_time)
 
     def _recalculate(self, end):
         if isinstance(self.module, BaseSummary):

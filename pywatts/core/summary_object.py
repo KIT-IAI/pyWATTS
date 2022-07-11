@@ -9,6 +9,7 @@ class SummaryCategory(IntEnum):
     Summary = 1
     TransformTime = 2
     FitTime = 3
+    RefitTime = 4
 
 
 class SummaryObject(ABC):

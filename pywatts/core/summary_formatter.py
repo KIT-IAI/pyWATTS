@@ -44,7 +44,8 @@ class SummaryMarkdown(SummaryFormatter):
         :type fm: FileManager
         """
         summary_string = "# Summary: \n"
-        for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime]:
+        for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime,
+                         SummaryCategory.RefitTime]:
             summary_string += f"## {category.name}\n"
             for summary in filter(lambda s: s.category == category, summaries):
                 if summary.additional_information != "" or len(summary.k_v) > 0:
@@ -82,7 +83,8 @@ class SummaryJSON(SummaryFormatter):
         :type fm: FileManager
         """
         summary_dict = {}
-        for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime]:
+        for category in [SummaryCategory.Summary, SummaryCategory.FitTime, SummaryCategory.TransformTime,
+                         SummaryCategory.RefitTime]:
             category_dict = {}
             for summary in filter(lambda s: s.category == category, summaries):
                 if summary.additional_information != "" or len(summary.k_v) > 0:

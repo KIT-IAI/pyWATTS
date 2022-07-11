@@ -462,7 +462,7 @@ class Pipeline(BaseTransformer):
         for step in self.id_to_step.values():
             if isinstance(step, SummaryStep):
                 summaries.append(step.get_summary(start, end))
-            summaries.extend([step.transform_time, step.training_time])
+            summaries.extend([step.transform_time, step.training_time, step.refit_time])
         return summary_formatter.create_summary(summaries, self.file_manager)
 
     def refit(self, start, end):

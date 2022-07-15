@@ -15,7 +15,8 @@ class RiverDriftDetectionCondition(BaseCondition):
 
     def __init__(self, name="CDCondition", refit_batch: pd.Timedelta = pd.Timedelta(hours=10), refit_params: dict = None,
                  drift_detection=ADWIN(), delay_refit: int = None, cooldown: int = None):
-        super().__init__(name=name, refit_batch=refit_batch, refit_params=refit_params, delay_refit=delay_refit)
+        super().__init__(name=name, refit_batch=refit_batch, refit_params=refit_params,
+                         delay_refit=delay_refit, cooldown=cooldown)
         self.drift_detection = drift_detection
 
     def evaluate(self, start, end):
@@ -28,9 +29,7 @@ class RiverDriftDetectionCondition(BaseCondition):
         """
         inputs = self._get_inputs(start, end)
 
-        if not self._is_evaluated(end) and self._counter == 0:
-            if self.drift_detection.change_detected:
-                self.drift_detection.reset()
+        if not self._is_evaluated(end):
 
             inputs = list(inputs.values())
             if len(inputs) == 1:
@@ -53,5 +52,7 @@ class RiverDriftDetectionCondition(BaseCondition):
                 return False
 
             self._counter_cooldown = 0  # turn on cooldown
+            self.drift_detection.reset()
             return True
+
         return False

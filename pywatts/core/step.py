@@ -267,8 +267,16 @@ class Step(BaseStep):
                 self._recalculate(end)
 
     def _refit(self, end, refit_batch, refit_params=None):
-        refit_input = self._get_input(end - refit_batch, end)
-        refit_target = self._get_target(end - refit_batch, end)
+        if isinstance(refit_batch, pd.Timedelta):
+            refit_input = self._get_input(end - refit_batch, end)
+            refit_target = self._get_target(end - refit_batch, end)
+        elif isinstance(refit_batch, (tuple, list)):
+            s_, e_ = refit_batch[0], refit_batch[1]
+            refit_input = self._get_input(s_, e_)
+            refit_target = self._get_target(s_, e_)
+        else:
+            raise TypeError("refit_batch is not a Timedelta or a tuple or list of Timestamps!")
+
         if refit_params is not None:
             self.module.set_params(**refit_params)
         start_time = time.time()

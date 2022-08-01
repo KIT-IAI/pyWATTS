@@ -10,6 +10,8 @@ class SummaryCategory(IntEnum):
     TransformTime = 2
     FitTime = 3
     RefitTime = 4
+    FitConfiguration = 5
+    RefitConfiguration = 6
 
 
 class SummaryObject(ABC):
@@ -69,4 +71,3 @@ class SummaryObjectTable(SummaryObject):
     :param additional_information: A string containing additional information that should be stored in the summary.
     :type additional_information: str
     """
-

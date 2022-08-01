@@ -48,6 +48,10 @@ class BaseStep(ABC):
         self.training_time = SummaryObjectList(self.name + " Training Time", category=SummaryCategory.FitTime)
         self.transform_time = SummaryObjectList(self.name + " Transform Time", category=SummaryCategory.TransformTime)
         self.refit_time = SummaryObjectList(self.name + " Refit Time", category=SummaryCategory.RefitTime)
+        self.fit_config = SummaryObjectList(self.name + " Fit Configuration",
+                                            category=SummaryCategory.FitConfiguration)
+        self.refit_config = SummaryObjectList(self.name + " Refit Configuration",
+                                              category=SummaryCategory.RefitConfiguration)
 
     def get_result(self, start: pd.Timestamp, end: Optional[pd.Timestamp], buffer_element: str = None,
                    return_all=False, minimum_data=(0, pd.Timedelta(0)), use_result_buffer=False):

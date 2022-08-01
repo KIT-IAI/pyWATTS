@@ -149,6 +149,7 @@ class Base(ABC):
                  batch_size: Optional[pd.Timedelta] = None,
                  refit_conditions: List[Union[Callable, bool]] = [],
                  lag: Optional[int] = pd.Timedelta(hours=0),
+                 config_summary = [],
                  **kwargs: Union[StepInformation, Tuple[StepInformation, ...]]
                  ) -> StepInformation:
         """
@@ -198,7 +199,8 @@ class Base(ABC):
                                          refit_conditions=refit_conditions if isinstance(refit_conditions, list) else [
                                              refit_conditions
                                          ],
-                                         lag=lag
+                                         lag=lag,
+                                         config_summary=config_summary
                                          )
 
 

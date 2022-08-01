@@ -32,7 +32,8 @@ class StepFactory:
                     batch_size,
                     computation_mode,
                     refit_conditions,
-                    lag):
+                    lag,
+                    config_summary):
         """
         Creates a appropriate step for the current situation.
 
@@ -73,18 +74,21 @@ class StepFactory:
         if isinstance(module, Pipeline):
             step = PipelineStep(module, input_steps, pipeline.file_manager, targets=target_steps,
                                 callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                                batch_size=batch_size, refit_conditions=refit_conditions, lag=lag)
+                                batch_size=batch_size, refit_conditions=refit_conditions, lag=lag,
+                                config_summary=config_summary)
         elif use_inverse_transform:
             step = InverseStep(module, input_steps, pipeline.file_manager, targets=target_steps,
-                               callbacks=callbacks, computation_mode=computation_mode, condition=condition, lag=lag)
+                               callbacks=callbacks, computation_mode=computation_mode, condition=condition, lag=lag,
+                               config_summary=config_summary)
         elif use_predict_proba:
             step = ProbablisticStep(module, input_steps, pipeline.file_manager, targets=target_steps,
                                     callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                                    lag=lag)
+                                    lag=lag, config_summary=config_summary)
         else:
             step = Step(module, input_steps, pipeline.file_manager, targets=target_steps,
-                        callbacks=callbacks, computation_mode=computation_mode, condition=condition,
-                        batch_size=batch_size, refit_conditions=refit_conditions, lag=lag)
+                        computation_mode=computation_mode, callbacks=callbacks, condition=condition,
+                        batch_size=batch_size, refit_conditions=refit_conditions, lag=lag,
+                        config_summary=config_summary)
 
         step_id = pipeline.add(module=step,
                                input_ids=[step.id for step in input_steps.values()],

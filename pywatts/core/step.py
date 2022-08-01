@@ -58,7 +58,8 @@ class Step(BaseStep):
                  condition=None,
                  batch_size: Optional[None] = None,
                  refit_conditions=[],
-                 lag=pd.Timedelta(hours=24)):
+                 lag=pd.Timedelta(hours=24),
+                 config_summary=[]):
         super().__init__(input_steps, targets, condition=condition,
                          computation_mode=computation_mode, name=module.name)
         self.file_manager = file_manager
@@ -71,6 +72,7 @@ class Step(BaseStep):
             warnings.warn(message)
             logger.warning(message)
         self.lag = lag
+        self.config_summary = config_summary
         self.refit_conditions = refit_conditions
         self.result_steps: Dict[str, ResultStep] = {}
         self.recalculated = False
@@ -156,6 +158,12 @@ class Step(BaseStep):
                 start_time = time.time()
                 self._fit(input_batch, target_batch)
                 self.training_time.set_kv("", time.time() - start_time)
+                for config in self.config_summary:
+                    if hasattr(self.module, "module"):
+                        if hasattr(self.module.module, config):
+                            self.fit_config.set_kv(f"", f"{config}={getattr(self.module.module, config)}")
+                    elif hasattr(self.module, config):
+                        self.fit_config.set_kv(f"", f"{config}={getattr(self.module, config)}")
             else:
                 start_time = time.time()
                 self._fit(input_data, target)
@@ -165,6 +173,13 @@ class Step(BaseStep):
                             # the refit_condition could already be fitted in a previous step
                             refit_condition.fit(start, end)
                 self.training_time.set_kv("", time.time() - start_time)
+                for config in self.config_summary:
+                    if hasattr(self.module, "module"):
+                        if hasattr(self.module.module, config):
+                            self.fit_config.set_kv(f"", f"{config}={getattr(self.module.module, config)}")
+                    elif hasattr(self.module, config):
+                        self.fit_config.set_kv(f"", f"{config}={getattr(self.module, config)}")
+
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
 
@@ -282,6 +297,14 @@ class Step(BaseStep):
         start_time = time.time()
         self.module.refit(**refit_input, **refit_target)
         self.refit_time.set_kv(f"refit at position {end}", time.time() - start_time)
+        for config in self.config_summary:
+            if hasattr(self.module, "module"):
+                if hasattr(self.module.module, config):
+                    self.refit_config.set_kv(f"refit at position {end}",
+                                             f"{config}={getattr(self.module.module, config)}")
+            elif hasattr(self.module, config):
+                self.refit_config.set_kv(f"refit at position {end}",
+                                         f"{config}={getattr(self.module, config)}")
 
     def _recalculate(self, end):
         if isinstance(self.module, BaseSummary):

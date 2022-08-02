@@ -273,7 +273,7 @@ the following items:
 - *linear_regression_target.png*: A plot of the 24 training targets against time.
 - *linear_regression_target_2..png*: A plot of the 24 test targets against time.
 - *rescale_scaler_power.png*: A plot of the 24 rescaled predictions on the training set against time.
-- *rescale_scaler_power_2..png: A plot of the 24 rescaled predictions on the test set against time.
+- *rescale_scaler_power_2..png*: A plot of the 24 rescaled predictions on the test set against time.
 - *summary.md*: A summary of the training run, including the RMSE and runtimes.
 - *summary_2..md*: A summary of the test run, including the RMSE and runtimes.
 

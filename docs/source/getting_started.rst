@@ -210,11 +210,9 @@ To measure the accuracy of our regression model, we can calculate the root mean 
 
 .. code-block:: python
 
-    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"],
-                            callbacks=[CSVCallback('RMSE')])
+    rmse = RMSE()(y_hat=inverse_power_scale, y=targets_sliced)
 
 The target variable is determined by the key-word ``y_hat``. All other keyword arguments are considered as predictions.
-Additionally, we use the ``CSVCallback`` for storing the result into a CSV file.
 
 Executing, Saving and Loading the Pipeline
 ******************************************

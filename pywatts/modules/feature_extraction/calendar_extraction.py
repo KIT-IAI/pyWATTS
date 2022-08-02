@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
+from pywatts_pipeline.core.transformer.base import BaseTransformer
 from pywatts.core.exceptions.util_exception import UtilException
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._workalendar_utils import _init_calendar

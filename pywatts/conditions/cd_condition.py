@@ -2,7 +2,8 @@ import numpy as np
 import xarray as xr
 from river.drift import ADWIN
 
-from pywatts.core.base_condition import BaseCondition
+from pywatts_pipeline.core.exceptions.invalid_input_exception import InvalidInputException
+from pywatts_pipeline.core.condition.base_condition import BaseCondition
 
 
 class RiverDriftDetectionCondition(BaseCondition):
@@ -32,7 +33,7 @@ class RiverDriftDetectionCondition(BaseCondition):
             self.counter += 1
 
         if self.drift_detection.change_detected:
-            self.drift_detection.reset()
+            self.reset()
             return True
         else:
             return False

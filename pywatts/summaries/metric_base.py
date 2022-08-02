@@ -7,11 +7,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base_summary import BaseSummary
-from pywatts.core.exceptions import InputNotAvailable
-from pywatts.core.exceptions.invalid_input_exception import InvalidInputException
-from pywatts.core.filemanager import FileManager
-from pywatts.core.summary_object import SummaryObjectList
+from pywatts_pipeline.core.summary.base_summary import BaseSummary
+from pywatts_pipeline.core.exceptions import InputNotAvailable
+from pywatts_pipeline.core.exceptions.invalid_input_exception import InvalidInputException
+from pywatts_pipeline.core.util.filemanager import FileManager
+from pywatts_pipeline.core.summary.summary_object import SummaryObjectList
 
 logger = logging.getLogger(__name__)
 

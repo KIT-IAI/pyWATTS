@@ -71,7 +71,7 @@ class ClockShift(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            return x.shift({index: self.lag for index in indexes}, fill_value=0)
+            return x.shift({index: self.lag for index in indexes}).dropna(indexes[0])
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",

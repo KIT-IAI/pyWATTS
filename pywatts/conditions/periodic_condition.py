@@ -1,4 +1,6 @@
-from pywatts.core.base_condition import BaseCondition
+import pandas as pd
+
+from pywatts_pipeline.core.condition.base_condition import BaseCondition
 
 
 class PeriodicCondition(BaseCondition):

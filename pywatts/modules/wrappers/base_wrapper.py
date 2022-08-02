@@ -3,7 +3,7 @@
 
 from abc import ABC
 
-from pywatts.core.base import BaseEstimator
+from pywatts_pipeline.core.transformer.base import BaseEstimator
 
 
 class BaseWrapper(BaseEstimator, ABC):

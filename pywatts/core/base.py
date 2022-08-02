@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 
 class Base(ABC):
+    # TODO inherit from sktime?
     """
     This is the base class of the modules. It manages the basic functionality of modules. BaseTransformer and
     BaseEstimator inherit from this class.
@@ -190,7 +191,7 @@ class Base(ABC):
         :rtype: StepInformation
         """
 
-        from pywatts.core.step_factory import StepFactory
+        from pywatts_pipeline.core.steps.step_factory import StepFactory
 
         return StepFactory().create_step(self, kwargs=kwargs,
                                          use_inverse_transform=use_inverse_transform,
@@ -201,7 +202,7 @@ class Base(ABC):
                                          refit_conditions=refit_conditions if isinstance(refit_conditions, list) else [
                                              refit_conditions
                                          ],
-                                         retrain_batch=retrain_batch,
+                                         #retrain_batch=retrain_batch,
                                          lag=lag
                                          )
 

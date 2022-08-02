@@ -6,7 +6,7 @@ import numpy as np
 import xarray as xr
 from pywatts_pipeline.core.transformer.base import BaseEstimator
 from pywatts_pipeline.core.util.filemanager import FileManager
-from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
+from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
 
 from tensorflow.keras import layers
 from tensorflow.keras import activations, optimizers, initializers

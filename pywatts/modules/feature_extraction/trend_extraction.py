@@ -7,7 +7,7 @@ from typing import Dict, List
 import xarray as xr
 
 from pywatts_pipeline.core.transformer.base import BaseTransformer
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
 
 

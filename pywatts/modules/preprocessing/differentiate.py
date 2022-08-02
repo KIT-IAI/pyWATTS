@@ -5,7 +5,7 @@ import xarray as xr
 
 from pywatts_pipeline.core.transformer.base import BaseTransformer
 from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class Differentiate(BaseTransformer):

@@ -7,8 +7,8 @@ from statsmodels.iolib import load_pickle
 from statsmodels.tsa.base.tsa_model import TimeSeriesModel
 
 from pywatts_pipeline.core.util.filemanager import FileManager
-from pywatts.utils._split_kwargs import split_kwargs
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes, numpy_to_xarray
+from pywatts_pipeline.utils._split_kwargs import split_kwargs
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes, numpy_to_xarray
 from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 

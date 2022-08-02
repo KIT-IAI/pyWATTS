@@ -11,8 +11,8 @@ from sklearn.feature_selection import SelectKBest, f_regression
 
 # From pyWATTS the pipeline is imported
 from pywatts.callbacks import LinePlotCallback
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.util.computation_mode import ComputationMode
+from pywatts_pipeline.core.pipeline import Pipeline
 # All modules required for the pipeline are imported
 from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, \
     Sampler, Slicer

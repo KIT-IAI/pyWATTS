@@ -2,8 +2,8 @@ from typing import Dict
 
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions import WrongParameterException
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 
 
 class CustomScaler(BaseTransformer):

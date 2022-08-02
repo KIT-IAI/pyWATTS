@@ -5,7 +5,7 @@ import cloudpickle
 import tensorflow as tf
 import xarray as xr
 
-from pywatts.core.filemanager import FileManager
+from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes, xarray_to_numpy, numpy_to_xarray
 from pywatts.modules.wrappers.dl_wrapper import DlWrapper

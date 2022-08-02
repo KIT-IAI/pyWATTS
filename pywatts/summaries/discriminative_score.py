@@ -3,16 +3,16 @@ from typing import Dict
 import cloudpickle
 import numpy as np
 import pandas as pd
-import tensorflow.keras as keras
+from tensorflow import keras
 import xarray as xr
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
-from pywatts.core.base_summary import BaseSummary
-from pywatts.core.filemanager import FileManager
-from pywatts.core.summary_object import SummaryObjectTable
+from pywatts_pipeline.core.summary.base_summary import BaseSummary
+from pywatts_pipeline.core.util.filemanager import FileManager
+from pywatts_pipeline.core.summary.summary_object import SummaryObjectTable
 
 
 class DiscriminativeScore(BaseSummary):

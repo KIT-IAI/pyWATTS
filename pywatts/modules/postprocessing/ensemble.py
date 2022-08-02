@@ -5,8 +5,8 @@ import logging
 import xarray as xr
 import numpy as np
 
-from pywatts.core.base import BaseEstimator
-from pywatts.core.exceptions import WrongParameterException
+from pywatts_pipeline.core.transformer.base import BaseEstimator
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._split_kwargs import split_kwargs
 from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
 

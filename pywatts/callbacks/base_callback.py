@@ -3,7 +3,7 @@ from typing import Dict
 
 import xarray as xr
 
-from pywatts.core.filemanager import FileManager
+from pywatts_pipeline.core.util.filemanager import FileManager
 
 
 class BaseCallback(ABC):

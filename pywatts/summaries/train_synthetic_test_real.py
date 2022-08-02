@@ -8,9 +8,9 @@ import xarray as xr
 import cloudpickle
 from sklearn.metrics import mean_absolute_error, f1_score, accuracy_score
 
-from pywatts.core.base_summary import BaseSummary
-from pywatts.core.filemanager import FileManager
-from pywatts.core.summary_object import SummaryObjectTable
+from pywatts_pipeline.core.summary.base_summary import BaseSummary
+from pywatts_pipeline.core.util.filemanager import FileManager
+from pywatts_pipeline.core.summary.summary_object import SummaryObjectTable
 
 
 class TSTRTask(IntEnum):

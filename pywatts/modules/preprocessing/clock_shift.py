@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
 
 

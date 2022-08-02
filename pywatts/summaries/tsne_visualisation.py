@@ -3,11 +3,11 @@ from typing import Dict
 import matplotlib.pyplot as plt
 import tikzplotlib
 import xarray as xr
-from pywatts.core.base_summary import BaseSummary
+from pywatts_pipeline.core.summary.base_summary import BaseSummary
 from sklearn.manifold import TSNE
 import numpy as np
 
-from pywatts.core.summary_object import SummaryObjectList
+from pywatts_pipeline.core.summary.summary_object import SummaryObjectList
 
 
 class TSNESummary(BaseSummary):

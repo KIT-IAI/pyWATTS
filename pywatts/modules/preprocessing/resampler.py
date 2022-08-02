@@ -3,7 +3,7 @@ from typing import Dict, Optional, Any
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
+from pywatts_pipeline.core.transformer.base import BaseTransformer
 
 
 class Resampler(BaseTransformer):

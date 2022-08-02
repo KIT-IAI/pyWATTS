@@ -4,8 +4,8 @@ from typing import Optional, Union, Dict, List
 import numpy as np
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 
 
 class AnomalyGeneration(BaseTransformer):

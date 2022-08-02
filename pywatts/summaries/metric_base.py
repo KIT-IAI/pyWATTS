@@ -8,7 +8,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts_pipeline.core.summary.base_summary import BaseSummary
-from pywatts_pipeline.core.exceptions import InputNotAvailable
+from pywatts_pipeline.core.exceptions.input_not_available import InputNotAvailable
 from pywatts_pipeline.core.exceptions.invalid_input_exception import InvalidInputException
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts_pipeline.core.summary.summary_object import SummaryObjectList

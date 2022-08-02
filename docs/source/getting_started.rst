@@ -237,9 +237,6 @@ and split it into a train and a test set.
     test = data.iloc[6000:, :]
     pipeline.test(data=test)
 
-    figure = pipeline.draw()
-    plt.show()
-
 The above code snipped not only starts the pipeline and hereby
 saves the results in the ``results`` folder, but also generates a graphical
 representation of the pipeline. This enables us to see how the data flows

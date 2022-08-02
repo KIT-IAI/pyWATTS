@@ -132,6 +132,7 @@ For every hour, we want to predict the values for the next 24 hours.
 We use the Sampler to create windows containing 24 values.
 
 .. code-block:: python
+
     target_multiple_output = Sampler(24, name="sampled_data")(x=scale_power_statistics)
 
 We use the previous two values to predict the next 24 values, which means the first window we want to predict ends at hour 26.

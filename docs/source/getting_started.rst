@@ -212,7 +212,7 @@ To measure the accuracy of our regression model, we can calculate the root mean 
 
     rmse = RMSE()(y_hat=inverse_power_scale, y=targets_sliced)
 
-The target variable is determined by the key-word ``y_hat``. All other keyword arguments are considered as predictions.
+The target variable is determined by the key-word ``y``. All other keyword arguments are considered as predictions.
 
 Executing, Saving and Loading the Pipeline
 ******************************************

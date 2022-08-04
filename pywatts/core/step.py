@@ -158,12 +158,15 @@ class Step(BaseStep):
                 start_time = time.time()
                 self._fit(input_batch, target_batch)
                 self.training_time.set_kv("", time.time() - start_time)
+                config_summary = {}
                 for config in self.config_summary:
                     if hasattr(self.module, "module"):
                         if hasattr(self.module.module, config):
-                            self.fit_config.set_kv(f"", f"{config}={getattr(self.module.module, config)}")
+                            config_summary.update({config: getattr(self.module.module, config)})
                     elif hasattr(self.module, config):
-                        self.fit_config.set_kv(f"", f"{config}={getattr(self.module, config)}")
+                        config_summary.update({config: getattr(self.module, config)})
+                if config_summary:
+                    self.fit_config.set_kv(f"", config_summary)
             else:
                 start_time = time.time()
                 self._fit(input_data, target)
@@ -173,12 +176,15 @@ class Step(BaseStep):
                             # the refit_condition could already be fitted in a previous step
                             refit_condition.fit(start, end)
                 self.training_time.set_kv("", time.time() - start_time)
+                config_summary = {}
                 for config in self.config_summary:
                     if hasattr(self.module, "module"):
                         if hasattr(self.module.module, config):
-                            self.fit_config.set_kv(f"", f"{config}={getattr(self.module.module, config)}")
+                            config_summary.update({config: getattr(self.module.module, config)})
                     elif hasattr(self.module, config):
-                        self.fit_config.set_kv(f"", f"{config}={getattr(self.module, config)}")
+                        config_summary.update({config: getattr(self.module, config)})
+                if config_summary:
+                    self.fit_config.set_kv(f"", config_summary)
 
         elif self.module is BaseEstimator:
             logger.info("%s not fitted in Step %s", self.module.name, self.name)
@@ -297,14 +303,15 @@ class Step(BaseStep):
         start_time = time.time()
         self.module.refit(**refit_input, **refit_target)
         self.refit_time.set_kv(f"refit at position {end}", time.time() - start_time)
+        config_summary = {}
         for config in self.config_summary:
             if hasattr(self.module, "module"):
                 if hasattr(self.module.module, config):
-                    self.refit_config.set_kv(f"refit at position {end}",
-                                             f"{config}={getattr(self.module.module, config)}")
+                    config_summary.update({config: getattr(self.module.module, config)})
             elif hasattr(self.module, config):
-                self.refit_config.set_kv(f"refit at position {end}",
-                                         f"{config}={getattr(self.module, config)}")
+                config_summary.update({config: getattr(self.module, config)})
+        if config_summary:
+            self.refit_config.set_kv(f"refit at position {end}", config_summary)
 
     def _recalculate(self, end):
         if isinstance(self.module, BaseSummary):

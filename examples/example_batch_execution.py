@@ -19,7 +19,17 @@ from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearn
 
 
 # This function creates and returns the preprocessing pipeline
-from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
+from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
+
+from pywatts.summaries import MASE
+
+
+
+# TODO:
+#   * Die Ergebnisse der SVR sehen sehr seltsam aus.
+#   * Refitting ist vermutlich auf zu kleinen batch?
+
+
 
 
 def create_preprocessing_pipeline(power_scaler):
@@ -41,7 +51,7 @@ def create_preprocessing_pipeline(power_scaler):
 # The test pipeline works on batches with one hour
 def create_test_pipeline(regressor_svr):
     # Create test pipeline which works on a batch size of one hour.
-    pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
+    pipeline = Pipeline("../results/test_pipeline", name="TestPipeline")
     periodic_condition = PeriodicCondition(21)
     detection_condition = RiverDriftDetectionCondition()
     check_if_midnight = lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and \
@@ -59,6 +69,7 @@ def create_test_pipeline(regressor_svr):
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
+    MASE()(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
     return pipeline
 
 
@@ -69,7 +80,7 @@ if __name__ == "__main__":
 
     # Split the data into train and test data.
     train = data[:6000]
-    test = data[8700:]
+    test = data[8000:]
 
     # Create all modules which are used multiple times.
     regressor_svr = SKLearnWrapper(module=SVR(), name="regression")
@@ -111,5 +122,12 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    result = pipeline.test(test, online_start=pd.to_datetime("2018-12-30"))
+    # TODO reset pipeline?
+    for i in range(len(test)):
+        result = pipeline.test(test.iloc[[i]], reset=False, summary=False)
     print("Testing finished")
+    summary = pipeline.create_summary()
+
+
+
+    # TODO add some assertions here

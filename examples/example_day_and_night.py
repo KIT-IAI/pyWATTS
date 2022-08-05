@@ -11,8 +11,8 @@ from sklearn.svm import SVR
 
 
 # Import the pyWATTS pipeline and the required modules
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.util.computation_mode import ComputationMode
+from pywatts_pipeline.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper
 
@@ -25,17 +25,17 @@ def is_daytime(x, _):
 
 # This function creates and returns the preprocessing pipeline
 def create_preprocessing_pipeline(power_scaler):
-    pipeline = Pipeline(path="../results/preprocessing")
+    pipeline = Pipeline(path="../results/preprocessing", name="preprocessing")
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
                                                   name="imputer_power")(x=pipeline["scaler_power"])
     # Scale the data using a standard SKLearn scaler
-    scale_power_statistics = power_scaler(x=imputer_power_statistics)
+    scale_power_statistics = power_scaler(x=imputer_power_statistics, callbacks=[LinePlotCallback("scaled")])
 
     # Create lagged time series to later be used in the regression
-    ClockShift(lag=1)(x=scale_power_statistics)
-    ClockShift(lag=2)(x=scale_power_statistics)
+    ClockShift(lag=1, name="Lag1")(x=scale_power_statistics)
+    ClockShift(lag=2, name="Lag2")(x=scale_power_statistics)
     return pipeline
 
 
@@ -45,18 +45,18 @@ def create_test_pipeline(modules):
     regressor_svr, regressor_lin_reg = modules
 
     # Create test pipeline which works on a batch size of one hour.
-    pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
+    pipeline = Pipeline("../results/test_pipeline")
 
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-    regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["ClockShift"],
-                                                   ClockShift_1=pipeline["ClockShift_1"],
+    regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["Lag1"],
+                                                   ClockShift_1=pipeline["Lag2"],
                                                    condition=lambda x, y: not is_daytime(x, y),
                                                    computation_mode=ComputationMode.Transform,
                                                    callbacks=[LinePlotCallback('SVR')])
 
     # Add the linear regressor to the pipeline. This regressor should be called if it is daytime
-    regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["ClockShift"],
-                                                           ClockShift_1=pipeline["ClockShift_1"],
+    regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["Lag1"],
+                                                           ClockShift_1=pipeline["Lag2"],
                                                            condition=lambda x, y: is_daytime(x, y),
                                                            computation_mode=ComputationMode.Transform,
                                                            callbacks=[LinePlotCallback('LinearRegression')])
@@ -99,12 +99,12 @@ if __name__ == "__main__":
     preprocessing_pipeline = preprocessing_pipeline(scaler_power=train_pipeline["load_power_statistics"])
 
     # Addd the regressors to the train pipeline
-    regressor_lin_reg(ClockShift=preprocessing_pipeline["ClockShift"],
-                      ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    regressor_lin_reg(Lag1=preprocessing_pipeline["Lag1"],
+                      Lag2=preprocessing_pipeline["Lag2"],
                       target=train_pipeline["load_power_statistics"],
                       callbacks=[LinePlotCallback('LinearRegression')])
-    regressor_svr(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    regressor_svr(Lag1=preprocessing_pipeline["Lag1"],
+                  Lag2=preprocessing_pipeline["Lag2"],
                   target=train_pipeline["load_power_statistics"],
                   callbacks=[LinePlotCallback('SVR')])
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     print("Training finished")
 
     # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
-    pipeline = Pipeline(path="../results")
+    pipeline = Pipeline(path="../results", name="test_pipeline")
 
     # Get preprocessing pipeline
     preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
@@ -122,19 +122,27 @@ if __name__ == "__main__":
     # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
     test_pipeline = create_test_pipeline([regressor_lin_reg, regressor_svr])
 
-    test_pipeline(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    test_pipeline(Lag1=preprocessing_pipeline["Lag1"],
+                  Lag2=preprocessing_pipeline["Lag2"],
                   load_power_statistics=pipeline["load_power_statistics"],
                   callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    result = pipeline.test(test)
+    for i in range(len(test)):
+        result = pipeline.test(test.iloc[[i]], reset=False, summary=False)
+    print("Testing finished")
+    summary = pipeline.create_summary()
+
+    # TODO add some assertions
 
     pipeline.to_folder("stored_day_and_night")
     pipeline = Pipeline.from_folder("stored_day_and_night")
     print("Testing finished")
-    result2 = pipeline.test(test)
+    for i in range(len(test)):
+        result = pipeline.test(test.iloc[[i]], reset=False, summary=False)
+    print("Testing finished")
+    summary = pipeline.create_summary()
 
     print("FINISHED")

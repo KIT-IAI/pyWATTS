@@ -10,8 +10,8 @@ from sklearn.preprocessing import StandardScaler
 # Import the pyWATTS pipeline and the required modules
 
 from pywatts.callbacks import LinePlotCallback
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.util.computation_mode import ComputationMode
+from pywatts_pipeline.core.pipeline import Pipeline
 from pywatts.modules import ClockShift, LinearInterpolater, SKLearnWrapper, PyTorchWrapper
 from pywatts.summaries import RMSE
 
@@ -75,8 +75,9 @@ if __name__ == "__main__":
                        infer_datetime_format=True,
                        sep=",")
 
-    pipeline.train(data)
+    pipeline.train(data[:6000])
+    pipeline.test(data[6000:])
     pipeline.to_folder("./pipe_pytorch")
 
     pipeline2 = Pipeline.from_folder("./pipe_pytorch")
-    pipeline2.train(data)
+    pipeline2.test(data[6000:])

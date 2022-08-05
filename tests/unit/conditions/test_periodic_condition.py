@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from pywatts.conditions.periodic_condition import PeriodicCondition
-from pywatts.core.exceptions.step_creation_exception import StepCreationException
+from pywatts_pipeline.core.exceptions.step_creation_exception import StepCreationException
 
 
 class TestPeriodicCondition(unittest.TestCase):

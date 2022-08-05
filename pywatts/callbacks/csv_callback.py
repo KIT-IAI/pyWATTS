@@ -2,7 +2,7 @@ from typing import Optional, Dict
 
 import xarray as xr
 
-from pywatts.callbacks.base_callback import BaseCallback
+from pywatts_pipeline.core.callbacks.base_callback import BaseCallback
 
 
 class CSVCallback(BaseCallback):

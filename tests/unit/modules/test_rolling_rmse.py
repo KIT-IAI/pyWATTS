@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from pywatts.core.exceptions.input_not_available import InputNotAvailable
+from pywatts_pipeline.core.exceptions.input_not_available import InputNotAvailable
 from pywatts.modules import RollingRMSE
 
 

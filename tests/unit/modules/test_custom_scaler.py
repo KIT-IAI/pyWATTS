@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.modules import CustomScaler
-from pywatts.core.exceptions import WrongParameterException
+from pywatts_pipeline.core.exceptions import WrongParameterException
 
 
 class TestCustomScaler(unittest.TestCase):

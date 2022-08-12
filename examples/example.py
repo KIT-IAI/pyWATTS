@@ -78,7 +78,7 @@ if __name__ == "__main__":
     # Rescale the predictions to be on the original scale
     inverse_power_scale = power_scaler(
         x=regressor_power_statistics, computation_mode=ComputationMode.Transform,
-        use_inverse_transform=True, callbacks=[LinePlotCallback("rescale")]
+        method="inverse_transform", callbacks=[LinePlotCallback("rescale")]
     )
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values

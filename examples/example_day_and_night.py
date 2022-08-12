@@ -23,22 +23,6 @@ def is_daytime(x, _):
     return 8 < x["ClockShift"].indexes["time"][0].hour < 20
 
 
-# This function creates and returns the preprocessing pipeline
-def create_preprocessing_pipeline(power_scaler):
-    pipeline = Pipeline(path="../results/preprocessing", name="preprocessing")
-
-    # Deal with missing values through linear interpolation
-    imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
-                                                  name="imputer_power")(x=pipeline["scaler_power"])
-    # Scale the data using a standard SKLearn scaler
-    scale_power_statistics = power_scaler(x=imputer_power_statistics, callbacks=[LinePlotCallback("scaled")])
-
-    # Create lagged time series to later be used in the regression
-    ClockShift(lag=1, name="Lag1")(x=scale_power_statistics)
-    ClockShift(lag=2, name="Lag2")(x=scale_power_statistics)
-    return pipeline
-
-
 # This function creates the pipeline which we use for testing.
 # The test pipeline works on batches with one hour
 def create_test_pipeline(modules):
@@ -95,17 +79,20 @@ if __name__ == "__main__":
     train_pipeline = Pipeline(path="../results/train")
 
     # Create preprocessing pipeline for the preprocessing steps
-    preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
-    preprocessing_pipeline = preprocessing_pipeline(scaler_power=train_pipeline["load_power_statistics"])
+    scale_power_statistics = power_scaler(x=train_pipeline["load_power_statistics"], callbacks=[LinePlotCallback("scaled")])
+
+    # Create lagged time series to later be used in the regression
+    lag1 = ClockShift(lag=1, name="Lag1")(x=scale_power_statistics)
+    lag2 = ClockShift(lag=2, name="Lag2")(x=scale_power_statistics)
 
     # Addd the regressors to the train pipeline
-    regressor_lin_reg(Lag1=preprocessing_pipeline["Lag1"],
-                      Lag2=preprocessing_pipeline["Lag2"],
-                      target=train_pipeline["load_power_statistics"],
+    regressor_lin_reg(Lag1=lag1,
+                      Lag2=lag2,
+                      target=scale_power_statistics,
                       callbacks=[LinePlotCallback('LinearRegression')])
-    regressor_svr(Lag1=preprocessing_pipeline["Lag1"],
-                  Lag2=preprocessing_pipeline["Lag2"],
-                  target=train_pipeline["load_power_statistics"],
+    regressor_svr(Lag1=lag1,
+                  Lag2=lag2,
+                  target=scale_power_statistics,
                   callbacks=[LinePlotCallback('SVR')])
 
     print("Start training")
@@ -115,16 +102,19 @@ if __name__ == "__main__":
     # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
     pipeline = Pipeline(path="../results", name="test_pipeline")
 
-    # Get preprocessing pipeline
-    preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
-    preprocessing_pipeline = preprocessing_pipeline(scaler_power=pipeline["load_power_statistics"])
+    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"], computation_mode=ComputationMode.Transform,
+                                          callbacks=[LinePlotCallback("scaled")])
+
+    # Create lagged time series to later be used in the regression
+    lag1 = ClockShift(lag=1, name="Lag1")(x=scale_power_statistics)
+    lag2 = ClockShift(lag=2, name="Lag2")(x=scale_power_statistics)
 
     # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
     test_pipeline = create_test_pipeline([regressor_lin_reg, regressor_svr])
 
-    test_pipeline(Lag1=preprocessing_pipeline["Lag1"],
-                  Lag2=preprocessing_pipeline["Lag2"],
-                  load_power_statistics=pipeline["load_power_statistics"],
+    test_pipeline(Lag1=lag1,
+                  Lag2=lag2,
+                  load_power_statistics=scale_power_statistics,
                   callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
 
     # Now, the pipeline is complete so we can run it and explore the results

@@ -103,7 +103,9 @@ class SKLearnWrapper(BaseWrapper):
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(kwargs)
+        inputs, targets = split_kwargs(kwargs)
+
+        x_np = self._dataset_to_sklearn_input(inputs)
         target_names = self.targets
 
         if isinstance(self.module, SelectorMixin):

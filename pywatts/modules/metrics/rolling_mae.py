@@ -15,7 +15,9 @@ class RollingMAE(RollingMetricBase):
     """
 
     def _apply_rolling_metric(self, p, t, index):
-        return pd.DataFrame(np.mean((p - t), axis=-1),
-                                    index=index).rolling(
+        result = pd.DataFrame(np.mean((p - t), axis=-1), index=index).rolling(
             f"{self.window_size}{self.window_size_unit}").apply(
-            lambda x: np.mean(np.abs(x))).values
+            lambda x: np.mean(np.abs(x)))
+        result.loc[result.index[0]: result.index[0] + pd.Timedelta(f"{self.window_size}{self.window_size_unit}")] = np.nan
+
+        return result.values

@@ -71,5 +71,5 @@ class FileManager:
             filename, extension = os.path.splitext(return_path)
             number = len(glob.glob(f'{filename}*{extension}'))
             logger.info("File %s already exists. We appended %s to the name", return_path, number + 1)
-            return_path = f"{filename}_{number + 1}.{extension}"
+            return_path = f"{filename}_{number + 1}{extension}"
         return return_path

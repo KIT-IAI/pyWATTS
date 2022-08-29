@@ -18,4 +18,4 @@ class RollingMAE(RollingMetricBase):
         return pd.DataFrame(np.mean((p - t), axis=-1),
                                     index=index).rolling(
             f"{self.window_size}{self.window_size_unit}").apply(
-            lambda x: np.mean(np.abs(x))).values
+            lambda x: np.mean(np.abs(x)))

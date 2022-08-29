@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from pywatts.core.base import BaseTransformer
@@ -23,6 +24,9 @@ class RollingMetricBase(BaseTransformer, ABC):
         super().__init__(name if name is not None else self.__class__.__name__)
         self.window_size_unit = window_size_unit
         self.window_size = window_size
+
+        self._t_buffer = None
+        self._p_buffer = {}
 
     def get_params(self) -> Dict[str, object]:
         """
@@ -69,13 +73,30 @@ class RollingMetricBase(BaseTransformer, ABC):
             self.logger.error(error_message)
             raise InputNotAvailable(error_message)
 
-        t = y.values
+        index = y.indexes[_get_time_indexes(y)[0]]
+        if self._t_buffer is None:
+            # the buffer is required for the batch mode
+            self._t_buffer = pd.DataFrame(y.values.reshape((len(y), -1)), index=index)
+        else:
+            # append/overwrite with new data
+            self._t_buffer = pd.DataFrame(y.values.reshape((len(y), -1)), index=index).combine_first(self._t_buffer)
+
         results = {}
         for key, y_hat in kwargs.items():
-            p = y_hat.values
-            p_, t_ = p.reshape((len(p), -1)), t.reshape((len(t), -1))
-            index = y.indexes[_get_time_indexes(y)[0]]
-            results[key] = self._apply_rolling_metric(p_, t_, index)
+            if key not in self._p_buffer.keys():
+                # the buffer is required for the batch mode
+                self._p_buffer[key] = pd.DataFrame(y_hat.values.reshape((len(y_hat), -1)), index=index)
+            else:
+                # append/overwrite with new data
+                self._p_buffer[key] = pd.DataFrame(y_hat.values.reshape((len(y_hat), -1)), index=index)\
+                    .combine_first(self._p_buffer[key])
+
+            result = self._apply_rolling_metric(p=self._p_buffer[key].values,
+                                                t=self._t_buffer.values,
+                                                index=self._t_buffer.index).loc[index]  # crop result
+            result.loc[self._t_buffer.index[0]:  # set value
+                       self._t_buffer.index[0] + pd.Timedelta(f"{self.window_size}{self.window_size_unit}")] = np.nan
+            results[key] = result
         time = y.indexes[_get_time_indexes(y)[0]]
 
         return xr.DataArray(np.concatenate(list(results.values()), axis=1),
@@ -83,5 +104,5 @@ class RollingMetricBase(BaseTransformer, ABC):
                             dims=[_get_time_indexes(y)[0], "predictions"])
 
     @abstractmethod
-    def _apply_rolling_metric(self, p_, t_, index):
+    def _apply_rolling_metric(self, p, t, index):
         pass

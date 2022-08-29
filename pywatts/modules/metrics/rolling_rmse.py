@@ -14,8 +14,8 @@ class RollingRMSE(RollingMetricBase):
 
     """
 
-    def _apply_rolling_metric(self, p_, t_, index):
-        return pd.DataFrame(np.mean((p_ - t_) ** 2, axis=-1),
+    def _apply_rolling_metric(self, p, t, index):
+        return pd.DataFrame(np.mean((p - t) ** 2, axis=-1),
                             index=index).rolling(
             f"{self.window_size}{self.window_size_unit}").apply(
-            lambda x: np.sqrt(np.mean(x))).values
+            lambda x: np.sqrt(np.mean(x)))

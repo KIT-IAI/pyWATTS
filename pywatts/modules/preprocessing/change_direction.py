@@ -5,7 +5,7 @@ import xarray as xr
 from pywatts.core.base import BaseTransformer
 from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.utils._xarray_time_series_utils import _get_time_indexes
-
+import numpy as np
 
 class ChangeDirection(BaseTransformer):
     """
@@ -45,7 +45,7 @@ class ChangeDirection(BaseTransformer):
         """
         indexes = _get_time_indexes(x)
         try:
-            return xr.ufuncs.sign(x - x.shift({index: 1 for index in indexes}))
+            return xr.apply_ufunc(np.sign, x - x.shift({index: 1 for index in indexes}))
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",

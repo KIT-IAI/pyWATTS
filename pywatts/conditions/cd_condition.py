@@ -31,7 +31,8 @@ class RiverDriftDetectionCondition(BaseCondition):
             self.drift_detection.update(rmse)
             self.counter += 1
 
-        if self.drift_detection.drift_detected:
+        if self.drift_detection.change_detected:
+            self.drift_detection.reset()
             return True
         else:
             return False

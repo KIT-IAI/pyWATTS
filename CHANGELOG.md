@@ -20,7 +20,7 @@
 
 ### Fixed
 * Enabled installation for macOS([#241](https://github.com/KIT-IAI/pyWATTS/issues/241))
-
+* Adapt CD Condition to new river api ([#249](https://github.com/KIT-IAI/pyWATTS/issues/249))
 
 ## 0.3.0 - 2022-31-03
 

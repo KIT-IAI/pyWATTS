@@ -7,7 +7,7 @@ setuptools.setup(
 
     install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
                       "tensorflow>=2 ; platform_system!='Darwin'",
-                      'workalendar',  'statsmodels', 'tabulate', 'river', 'tikzplotlib'],
+                      'workalendar',  'statsmodels', 'tabulate', 'river<0.11', 'tikzplotlib'],
     extras_require={
         'dev': [
             "pytest",

@@ -14,7 +14,8 @@ from pywatts.callbacks import LinePlotCallback
 from pywatts.core.computation_mode import ComputationMode
 from pywatts.core.pipeline import Pipeline
 # All modules required for the pipeline are imported
-from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, Sampler
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, \
+    Sampler, Slicer
 from pywatts.summaries import RMSE
 
 # The main function is where the pipeline is created and run
@@ -23,7 +24,6 @@ if __name__ == "__main__":
     pipeline = Pipeline(path="../results")
 
     # Extract dummy calendar features, using holidays from Germany
-    # NOTE: CalendarExtraction can't return multiple features.
     calendar = CalendarExtraction(continent="Europe", country="Germany", features=[CalendarFeature.month,
                                                                                    CalendarFeature.weekday,
                                                                                    CalendarFeature.weekend]
@@ -38,13 +38,17 @@ if __name__ == "__main__":
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
-    # Create lagged time series to later be used in the regression
+    # Create lagged time series to later be used as regressors
     shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1"
                                         )(x=scale_power_statistics)
     shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
                                          )(x=scale_power_statistics)
 
+    # Create windows containing values for the next 24 hours to later be used as targets
     target_multiple_output = Sampler(24, name="sampled_data")(x=scale_power_statistics)
+
+    # The first 25 samples are incomplete (either features or target values are zero). Slice the data to remove them
+    targets_sliced = Slicer(start=25, name="targets_sliced")(x=target_multiple_output)
 
     # Select features based on F-statistic
     selected_features = SKLearnWrapper(
@@ -56,28 +60,31 @@ if __name__ == "__main__":
         target=scale_power_statistics,
     )
 
-    # Create a linear regression that uses the lagged values to predict the current value
+    # In the first 2 samples features are missing, and in the last 23 samples targets are missing,
+    # so we use slicing to remove them
+    features_sliced = Slicer(start=2, end=-23, name="features_sliced")(x=selected_features)
+
+    # Create a linear regression that uses the lagged values to predict the next 24 values
     # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
     #       It is also possible to implement a join/collect class
     regressor_power_statistics = SKLearnWrapper(
         module=LinearRegression(fit_intercept=True)
     )(
-        features=selected_features,
-        target=target_multiple_output,
+        features=features_sliced,
+        target=targets_sliced,
         callbacks=[LinePlotCallback("linear_regression")],
     )
 
-    # Rescale the predictions to be on the original time scale
+    # Rescale the predictions to be on the original scale
     inverse_power_scale = power_scaler(
         x=regressor_power_statistics, computation_mode=ComputationMode.Transform,
         use_inverse_transform=True, callbacks=[LinePlotCallback("rescale")]
     )
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values
-    # save it as csv file
-    rmse = RMSE()(y_hat=inverse_power_scale, y=target_multiple_output)
+    rmse = RMSE()(y_hat=inverse_power_scale, y=targets_sliced)
 
-    # Now, the pipeline is complete so we can run it and explore the results
+    # Now, the pipeline is complete, so we can run it and explore the results
     # Start the pipeline
     data = pd.read_csv("../data/getting_started_data.csv",
                        index_col="time",
@@ -88,7 +95,7 @@ if __name__ == "__main__":
     pipeline.train(data=train)
 
     test = data.iloc[6000:, :]
-    data = pipeline.test(data=test)
+    pipeline.test(data=test)
 
     # Save the pipeline to a folder
     pipeline.to_folder("./pipe_getting_started")

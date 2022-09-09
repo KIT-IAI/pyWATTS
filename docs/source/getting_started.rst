@@ -28,18 +28,20 @@ as any external Scikit-Learn modules we will be using.
 
 .. code-block:: python
 
-   import matplotlib.pyplot as plt
-   # Other modules required for the pipeline are imported
-   import pandas as pd
-   from sklearn.linear_model import LinearRegression
-   from sklearn.preprocessing import StandardScaler
+    # Other modules required for the pipeline are imported
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.feature_selection import SelectKBest, f_regression
 
-   # From pyWATTS the pipeline is imported
-   from pywatts.core.computation_mode import ComputationMode
-   from pywatts.core.pipeline import Pipeline
-   from pywatts.callbacks import CSVCallback, LinePlotCallback
-   # All modules required for the pipeline are imported
-   from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, RmseCalculator, SKLearnWrapper
+    # From pyWATTS the pipeline is imported
+    from pywatts.callbacks import LinePlotCallback
+    from pywatts.core.computation_mode import ComputationMode
+    from pywatts.core.pipeline import Pipeline
+    # All modules required for the pipeline are imported
+    from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, \
+        Sampler, Slicer
+    from pywatts.summaries import RMSE
 
 With the modules imported, we can now work on building the pipeline.
 
@@ -124,24 +126,66 @@ of the same type (here two ``ClockShift`` modules, it is highly advisable to nam
 there will be a conflict in the pipeline. `pyWATTS` automatically changes the name to avoid this conflict and you
 receive a warning message, but we advise avoiding this.
 
+**Creating multiple targets**
+
+For every hour, we want to predict the values for the next 24 hours.
+We use the Sampler to create windows containing 24 values.
+
+.. code-block:: python
+
+    target_multiple_output = Sampler(24, name="sampled_data")(x=scale_power_statistics)
+
+We use the previous two values to predict the next 24 values, which means the first window we want to predict ends at hour 26.
+We therefore remove the first 25 samples, for which either the features or the targets would be incomplete.
+
+.. code-block:: python
+
+    targets_sliced = Slicer(start=25, name="targets_sliced")(x=target_multiple_output)
+
+
+**Selecting features**
+
+We use the SciKit-learn wrapper around the module ``SelectKBest`` to automatically select useful features.
+
+.. code-block:: python
+
+    selected_features = SKLearnWrapper(
+        module=SelectKBest(score_func=f_regression, k=2)
+    )(
+        power_lag1=shift_power_statistics,
+        power_lag2=shift_power_statistics2,
+        calendar=calendar,
+        target=scale_power_statistics,
+    )
+
+Since we sliced the target values, we also have to slice the features, so that both have the same length.
+The first two samples have incomplete features, and the last 23 have less than 24 target values.
+
+.. code-block:: python
+
+    features_sliced = Slicer(start=2, end=-23, name="features_sliced")(x=selected_features)
+
+
 **Linear Regression**
 
 We also use the SciKit-learn wrapper for linear regression. The implementation is, however, slightly different.
 
 .. code-block:: python
 
-    regressor_power_statistics = SKLearnWrapper(module=LinearRegression(fit_intercept=True))(shift1=shift_power_statistics,
-                                                                                             shift2=shift_power_statistics2,
-                                                                                             calendar=calendar,
-                                                                                             target_power=scale_power_statistics)
+    regressor_power_statistics = SKLearnWrapper(
+        module=LinearRegression(fit_intercept=True)
+    )(
+        features=features_sliced,
+        target=targets_sliced,
+        callbacks=[LinePlotCallback("linear_regression")]
+    )
 
 First we see that standard SciKit-learn parameters can be adjusted directly inside the SciKit-learn constructor.
 Here, for example, we have set the ``fit_intercept`` parameter to true. Furthermore,
 a linear regression can have more than one input and also requires a target for fitting. Therefore, we include
-all of the inputs by keyword-arguments. Note that all keyword-arguments that start with target are considered as target
-variables by pyWATTS. So pyWATTS aims to train a linear regression using ``shift_power_statistics,
-shift_power_statistics2,  calendar,`` as input to predict
-``scale_power_statistics.``
+the inputs by keyword-arguments. Additional features could be added by using additional keywords.
+Note that all keyword-arguments that start with *target* are considered as target
+variables by pyWATTS.
 
 **Rescaling**
 
@@ -166,11 +210,9 @@ To measure the accuracy of our regression model, we can calculate the root mean 
 
 .. code-block:: python
 
-    rmse = RmseCalculator()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"],
-                            callbacks=[CSVCallback('RMSE')])
+    rmse = RMSE()(y_hat=inverse_power_scale, y=targets_sliced)
 
-The target variable is determined by the key-word ``y_hat``. All other keyword arguments are considered as predictions.
-Additionally, we use the ``CSVCallback`` for storing the result into a CSV file.
+The target variable is determined by the key-word ``y``. All other keyword arguments are considered as predictions.
 
 Executing, Saving and Loading the Pipeline
 ******************************************
@@ -182,7 +224,7 @@ and split it into a train and a test set.
 
 .. code-block:: python
 
-    data = pd.read_csv("data/getting_started_data.csv",
+    data = pd.read_csv("../data/getting_started_data.csv",
                 index_col="time",
                 parse_dates=["time"],
                 infer_datetime_format=True,
@@ -192,9 +234,6 @@ and split it into a train and a test set.
 
     test = data.iloc[6000:, :]
     pipeline.test(data=test)
-
-    figure = pipeline.draw()
-    plt.show()
 
 The above code snipped not only starts the pipeline and hereby
 saves the results in the ``results`` folder, but also generates a graphical
@@ -231,10 +270,12 @@ Here another folder with a time-stamp indicating when the pipeline was executed
 will be automatically generated when the pipeline is run. In this folder, we find
 the following items:
 
-- *load_power_statistics_filter_power.png*: A plot of the load in Germany against time, taken from the power statistics source.
-- *load_transparency_filter_transparency.png*: A plot of the load in Germany against time, take from the transparency platform source.
-- *RmseCalculator.csv*: A CSV file containing the RMSE calculated.
-- *time_0_scaler_power_scaler_power.png*: A plot of the predicted load against time, based on the linear regression.
+- *linear_regression_target.png*: A plot of the 24 training targets against time.
+- *linear_regression_target_2..png*: A plot of the 24 test targets against time.
+- *rescale_scaler_power.png*: A plot of the 24 rescaled predictions on the training set against time.
+- *rescale_scaler_power_2..png*: A plot of the 24 rescaled predictions on the test set against time.
+- *summary.md*: A summary of the training run, including the RMSE and runtimes.
+- *summary_2..md*: A summary of the test run, including the RMSE and runtimes.
 
 Furthermore, *pickle* and *json* files containing information about the pipeline can be found in the
 folder ``pipe_getting_started``.

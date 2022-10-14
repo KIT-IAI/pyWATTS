@@ -42,8 +42,7 @@ def create_preprocessing_pipeline(power_scaler):
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    historical_data = ClockShift(lag=24)(x=scale_power_statistics)
-    Sampler(24, name="sampled_data")(x=historical_data)
+    Sampler(24, name="sampled_data")(x=scale_power_statistics)
     return pipeline
 
 
@@ -122,12 +121,12 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    # TODO reset pipeline?
+    result = []
+
     for i in range(len(test)):
-        result = pipeline.test(test.iloc[[i]], reset=False, summary=False)
+        print(test.index[i])
+        result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False))
     print("Testing finished")
     summary = pipeline.create_summary()
+    assert pipeline.steps[-1].buffer["RollingRMSE"].shape, (len(test) - 24, 1)
 
-
-
-    # TODO add some assertions here

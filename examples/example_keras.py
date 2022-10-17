@@ -7,7 +7,7 @@ import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
 
-from tensorflow.keras import layers, Model
+from keras import layers, Model
 
 from pywatts.callbacks import LinePlotCallback
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     inverse_power_scale_dl = power_scaler(x=keras_wrapper,
                                           computation_mode=ComputationMode.Transform,
-                                          use_inverse_transform=True,
+                                          method="inverse_transform",
                                           callbacks=[LinePlotCallback("prediction")])
 
     rmse_dl = RMSE()(keras_model=inverse_power_scale_dl, y=pipeline["load_power_statistics"])

@@ -24,14 +24,6 @@ from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
 from pywatts.summaries import MASE
 
 
-
-# TODO:
-#   * Die Ergebnisse der SVR sehen sehr seltsam aus.
-#   * Refitting ist vermutlich auf zu kleinen batch?
-
-
-
-
 def create_preprocessing_pipeline(power_scaler):
     pipeline = Pipeline(path="../results/preprocessing")
 

@@ -6,7 +6,7 @@
 # Other modules required for the pipeline are imported
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA
 
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # Rescale the predictions to be on the original time scale
     inverse_power_scale = power_scaler(
         x=regressor_power_statistics, computation_mode=ComputationMode.Transform,
-        use_inverse_transform=True, callbacks=[LinePlotCallback('rescale')]
+        method="inverse_transform", callbacks=[LinePlotCallback('rescale')]
     )
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file

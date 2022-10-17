@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     inverse_power_scale = power_scaler(x=pytorch_wrapper,
                                        computation_mode=ComputationMode.Transform,
-                                       use_inverse_transform=True,
+                                       method="inverse_transform",
                                        callbacks=[LinePlotCallback('forecast')])
 
     rmse_dl = RMSE()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"])

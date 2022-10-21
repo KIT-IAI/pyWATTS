@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Dataset, DataLoader
 
 from pywatts_pipeline.core.util.filemanager import FileManager
-from pywatts_pipeline.utils._split_kwargs import split_kwargs
+from pywatts.utils._split_kwargs import split_kwargs
 from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray, xarray_to_numpy
 from pywatts.modules.wrappers.dl_wrapper import DlWrapper
 

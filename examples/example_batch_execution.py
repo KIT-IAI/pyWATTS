@@ -53,7 +53,7 @@ def create_test_pipeline(regressor_svr):
                                                    computation_mode=ComputationMode.Refit,
                                                    callbacks=[LinePlotCallback('SVR')],
                                                    lag=pd.Timedelta(hours=24),
-                                                   refit_conditions=[periodic_condition, check_if_midnight,
+                                                   refit_conditions=[periodic_condition, #check_if_midnight,
                                                                      detection_condition])
     detection_condition(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
 
@@ -117,7 +117,8 @@ if __name__ == "__main__":
 
     for i in range(len(test)):
         print(test.index[i])
-        result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False))
+        result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False, refit=True))
+
     print("Testing finished")
     summary = pipeline.create_summary()
     assert pipeline.steps[-1].buffer["RollingRMSE"].shape, (len(test) - 24, 1)

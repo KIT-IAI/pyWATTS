@@ -1,11 +1,8 @@
 from typing import Optional
 
-import xarray as xr
 import numpy as np
-
-import matplotlib.pyplot as plt
-
-from pywatts.callbacks.base_callback import BaseCallback
+import xarray as xr
+from pywatts_pipeline.core.callbacks.base_callback import BaseCallback
 
 
 class NPYCallback(BaseCallback):

@@ -3,8 +3,8 @@ from typing import Dict, Optional, List
 
 import xarray as xr
 import numpy as np
-from pywatts.core.base import BaseTransformer
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class StatisticFeature(IntEnum):

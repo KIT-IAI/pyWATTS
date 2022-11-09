@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 
 from pywatts.conditions.cd_condition import RiverDriftDetectionCondition
-from pywatts.core.exceptions.step_creation_exception import StepCreationException
+from pywatts_pipeline.core.exceptions.step_creation_exception import StepCreationException
 
 
 class TestRiverCDCondition(unittest.TestCase):

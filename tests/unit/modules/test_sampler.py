@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 from pywatts.modules import Sampler
 
 
@@ -43,9 +43,9 @@ class TestSampler(unittest.TestCase):
         self.sampler.set_params(sample_size=3)
         result = self.sampler.transform(da)
 
-        time = pd.date_range('2000-01-01', freq='24H', periods=7)
+        time = pd.date_range('2000-01-03', freq='24H', periods=5)
 
-        expected_result = xr.DataArray([[0, 0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7]],
+        expected_result = xr.DataArray([[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6], [5, 6, 7]],
                                        dims=["time", "horizon"], coords={"time": time})
 
         xr.testing.assert_equal(result, expected_result)

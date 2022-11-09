@@ -3,9 +3,9 @@ from typing import Dict, List
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
 
 
@@ -83,11 +83,11 @@ class Sampler(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            r = [x.shift({index: i for index in indexes}, fill_value=0) for i in range(self.sample_size - 1, -1, -1)]
+            r = [x.shift({index: i for index in indexes}) for i in range(self.sample_size - 1, -1, -1)]
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
                 module=self.name) from exc
-        result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords)
+        result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords).dropna(indexes[0])
         return result.transpose(_get_time_indexes(x)[0], "horizon", ...)

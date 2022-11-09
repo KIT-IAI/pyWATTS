@@ -7,11 +7,11 @@ import xarray as xr
 from sklearn.base import TransformerMixin
 from sklearn.feature_selection import SelectorMixin
 
-from pywatts.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
+from pywatts_pipeline.core.exceptions.kind_of_transform_does_not_exist_exception import KindOfTransformDoesNotExistException, \
     KindOfTransform
-from pywatts.core.filemanager import FileManager
+from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes, numpy_to_xarray
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes, numpy_to_xarray
 from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 
@@ -103,7 +103,9 @@ class SKLearnWrapper(BaseWrapper):
         :param x: the input dataset
         :return: the transformed output
         """
-        x_np = self._dataset_to_sklearn_input(kwargs)
+        inputs, targets = split_kwargs(kwargs)
+
+        x_np = self._dataset_to_sklearn_input(inputs)
         target_names = self.targets
 
         if isinstance(self.module, SelectorMixin):

@@ -4,9 +4,9 @@ from typing import Dict
 import numpy as np
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions import InputNotAvailable
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.exceptions.input_not_available import InputNotAvailable
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class RollingMetricBase(BaseTransformer, ABC):

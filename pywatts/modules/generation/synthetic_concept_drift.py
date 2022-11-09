@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.filemanager import FileManager
-from pywatts.utils._xarray_time_series_utils import numpy_to_xarray, _get_time_indexes
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.util.filemanager import FileManager
+from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray, _get_time_indexes
 
 
 class DriftInformation:

@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.pipeline import Pipeline
 from pywatts.modules import LinearInterpolater, SKLearnWrapper
 from pywatts.summaries import RMSE
 

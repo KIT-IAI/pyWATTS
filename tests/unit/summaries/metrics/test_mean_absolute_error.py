@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from pywatts.core.exceptions.input_not_available import InputNotAvailable
-from pywatts.core.exceptions.invalid_input_exception import InvalidInputException
+from pywatts_pipeline.core.exceptions.input_not_available import InputNotAvailable
+from pywatts_pipeline.core.exceptions.invalid_input_exception import InvalidInputException
 from pywatts.summaries import MAE
 from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBase
 

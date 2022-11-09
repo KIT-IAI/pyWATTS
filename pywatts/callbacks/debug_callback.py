@@ -1,7 +1,7 @@
 import xarray as xr
 from typing import Dict, Optional
 
-from pywatts.callbacks.base_callback import BaseCallback
+from pywatts_pipeline.core.callbacks.base_callback import BaseCallback
 
 
 class PrintCallback(BaseCallback):

@@ -1,10 +1,9 @@
-
 def split_kwargs(kwargs):
-    inputs = dict()
-    targets = dict()
+    inputs = {}
+    targets = {}
     for key, value in kwargs.items():
         if key.startswith("target"):
             targets[key] = value
         else:
             inputs[key] = value
-    return  inputs, targets
+    return inputs, targets

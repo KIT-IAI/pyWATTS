@@ -5,7 +5,7 @@ import pandas as pd
 import xarray as xr
 
 from pywatts.modules.generation.anomaly_generation_module import AnomalyGeneration
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 
 
 class TestResampler(unittest.TestCase):

@@ -1,10 +1,10 @@
 from typing import Dict
 
-from pywatts.core.base_summary import BaseSummary
-from pywatts.core.filemanager import FileManager
+from pywatts_pipeline.core.summary.base_summary import BaseSummary
+from pywatts_pipeline.core.util.filemanager import FileManager
 
 import xarray as xr
-from pywatts.core.summary_object import SummaryObjectTable
+from pywatts_pipeline.core.summary.summary_object import SummaryObjectTable
 from sklearn.metrics import confusion_matrix
 
 

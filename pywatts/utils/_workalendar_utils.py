@@ -6,7 +6,7 @@ import workalendar.europe
 import workalendar.oceania
 import workalendar.usa
 
-from pywatts.core.exceptions.util_exception import UtilException
+from pywatts_pipeline.core.exceptions.util_exception import UtilException
 
 
 def _init_calendar(continent: str, country: str):

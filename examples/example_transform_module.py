@@ -5,7 +5,7 @@ import xarray as xr
 
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 # From pyWATTS the pipeline is imported
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.pipeline import Pipeline
 # All modules required for the pipeline are imported
 from pywatts.modules import FunctionModule
 
@@ -32,6 +32,3 @@ if __name__ == "__main__":
 
     pipeline.train(df)
 
-    # Generate a plot of the pipeline showing the flow of data through different modules
-    pipeline.draw()
-    plt.show()

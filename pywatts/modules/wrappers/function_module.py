@@ -3,8 +3,8 @@ from typing import Optional, Dict, Callable
 import cloudpickle
 import xarray as xr
 
-from pywatts.core.base import BaseEstimator
-from pywatts.core.filemanager import FileManager
+from pywatts_pipeline.core.transformer.base import BaseEstimator
+from pywatts_pipeline.core.util.filemanager import FileManager
 
 
 class FunctionModule(BaseEstimator):

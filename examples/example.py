@@ -11,11 +11,10 @@ from sklearn.feature_selection import SelectKBest, f_regression
 
 # From pyWATTS the pipeline is imported
 from pywatts.callbacks import LinePlotCallback
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.util.computation_mode import ComputationMode
+from pywatts_pipeline.core.pipeline import Pipeline
 # All modules required for the pipeline are imported
-from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, \
-    Sampler, Slicer
+from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, Sampler
 from pywatts.summaries import RMSE
 
 # The main function is where the pipeline is created and run
@@ -24,6 +23,7 @@ if __name__ == "__main__":
     pipeline = Pipeline(path="../results")
 
     # Extract dummy calendar features, using holidays from Germany
+    # NOTE: CalendarExtraction can't return multiple features.
     calendar = CalendarExtraction(continent="Europe", country="Germany", features=[CalendarFeature.month,
                                                                                    CalendarFeature.weekday,
                                                                                    CalendarFeature.weekend]
@@ -43,12 +43,9 @@ if __name__ == "__main__":
                                         )(x=scale_power_statistics)
     shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
                                          )(x=scale_power_statistics)
-
-    # Create windows containing values for the next 24 hours to later be used as targets
-    target_multiple_output = Sampler(24, name="sampled_data")(x=scale_power_statistics)
-
-    # The first 25 samples are incomplete (either features or target values are zero). Slice the data to remove them
-    targets_sliced = Slicer(start=25, name="targets_sliced")(x=target_multiple_output)
+    scaler_target = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
+    scaled_target = scaler_target(x=imputer_power_statistics)
+    target_multiple_output = Sampler(24, name="sampled_data")(x=scaled_target)
 
     # Select features based on F-statistic
     selected_features = SKLearnWrapper(
@@ -60,29 +57,26 @@ if __name__ == "__main__":
         target=scale_power_statistics,
     )
 
-    # In the first 2 samples features are missing, and in the last 23 samples targets are missing,
-    # so we use slicing to remove them
-    features_sliced = Slicer(start=2, end=-23, name="features_sliced")(x=selected_features)
-
-    # Create a linear regression that uses the lagged values to predict the next 24 values
+    # Create a linear regression that uses the lagged values to predict the current value
     # NOTE: SKLearnWrapper has to collect all **kwargs itself and fit it against target.
     #       It is also possible to implement a join/collect class
     regressor_power_statistics = SKLearnWrapper(
         module=LinearRegression(fit_intercept=True)
     )(
-        features=features_sliced,
-        target=targets_sliced,
+        features=selected_features,
+        target=target_multiple_output,
         callbacks=[LinePlotCallback("linear_regression")],
     )
 
-    # Rescale the predictions to be on the original scale
-    inverse_power_scale = power_scaler(
+    # Rescale the predictions to be on the original time scale
+    inverse_power_scale = scaler_target(
         x=regressor_power_statistics, computation_mode=ComputationMode.Transform,
-        use_inverse_transform=True, callbacks=[LinePlotCallback("rescale")]
+        method="inverse_transform", callbacks=[LinePlotCallback("rescale")]
     )
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values
-    rmse = RMSE()(y_hat=inverse_power_scale, y=targets_sliced)
+    # save it as csv file
+    rmse = RMSE()(y_hat=inverse_power_scale, y=target_multiple_output)
 
     # Now, the pipeline is complete, so we can run it and explore the results
     # Start the pipeline
@@ -107,5 +101,5 @@ if __name__ == "__main__":
     #       Sometimes from_folder use unpickle for loading modules. Note that this is not safe.
     #       Consequently, load only pipelines you trust with from_folder.
     #       For more details about pickling see https://docs.python.org/3/library/pickle.html
-    result = pipeline2.test(test)
+    pipeline2.test(test)
     print("Finished")

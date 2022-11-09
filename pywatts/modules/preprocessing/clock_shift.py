@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.exceptions.wrong_parameter_exception import WrongParameterException
-from pywatts.utils._xarray_time_series_utils import _get_time_indexes
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 
 
 class ClockShift(BaseTransformer):
@@ -71,7 +71,7 @@ class ClockShift(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            return x.shift({index: self.lag for index in indexes}, fill_value=0)
+            return x.shift({index: self.lag for index in indexes}).dropna(indexes[0])
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",

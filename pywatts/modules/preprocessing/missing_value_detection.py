@@ -2,7 +2,7 @@ from typing import Dict
 
 import xarray as xr
 
-from pywatts.core.base import BaseTransformer
+from pywatts_pipeline.core.transformer.base import BaseTransformer
 
 
 class MissingValueDetector(BaseTransformer):

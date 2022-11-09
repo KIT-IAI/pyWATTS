@@ -1,14 +1,14 @@
+
 import numpy as np
 import xarray as xr
 from river.drift import ADWIN
 
-from pywatts.core.base_condition import BaseCondition
+from pywatts_pipeline.core.condition.base_condition import BaseCondition
 
 
 class RiverDriftDetectionCondition(BaseCondition):
     """
     A Drift Detection Condition that wraps the detection algorithms from the River library, based on the RMSE metric.
-
     :param drift_detection: The Drift Detection Algorithm from the River library. The default algorithm is ADWIN.
     """
 

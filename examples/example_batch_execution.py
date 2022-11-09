@@ -13,13 +13,15 @@ from sklearn.svm import SVR
 from pywatts.callbacks import CSVCallback, LinePlotCallback
 from pywatts.conditions.cd_condition import RiverDriftDetectionCondition
 from pywatts.conditions.periodic_condition import PeriodicCondition
-from pywatts.core.computation_mode import ComputationMode
-from pywatts.core.pipeline import Pipeline
+from pywatts_pipeline.core.util.computation_mode import ComputationMode
+from pywatts_pipeline.core.pipeline import Pipeline
 from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper, Sampler, FunctionModule
 
 
 # This function creates and returns the preprocessing pipeline
-from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
+from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
+
+from pywatts.summaries import MASE
 
 
 def create_preprocessing_pipeline(power_scaler):
@@ -32,8 +34,7 @@ def create_preprocessing_pipeline(power_scaler):
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    historical_data = ClockShift(lag=24)(x=scale_power_statistics)
-    Sampler(24, name="sampled_data")(x=historical_data)
+    Sampler(24, name="sampled_data")(x=scale_power_statistics)
     return pipeline
 
 
@@ -41,7 +42,7 @@ def create_preprocessing_pipeline(power_scaler):
 # The test pipeline works on batches with one hour
 def create_test_pipeline(regressor_svr):
     # Create test pipeline which works on a batch size of one hour.
-    pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
+    pipeline = Pipeline("../results/test_pipeline", name="TestPipeline")
     periodic_condition = PeriodicCondition(21)
     detection_condition = RiverDriftDetectionCondition()
     check_if_midnight = lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and \
@@ -52,13 +53,14 @@ def create_test_pipeline(regressor_svr):
                                                    computation_mode=ComputationMode.Refit,
                                                    callbacks=[LinePlotCallback('SVR')],
                                                    lag=pd.Timedelta(hours=24),
-                                                   refit_conditions=[periodic_condition, check_if_midnight,
+                                                   refit_conditions=[periodic_condition, #check_if_midnight,
                                                                      detection_condition])
     detection_condition(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
 
     RollingRMSE(window_size=1, window_size_unit="d")(
         y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
+    MASE()(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
     return pipeline
 
 
@@ -69,7 +71,7 @@ if __name__ == "__main__":
 
     # Split the data into train and test data.
     train = data[:6000]
-    test = data[8700:]
+    test = data[8000:]
 
     # Create all modules which are used multiple times.
     regressor_svr = SKLearnWrapper(module=SVR(), name="regression")
@@ -111,5 +113,13 @@ if __name__ == "__main__":
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
-    result = pipeline.test(test, online_start=pd.to_datetime("2018-12-30"))
+    result = []
+
+    for i in range(len(test)):
+        print(test.index[i])
+        result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False, refit=True))
+
     print("Testing finished")
+    summary = pipeline.create_summary()
+    assert pipeline.steps[-1].buffer["RollingRMSE"].shape, (len(test) - 24, 1)
+

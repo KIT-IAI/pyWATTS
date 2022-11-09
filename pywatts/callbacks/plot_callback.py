@@ -4,7 +4,7 @@ import xarray as xr
 
 import matplotlib.pyplot as plt
 
-from pywatts.callbacks.base_callback import BaseCallback
+from pywatts_pipeline.core.callbacks.base_callback import BaseCallback
 
 
 class LinePlotCallback(BaseCallback):

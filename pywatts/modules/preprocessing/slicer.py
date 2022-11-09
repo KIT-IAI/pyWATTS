@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
 import xarray as xr
-from pywatts.core.base import BaseTransformer
+from pywatts_pipeline.core.transformer.base import BaseTransformer
 
 
 class Slicer(BaseTransformer):

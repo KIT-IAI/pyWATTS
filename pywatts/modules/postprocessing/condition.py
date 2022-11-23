@@ -3,10 +3,10 @@ import xarray as xr
 import numpy as np
 from typing import Dict, Callable
 
-from pywatts.core.base import BaseTransformer
-from pywatts.core.filemanager import FileManager
-from pywatts.utils._xarray_time_series_utils import numpy_to_xarray
-from pywatts.core.exceptions import InvalidInputException
+from pywatts_pipeline.core.transformer.base import BaseTransformer
+from pywatts_pipeline.core.util.filemanager import FileManager
+from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
+from pywatts_pipeline.core.exceptions.invalid_input_exception import InvalidInputException
 
 
 class Condition(BaseTransformer):
@@ -79,7 +79,7 @@ class Condition(BaseTransformer):
 
         result = np.where(self.condition(dependency_data), if_true_data, if_false_data)
 
-        return numpy_to_xarray(result, dependency, self.name)
+        return numpy_to_xarray(result, dependency)
 
     def save(self, fm: FileManager):
         """

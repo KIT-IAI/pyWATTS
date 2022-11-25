@@ -7,7 +7,7 @@ setuptools.setup(
 
     install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
                       "tensorflow>=2 ; platform_system!='Darwin'",
-                      "pywatts-pipeline@git+https://github.com/KIT-IAI/pywatts-pipeline/@feature/refactor_steps",
+                      "pywatts-pipeline@git+https://github.com/KIT-IAI/pywatts-pipeline/@main",
                       'workalendar',  'statsmodels', 'tabulate', 'river<0.11', 'tikzplotlib'],
     extras_require={
         'dev': [

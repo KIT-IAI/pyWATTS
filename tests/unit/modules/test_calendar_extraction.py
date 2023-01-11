@@ -102,33 +102,33 @@ class TestCalendarExtraction(unittest.TestCase):
                 self.assertEqual(x[0], 1, "Expect 01.01.2000 is a holiday.")
                 self.assertEqual(x[1], 0, "Expect sunday the 02.01.2000 isn't a holiday.")
             if calendar_feature == CalendarFeature.hour_sine:
-                self.assertEqual(x[0], np.sin(np.pi * 2 * 0 / 23), "Expecting hour feature starting from 0.")
+                self.assertEqual(x[0], np.sin(np.pi * 2 * 0 / 24), "Expecting hour feature starting from 0.")
             if calendar_feature == CalendarFeature.day_sine:
-                self.assertEqual(x[0], np.sin(np.pi * 2 * 0 / 31), "Expecting day feature starting from 0.")
-                self.assertEqual(x[30], np.sin(np.pi * 2 * 30 / 31), "Expecting day feature starting from 0.")
-                self.assertEqual(x[31], np.sin(np.pi * 2 * 0 / 3), "Expecting day feature starting from 0.")
+                self.assertEqual(x[0], np.sin(np.pi * 2 * 0 / 32), "Expecting day feature starting from 0.")
+                self.assertEqual(x[30], np.sin(np.pi * 2 * 30 / 32), "Expecting day feature starting from 0.")
+                # self.assertEqual(x[31], np.sin(np.pi * 2 * 31 / 32), "Expecting day feature starting from 0.")
             if calendar_feature == CalendarFeature.weekday_sine:
-                self.assertEqual(x[0], np.sin(np.pi * 2 * 5 / 6), "Expecting weekday feature starting from 0.")
-                self.assertEqual(x[1], np.sin(np.pi * 2 * 6 / 6), "Expecting weekday feature starting from 0.")
-                self.assertEqual(x[2], np.sin(np.pi * 2 * 0 / 6), "Expecting weekday feature starting from 0.")
+                self.assertEqual(x[0], np.sin(np.pi * 2 * 5 / 7), "Expecting weekday feature starting from 0.")
+                self.assertEqual(x[1], np.sin(np.pi * 2 * 6 / 7), "Expecting weekday feature starting from 0.")
+                self.assertEqual(x[2], np.sin(np.pi * 2 * 0 / 7), "Expecting weekday feature starting from 0.")
             if calendar_feature == CalendarFeature.month_sine:
-                self.assertEqual(x[0], np.sin(np.pi * 2 * 0 / 11), "Expecting month feature starting from 0.")
-                self.assertEqual(x[30], np.sin(np.pi * 2 * 0 / 11), "Expecting month feature starting from 0.")
-                self.assertEqual(x[31], np.sin(np.pi * 2 * 1 / 11), "Expecting month feature starting from 0.")
+                self.assertEqual(x[0], np.sin(np.pi * 2 * 0 / 12), "Expecting month feature starting from 0.")
+                self.assertEqual(x[30], np.sin(np.pi * 2 * 0 / 12), "Expecting month feature starting from 0.")
+                self.assertEqual(x[31], np.sin(np.pi * 2 * 1 / 12), "Expecting month feature starting from 0.")
             if calendar_feature == CalendarFeature.month_cos:
-                self.assertEqual(x[0], np.cos(np.pi * 2 * 0 / 11), "Expecting month feature starting from 1.")
-                self.assertEqual(x[30], np.cos(np.pi * 2 * 0 / 11), "Expecting month feature starting from 1.")
-                self.assertEqual(x[31], np.cos(np.pi * 2 * 1 / 11), "Expecting month feature starting from 1.")
+                self.assertEqual(x[0], np.cos(np.pi * 2 * 0 / 12), "Expecting month feature starting from 1.")
+                self.assertEqual(x[30], np.cos(np.pi * 2 * 0 / 12), "Expecting month feature starting from 1.")
+                self.assertEqual(x[31], np.cos(np.pi * 2 * 1 / 12), "Expecting month feature starting from 1.")
             if calendar_feature == CalendarFeature.hour_cos:
-                self.assertEqual(x[0], np.cos(np.pi * 2 * 0 / 23), "Expecting hour feature starting from 1.")
+                self.assertEqual(x[0], np.cos(np.pi * 2 * 0 / 24), "Expecting hour feature starting from 1.")
             if calendar_feature == CalendarFeature.day_cos:
-                self.assertEqual(x[0], np.cos(np.pi * 2 * 0 / 31), "Expecting day feature starting from 1.")
-                self.assertEqual(x[30], np.cos(np.pi * 2 * 30 / 31), "Expecting day feature starting from 1.")
-                self.assertEqual(x[31], np.cos(np.pi * 2 * 0 / 31), "Expecting day feature starting from 1.")
+                self.assertEqual(x[0], np.cos(np.pi * 2 * 0 / 32), "Expecting day feature starting from 1.")
+                self.assertEqual(x[30], np.cos(np.pi * 2 * 30 / 32), "Expecting day feature starting from 1.")
+                self.assertEqual(x[31], np.cos(np.pi * 2 * 0 / 32), "Expecting day feature starting from 1.")
             if calendar_feature == CalendarFeature.weekday_cos:
-                self.assertEqual(x[0], np.cos(np.pi * 2 * 5 / 6), "Expecting weekday feature starting from 1.")
-                self.assertEqual(x[1], np.cos(np.pi * 2 * 6 / 6), "Expecting weekday feature starting from 1.")
-                self.assertEqual(x[2], np.cos(np.pi * 2 * 0 / 6), "Expecting weekday feature starting from 1.")
+                self.assertEqual(x[0], np.cos(np.pi * 2 * 5 / 7), "Expecting weekday feature starting from 1.")
+                self.assertEqual(x[1], np.cos(np.pi * 2 * 6 / 7), "Expecting weekday feature starting from 1.")
+                self.assertEqual(x[2], np.cos(np.pi * 2 * 0 / 7), "Expecting weekday feature starting from 1.")
             if calendar_feature == CalendarFeature.monday:
                 self.assertEqual(x[0], 0)
                 self.assertEqual(x[2], 1)

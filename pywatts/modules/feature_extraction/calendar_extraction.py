@@ -146,21 +146,21 @@ class CalendarExtraction(BaseTransformer):
         elif feature == CalendarFeature.sunday:
             return timeseries.map(lambda element: element.weekday() == 6)
         elif feature == CalendarFeature.month_sine:
-            return timeseries.map(lambda element: np.sin(np.pi * 2 * (element.month - 1) / 11))
+            return timeseries.map(lambda element: np.sin(np.pi * 2 * (element.month - 1) / 12))
         elif feature == CalendarFeature.day_sine:
-            return timeseries.map(lambda element: np.sin(np.pi * 2 * (element.day - 1) / element.days_in_month))
+            return timeseries.map(lambda element: np.sin(np.pi * 2 * (element.day - 1) / (element.days_in_month + 1)))
         elif feature == CalendarFeature.weekday_sine:
-            return timeseries.map(lambda element: np.sin(np.pi * 2 * element.weekday() / 6))
+            return timeseries.map(lambda element: np.sin(np.pi * 2 * element.weekday() / 7))
         elif feature == CalendarFeature.hour_sine:
-            return timeseries.map(lambda element: np.sin(np.pi * 2 * element.hour / 23))
+            return timeseries.map(lambda element: np.sin(np.pi * 2 * element.hour / 24))
         elif feature == CalendarFeature.month_cos:
-            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.month - 1) / 11))
+            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.month - 1) / 12))
         elif feature == CalendarFeature.day_cos:
-            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.day - 1) / element.days_in_month))
+            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.day - 1) / (element.days_in_month + 1)))
         elif feature == CalendarFeature.weekday_cos:
-            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.weekday()) / 6))
+            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.weekday()) / 7))
         elif feature == CalendarFeature.hour_cos:
-            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.hour) / 23))
+            return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.hour) / 24))
 
     def get_params(self) -> Dict[str, object]:
         """ Get parameters of this calendar extraction processing step.

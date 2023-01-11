@@ -82,12 +82,12 @@ class TestResampler(unittest.TestCase):
             # try default padding
             obj = Differentiate(target_index=target_index, n=n, pad=True)
             dataset = obj.transform(self.dataset.copy())
-            self.assertTrue((dataset[f"{target_index}_d{n}"][:n] == np.zeros(n, dtype=np.int)).all())
+            self.assertTrue((dataset[f"{target_index}_d{n}"][:n] == np.zeros(n, dtype=int)).all())
 
             # try specific padding
             obj = Differentiate(target_index=target_index, n=n, pad=True, pad_args={"constant_values": 1})
             dataset = obj.transform(self.dataset.copy())
-            self.assertTrue((dataset[f"{target_index}_d{n}"][:n] == np.ones(n, dtype=np.int)).all())
+            self.assertTrue((dataset[f"{target_index}_d{n}"][:n] == np.ones(n, dtype=int)).all())
 
     def test_two_dimensional(self, target_index=["load", "load_households[GW]"]):
         # test differentiate method for two dimensional time-series with and without padding
@@ -109,8 +109,8 @@ class TestResampler(unittest.TestCase):
         for idx in target_index:
             self.assertEqual(dataset[f"{idx}_d{1}"].shape[-1], self.dataset[idx].shape[-1])
             self.assertEqual(dataset[f"{idx}_d{2}"].shape[-1], self.dataset[idx].shape[-1])
-            self.assertTrue((dataset[f"{idx}_d{1}"][:, :1] == np.zeros(1, dtype=np.int)).all())
-            self.assertTrue((dataset[f"{idx}_d{2}"][:, :2] == np.zeros(2, dtype=np.int)).all())
+            self.assertTrue((dataset[f"{idx}_d{1}"][:, :1] == np.zeros(1, dtype=int)).all())
+            self.assertTrue((dataset[f"{idx}_d{2}"][:, :2] == np.zeros(2, dtype=int)).all())
 
     def test_three_dimensional(self, target_index="load_households"):
         # test differentiate method for two dimensional time-series with and without padding
@@ -133,22 +133,22 @@ class TestResampler(unittest.TestCase):
         dataset = obj.transform(self.dataset.copy())
         self.assertEqual(dataset[f"{target_index}_d{1}"].shape[1], self.dataset[target_index].shape[1])
         self.assertEqual(dataset[f"{target_index}_d{2}"].shape[1], self.dataset[target_index].shape[1])
-        self.assertTrue((dataset[f"{target_index}_d{1}"][:1, :, :] == np.zeros(1, dtype=np.int)).all())
-        self.assertTrue((dataset[f"{target_index}_d{2}"][:2, :, :] == np.zeros(2, dtype=np.int)).all())
+        self.assertTrue((dataset[f"{target_index}_d{1}"][:1, :, :] == np.zeros(1, dtype=int)).all())
+        self.assertTrue((dataset[f"{target_index}_d{2}"][:2, :, :] == np.zeros(2, dtype=int)).all())
 
         obj = Differentiate(target_index=target_index, n=[1, 2], axis=1, pad=True)
         dataset = obj.transform(self.dataset.copy())
         self.assertEqual(dataset[f"{target_index}_d{1}"].shape[1], self.dataset[target_index].shape[1])
         self.assertEqual(dataset[f"{target_index}_d{2}"].shape[1], self.dataset[target_index].shape[1])
-        self.assertTrue((dataset[f"{target_index}_d{1}"][:, :1, :] == np.zeros(1, dtype=np.int)).all())
-        self.assertTrue((dataset[f"{target_index}_d{2}"][:, :2, :] == np.zeros(2, dtype=np.int)).all())
+        self.assertTrue((dataset[f"{target_index}_d{1}"][:, :1, :] == np.zeros(1, dtype=int)).all())
+        self.assertTrue((dataset[f"{target_index}_d{2}"][:, :2, :] == np.zeros(2, dtype=int)).all())
         obj = Differentiate(target_index=target_index, n=[1, 2], pad=True)
 
         dataset = obj.transform(self.dataset.copy())
         self.assertEqual(dataset[f"{target_index}_d{1}"].shape[-1], self.dataset[target_index].shape[-1])
         self.assertEqual(dataset[f"{target_index}_d{2}"].shape[-1], self.dataset[target_index].shape[-1])
-        self.assertTrue((dataset[f"{target_index}_d{1}"][:, :, :1] == np.zeros(1, dtype=np.int)).all())
-        self.assertTrue((dataset[f"{target_index}_d{2}"][:, :, :2] == np.zeros(2, dtype=np.int)).all())
+        self.assertTrue((dataset[f"{target_index}_d{1}"][:, :, :1] == np.zeros(1, dtype=int)).all())
+        self.assertTrue((dataset[f"{target_index}_d{2}"][:, :, :2] == np.zeros(2, dtype=int)).all())
 
     def test_target_index_none(self):
         # test if None as target_index uses time indexes to differentiate

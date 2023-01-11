@@ -205,7 +205,7 @@ class AnomalyGeneration(BaseTransformer):
         :rtype: xr.DataArray
         """
         # allow np.nan values in target array
-        target = target.astype(np.float)
+        target = target.astype(float)
         for idx, length in zip(indices, lengths):
             target[idx:idx + length] = np.nan
         return target

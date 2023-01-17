@@ -13,7 +13,7 @@ from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
 
 # All modules required for the pipeline are imported
-from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, \
+from pywatts.modules import CalendarExtraction, CalendarFeature, Select, LinearInterpolater, \
     SKLearnWrapper, SmTimeSeriesModelWrapper
 from pywatts.summaries import RMSE
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # Create lagged time series to later be used in the regression
     lag_features = Select(start=-2, stop=0, step=1, name="lag_features"
-                                        )(x=scale_power_statistics)
+                          )(x=scale_power_statistics)
 
     # Create a statsmodel that uses the lagged values to predict the current value
     regressor_power_statistics = SmTimeSeriesModelWrapper(

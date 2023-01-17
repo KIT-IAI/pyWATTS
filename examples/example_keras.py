@@ -24,14 +24,12 @@ from tensorflow.keras import backend as K
 def get_keras_model():
     # write the model with the Functional API, Sequential does not support multiple input tensors
 
-    D_in, H, D_out = 2, 10, 1  # input dimension, hidden dimension, output dimension
     input_1 = layers.Input(shape=(24,),
                            name='lag_features')  # layer name must match time series name
-    hidden = layers.Dense(H,
-                          input_dim=D_in,
+    hidden = layers.Dense(10,
                           activation='tanh',
                           name='hidden')(input_1)
-    output = layers.Dense(D_out,
+    output = layers.Dense(24,
                           activation='linear',
                           name='target')(hidden)  # layer name must match time series name
     model = Model(inputs=[input_1], outputs=output)
@@ -53,7 +51,9 @@ if __name__ == "__main__":
 
     # Create lagged time series to later be used in the regression
     # sampler_module -> 2D-Zeitreihe
-    lag_features = Select(start=-24, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
+    lag_features = Select(start=-23, stop=1, step=1, name="lag_features")(x=scale_power_statistics)
+    target = Select(start=1, stop=25, step=1, name="target")(x=scale_power_statistics)
+
 
     keras_wrapper = KerasWrapper(keras_model,
                                  custom_objects={"<lambda>": lambda x, y: K.sqrt(K.mean(K.square(x - y)))},
@@ -62,14 +62,14 @@ if __name__ == "__main__":
                                                  "optimizer": "Adam",
                                                  "metrics": ["mse"]}) \
         (lag_features=lag_features,
-         target=scale_power_statistics)
+         target=target)
 
     inverse_power_scale_dl = power_scaler(x=keras_wrapper,
                                           computation_mode=ComputationMode.Transform,
                                           method="inverse_transform",
                                           callbacks=[LinePlotCallback("prediction")])
 
-    rmse_dl = RMSE()(keras_model=inverse_power_scale_dl, y=pipeline["load_power_statistics"])
+    rmse_dl = RMSE()(keras_model=inverse_power_scale_dl, y=target)
 
     # Now, the pipeline is complete
     # so we can load data and train the model

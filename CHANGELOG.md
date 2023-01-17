@@ -13,6 +13,7 @@
 * Add F1Score Summary ([#234](https://github.com/KIT-IAI/pyWATTS/issues/234))
 * Add a discriminative score summary ([#238](https://github.com/KIT-IAI/pyWATTS/issues/238))
 * Add NPY Callback ([#247](https://github.com/KIT-IAI/pyWATTS/issues/247))
+* Add Select transformer ([#257](https://github.com/KIT-IAI/pyWATTS/issues/257))
 
 ### Changed
 * Make the inputs of the PNN more flexible ([#228](https://github.com/KIT-IAI/pyWATTS/issues/228))
@@ -22,6 +23,9 @@
 * Enabled installation for macOS([#241](https://github.com/KIT-IAI/pyWATTS/issues/241))
 * Adapt CD Condition to new river api ([#249](https://github.com/KIT-IAI/pyWATTS/issues/249))
 * Wrong sine cosine encoding in calendar extraction module ([#36](https://github.com/KIT-IAI/pyWATTS/issues/36))
+
+### Deprecated
+* Sampler and ClockShift. Will be removed in version 0.5.0 ([#257](https://github.com/KIT-IAI/pyWATTS/issues/257))
 
 ## 0.3.0 - 2022-31-03
 

@@ -39,8 +39,7 @@ as any external Scikit-Learn modules we will be using.
     from pywatts.core.computation_mode import ComputationMode
     from pywatts.core.pipeline import Pipeline
     # All modules required for the pipeline are imported
-    from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, \
-        Sampler, Slicer
+    from pywatts.modules import CalendarExtraction, CalendarFeature, Select, LinearInterpolater, SKLearnWrapper,
     from pywatts.summaries import RMSE
 
 With the modules imported, we can now work on building the pipeline.
@@ -117,11 +116,10 @@ one or more values. In `pyWATTS`, we use the ``ClockShift`` module to perform th
 
 .. code-block:: python
 
-    shift_power_statistics = ClockShift(lag=1, name = "ClockShift_Lag1")(x=scale_power_statistics)
-    shift_power_statistics2 = ClockShift(lag=2, name = "ClockShift_Lag2")(x=scale_power_statistics)
+    lag_features = Select(start=-1, stop=1, step=1)(x=scale_power_statistics)
 
-In the above example, we create two different lagged time series. The first shifts the time series back by one lag,
-and the second by two. The input for both shifts is the same scaled time series from above. When we include two modules
+In the above example, we create a sampled time series with the two values for each time step
+(past value and current value). The input for this module is the same scaled time series from above. When we modules
 of the same type (here two ``ClockShift`` modules, it is highly advisable to name them. Without a user defined name
 there will be a conflict in the pipeline. `pyWATTS` automatically changes the name to avoid this conflict and you
 receive a warning message, but we advise avoiding this.
@@ -129,18 +127,11 @@ receive a warning message, but we advise avoiding this.
 **Creating multiple targets**
 
 For every hour, we want to predict the values for the next 24 hours.
-We use the Sampler to create windows containing 24 values.
+We use the Select to create windows containing 24 values.
 
 .. code-block:: python
 
-    target_multiple_output = Sampler(24, name="sampled_data")(x=scale_power_statistics)
-
-We use the previous two values to predict the next 24 values, which means the first window we want to predict ends at hour 26.
-We therefore remove the first 25 samples, for which either the features or the targets would be incomplete.
-
-.. code-block:: python
-
-    targets_sliced = Slicer(start=25, name="targets_sliced")(x=target_multiple_output)
+    target_multiple_output = Select(start=1, stop=25, step=1 name="sampled_data")(x=scale_power_statistics)
 
 
 **Selecting features**
@@ -158,13 +149,6 @@ We use the SciKit-learn wrapper around the module ``SelectKBest`` to automatical
         target=scale_power_statistics,
     )
 
-Since we sliced the target values, we also have to slice the features, so that both have the same length.
-The first two samples have incomplete features, and the last 23 have less than 24 target values.
-
-.. code-block:: python
-
-    features_sliced = Slicer(start=2, end=-23, name="features_sliced")(x=selected_features)
-
 
 **Linear Regression**
 
@@ -175,8 +159,8 @@ We also use the SciKit-learn wrapper for linear regression. The implementation i
     regressor_power_statistics = SKLearnWrapper(
         module=LinearRegression(fit_intercept=True)
     )(
-        features=features_sliced,
-        target=targets_sliced,
+        features=selected_features,
+        target=target_multiple_output,
         callbacks=[LinePlotCallback("linear_regression")]
     )
 
@@ -210,7 +194,7 @@ To measure the accuracy of our regression model, we can calculate the root mean 
 
 .. code-block:: python
 
-    rmse = RMSE()(y_hat=inverse_power_scale, y=targets_sliced)
+    rmse = RMSE()(y_hat=inverse_power_scale, y=target_multiple_output)
 
 The target variable is determined by the key-word ``y``. All other keyword arguments are considered as predictions.
 

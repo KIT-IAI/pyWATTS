@@ -18,14 +18,10 @@ from pywatts.summaries import RMSE
 
 
 def get_sequential_model():
-    # D_in is input dimension;
-    # H is hidden dimension; D_out is output dimension.
-    D_in, H, D_out = 24, 10, 1
-
     model = torch.nn.Sequential(
-        torch.nn.Linear(D_in, H),
+        torch.nn.Linear(24, 10),
         torch.nn.ReLU(),
-        torch.nn.Linear(H, D_out),
+        torch.nn.Linear(10, 24),
     )
 
     return model
@@ -45,7 +41,8 @@ if __name__ == "__main__":
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    lag_features = Select(start=-24, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
+    lag_features = Select(start=-23, stop=1, step=1, name="lag_features")(x=scale_power_statistics)
+    target = Select(start=1, stop=25, step=1, name="target")(x=scale_power_statistics)
 
     model = get_sequential_model()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -56,7 +53,7 @@ if __name__ == "__main__":
                                      loss_fn=torch.nn.MSELoss(reduction='sum'))\
                       (
                         lag_features=lag_features,
-                        target=scale_power_statistics
+                        target=target
                       )
 
     inverse_power_scale = power_scaler(x=pytorch_wrapper,
@@ -64,7 +61,7 @@ if __name__ == "__main__":
                                        method="inverse_transform",
                                        callbacks=[LinePlotCallback('forecast')])
 
-    rmse_dl = RMSE()(y_hat=inverse_power_scale, y=pipeline["load_power_statistics"])
+    rmse_dl = RMSE()(y_hat=inverse_power_scale, y=target)
 
     # Now, the pipeline is complete
     # so we can load data and train the model

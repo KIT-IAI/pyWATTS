@@ -3,9 +3,12 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 import xarray as xr
+import warnings
 
 from pywatts_pipeline.core.transformer.base import BaseTransformer
-from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import (
+    WrongParameterException,
+)
 from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 
 
@@ -24,6 +27,12 @@ class ClockShift(BaseTransformer):
     """
 
     def __init__(self, lag: int, name: str = "ClockShift", indexes: List[str] = None):
+
+        warnings.warn(
+            "The ClockShift is deprecated. Please use the select module with "
+            "for example Select(start=-23) for selecting the value 23 ago for "
+            "for each step. It will be removed in version 0.5."
+        )
         super().__init__(name)
         self.lag = lag
         self.indexes = indexes
@@ -35,10 +44,7 @@ class ClockShift(BaseTransformer):
         :return: List of parameters
         :rtype: Dict
         """
-        return {
-            "lag": self.lag,
-            "indexes": self.indexes
-        }
+        return {"lag": self.lag, "indexes": self.indexes}
 
     def set_params(self, lag: int = None, indexes: List[str] = None):
         """
@@ -76,7 +82,8 @@ class ClockShift(BaseTransformer):
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the ClockShift.",
-                module=self.name) from exc
+                module=self.name,
+            ) from exc
 
     def get_min_data(self):
         return np.abs(self.lag)

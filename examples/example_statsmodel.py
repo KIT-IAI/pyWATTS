@@ -36,10 +36,8 @@ if __name__ == "__main__":
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1"
+    lag_features = Select(start=-2, stop=0, step=1, name="lag_features"
                                         )(x=scale_power_statistics)
-    shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
-                                         )(x=scale_power_statistics)
 
     # Create a statsmodel that uses the lagged values to predict the current value
     regressor_power_statistics = SmTimeSeriesModelWrapper(
@@ -48,8 +46,7 @@ if __name__ == "__main__":
             "order": (2, 0, 0)
         }
     )(
-        power_lag1=shift_power_statistics,
-        power_lag2=shift_power_statistics2,
+        lag_features=lag_features,
         calendar=cal_features,
         target=scale_power_statistics, callbacks=[LinePlotCallback('ARIMA')],
     )

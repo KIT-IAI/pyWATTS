@@ -16,7 +16,8 @@ from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
 
 # Import the pyWATTS pipeline and the required modules
-from pywatts.modules import ClockShift, LinearInterpolater, SKLearnWrapper, KerasWrapper
+from pywatts.modules import LinearInterpolater, SKLearnWrapper, KerasWrapper
+from pywatts.modules.preprocessing.select import Select
 from pywatts.summaries import RMSE
 from tensorflow.keras import backend as K
 
@@ -24,19 +25,16 @@ def get_keras_model():
     # write the model with the Functional API, Sequential does not support multiple input tensors
 
     D_in, H, D_out = 2, 10, 1  # input dimension, hidden dimension, output dimension
-    input_1 = layers.Input(shape=(1,),
-                           name='ClockShift_Lag1')  # layer name must match time series name
-    input_2 = layers.Input(shape=(1,),
-                           name='ClockShift_Lag2')  # layer name must match time series name
-    merged = layers.Concatenate(axis=1)([input_1, input_2])
+    input_1 = layers.Input(shape=(24,),
+                           name='lag_features')  # layer name must match time series name
     hidden = layers.Dense(H,
                           input_dim=D_in,
                           activation='tanh',
-                          name='hidden')(merged)
+                          name='hidden')(input_1)
     output = layers.Dense(D_out,
                           activation='linear',
                           name='target')(hidden)  # layer name must match time series name
-    model = Model(inputs=[input_1, input_2], outputs=output)
+    model = Model(inputs=[input_1], outputs=output)
     return model
 
 
@@ -55,8 +53,7 @@ if __name__ == "__main__":
 
     # Create lagged time series to later be used in the regression
     # sampler_module -> 2D-Zeitreihe
-    shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1")(x=scale_power_statistics)
-    shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2")(x=scale_power_statistics)
+    lag_features = Select(start=-24, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
 
     keras_wrapper = KerasWrapper(keras_model,
                                  custom_objects={"<lambda>": lambda x, y: K.sqrt(K.mean(K.square(x - y)))},
@@ -64,8 +61,7 @@ if __name__ == "__main__":
                                  compile_kwargs={"loss": lambda x, y: K.sqrt(K.mean(K.square(x - y))),
                                                  "optimizer": "Adam",
                                                  "metrics": ["mse"]}) \
-        (ClockShift_Lag1=shift_power_statistics,
-         ClockShift_Lag2=shift_power_statistics2,
+        (lag_features=lag_features,
          target=scale_power_statistics)
 
     inverse_power_scale_dl = power_scaler(x=keras_wrapper,

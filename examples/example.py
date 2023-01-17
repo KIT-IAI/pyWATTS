@@ -15,6 +15,7 @@ from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
 # All modules required for the pipeline are imported
 from pywatts.modules import CalendarExtraction, CalendarFeature, ClockShift, LinearInterpolater, SKLearnWrapper, Sampler
+from pywatts.modules.preprocessing.select import Select
 from pywatts.summaries import RMSE
 
 # The main function is where the pipeline is created and run
@@ -39,20 +40,17 @@ if __name__ == "__main__":
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used as regressors
-    shift_power_statistics = ClockShift(lag=1, name="ClockShift_Lag1"
-                                        )(x=scale_power_statistics)
-    shift_power_statistics2 = ClockShift(lag=2, name="ClockShift_Lag2"
-                                         )(x=scale_power_statistics)
+    lag_features = Select(start=-2, stop=0, step=1)(x=scale_power_statistics)
+
     scaler_target = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
     scaled_target = scaler_target(x=imputer_power_statistics)
-    target_multiple_output = Sampler(24, name="sampled_data")(x=scaled_target)
+    target_multiple_output = Select(start=0, stop=24, step=1, name="sampled_data")(x=scaled_target)
 
     # Select features based on F-statistic
     selected_features = SKLearnWrapper(
         module=SelectKBest(score_func=f_regression, k=2)
     )(
-        power_lag1=shift_power_statistics,
-        power_lag2=shift_power_statistics2,
+        lag_features=lag_features,
         calendar=calendar,
         target=scale_power_statistics,
     )

@@ -15,7 +15,7 @@ from pywatts.conditions.cd_condition import RiverDriftDetectionCondition
 from pywatts.conditions.periodic_condition import PeriodicCondition
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
-from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper, Sampler, FunctionModule
+from pywatts.modules import LinearInterpolater, RollingRMSE, SKLearnWrapper, FunctionModule
 
 
 # This function creates and returns the preprocessing pipeline
@@ -34,7 +34,7 @@ def create_preprocessing_pipeline(power_scaler):
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    Sampler(24, name="sampled_data")(x=scale_power_statistics)
+    Select(start=-24, stop=0, step=1 )(x=scale_power_statistics)
     return pipeline
 
 

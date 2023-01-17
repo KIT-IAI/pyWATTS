@@ -8,14 +8,11 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
-
-
 # Import the pyWATTS pipeline and the required modules
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
-from pywatts.modules import RollingRMSE, SKLearnWrapper
-from pywatts.modules.preprocessing.select import Select
+from pywatts.modules import RollingRMSE, SKLearnWrapper, Select
 
 
 # The condition function. It returns True during daytime.
@@ -80,7 +77,8 @@ if __name__ == "__main__":
     train_pipeline = Pipeline(path="../results/train")
 
     # Create preprocessing pipeline for the preprocessing steps
-    scale_power_statistics = power_scaler(x=train_pipeline["load_power_statistics"], callbacks=[LinePlotCallback("scaled")])
+    scale_power_statistics = power_scaler(x=train_pipeline["load_power_statistics"],
+                                          callbacks=[LinePlotCallback("scaled")])
 
     # Create lagged time series to later be used in the regression
     lag_features = Select(start=-2, stop=0, step=1, name="Lag1")(x=scale_power_statistics)
@@ -100,7 +98,8 @@ if __name__ == "__main__":
     # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
     pipeline = Pipeline(path="../results", name="test_pipeline")
 
-    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"], computation_mode=ComputationMode.Transform,
+    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"],
+                                          computation_mode=ComputationMode.Transform,
                                           callbacks=[LinePlotCallback("scaled")])
 
     # Create lagged time series to later be used in the regression

@@ -12,8 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from pywatts.callbacks import LinePlotCallback
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
-from pywatts.modules import LinearInterpolater, SKLearnWrapper, PyTorchWrapper, ClockShift
-from pywatts.modules.preprocessing.select import Select
+from pywatts.modules import LinearInterpolater, SKLearnWrapper, PyTorchWrapper, Select
 from pywatts.summaries import RMSE
 
 

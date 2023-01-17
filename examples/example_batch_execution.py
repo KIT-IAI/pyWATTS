@@ -15,7 +15,7 @@ from pywatts.conditions.cd_condition import RiverDriftDetectionCondition
 from pywatts.conditions.periodic_condition import PeriodicCondition
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
-from pywatts.modules import LinearInterpolater, RollingRMSE, SKLearnWrapper, FunctionModule
+from pywatts.modules import LinearInterpolater, RollingRMSE, SKLearnWrapper, FunctionModule, Select
 
 
 # This function creates and returns the preprocessing pipeline

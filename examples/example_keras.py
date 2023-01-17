@@ -4,22 +4,18 @@
 # -----------------------------------------------------------
 
 import pandas as pd
-
-from sklearn.preprocessing import StandardScaler
-
 from keras import layers, Model
-
-from pywatts.callbacks import LinePlotCallback
-
+from pywatts_pipeline.core.pipeline import Pipeline
 # From pyWATTS the pipeline is imported
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
-from pywatts_pipeline.core.pipeline import Pipeline
-
-# Import the pyWATTS pipeline and the required modules
-from pywatts.modules import LinearInterpolater, SKLearnWrapper, KerasWrapper
-from pywatts.modules.preprocessing.select import Select
-from pywatts.summaries import RMSE
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras import backend as K
+
+from pywatts.callbacks import LinePlotCallback
+# Import the pyWATTS pipeline and the required modules
+from pywatts.modules import LinearInterpolater, SKLearnWrapper, KerasWrapper, Select
+from pywatts.summaries import RMSE
+
 
 def get_keras_model():
     # write the model with the Functional API, Sequential does not support multiple input tensors
@@ -53,7 +49,6 @@ if __name__ == "__main__":
     # sampler_module -> 2D-Zeitreihe
     lag_features = Select(start=-23, stop=1, step=1, name="lag_features")(x=scale_power_statistics)
     target = Select(start=1, stop=25, step=1, name="target")(x=scale_power_statistics)
-
 
     keras_wrapper = KerasWrapper(keras_model,
                                  custom_objects={"<lambda>": lambda x, y: K.sqrt(K.mean(K.square(x - y)))},

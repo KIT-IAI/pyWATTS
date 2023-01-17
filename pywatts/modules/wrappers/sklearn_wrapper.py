@@ -37,12 +37,12 @@ class SKLearnWrapper(BaseWrapper):
         if hasattr(self.module, 'predict_proba'):
             self.has_predict_proba = True
 
-    def get_params(self):
-        """
-        Return the parameter of the slkearn module
-        :return:
-        """
-        return self.module.get_params()
+#    def get_params(self):
+#        """
+#        Return the parameter of the slkearn module
+#        :return:
+#        """
+#        return self.module.get_params()
 
     def set_params(self, **kwargs):
         """
@@ -66,7 +66,7 @@ class SKLearnWrapper(BaseWrapper):
                                 map(lambda t: t.values.reshape((t.shape[0], -1)).shape[-1] if len(t.shape) > 1 else 1,
                                     list(targets.values()))))
         self.fit_result = self.module.fit(x, target)
-        self.is_fitted = True
+        self._is_fitted = True
 
     @staticmethod
     def _dataset_to_sklearn_input(x):
@@ -185,6 +185,6 @@ class SKLearnWrapper(BaseWrapper):
         with open(load_information["sklearn_module"], 'rb') as pickle_file:
             module = cloudpickle.load(pickle_file)
         module = cls(module=module, name=name)
-        module.is_fitted = load_information["is_fitted"]
+        module._is_fitted = load_information["is_fitted"]
         module.targets = load_information["targets"]
         return module

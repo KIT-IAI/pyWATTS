@@ -102,7 +102,7 @@ class PyTorchWrapper(DlWrapper):
             scheduler.step()
 
         self.model.to("cpu")
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

@@ -25,7 +25,7 @@ class FunctionModule(BaseEstimator):
                  name: str = "FunctionModule"):
         super().__init__(name)
         if fit_method is None:
-            self.is_fitted = True
+            self._is_fitted = True
             self.fit_method = fit_method
         else:
             self.fit_method = fit_method
@@ -54,7 +54,7 @@ class FunctionModule(BaseEstimator):
         """
         if self.fit_method is not None:
             self.fit_method(**kwargs)
-            self.is_fitted = True
+            self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

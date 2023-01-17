@@ -143,7 +143,7 @@ class ProfileNeuralNetwork(BaseEstimator):
             "dummy_input": dummy_input
         }, target.values[self.offset:])
         self.pnn.fit(input, t, epochs=self.epochs, batch_size=self.batch_size, validation_split=self.validation_split)
-        self.is_fitted = True
+        self._is_fitted = True
 
     def _get_inputs(self, kwargs, offset):
         """

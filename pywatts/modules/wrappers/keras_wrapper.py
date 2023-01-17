@@ -60,7 +60,7 @@ class KerasWrapper(DlWrapper):
             self.model.compile(**self.compile_kwargs)
             self.compiled = True
         self.model.fit(x=x, y=y, **self.fit_kwargs)
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

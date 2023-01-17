@@ -55,7 +55,7 @@ class Ensemble(BaseEstimator):
         self.weights_ = None
         self.loss_metric = loss_metric
         self.k_best = k_best
-        self.is_fitted = False
+        self._is_fitted = False
 
     def get_params(self) -> Dict[str, object]:
         """ Get parameters for the Ensemble object.
@@ -120,7 +120,7 @@ class Ensemble(BaseEstimator):
         if self.weights_:
             self.weights_ = [weight / sum(self.weights_) for weight in self.weights_]
 
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs) -> xr.DataArray:
         """ Ensemble the given time series by simple or weighted averaging.

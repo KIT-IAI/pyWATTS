@@ -100,7 +100,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         else:
             self.model = self.module(endog=np.stack(y, axis=-1), **self.module_kwargs).fit(**self.fit_kwargs)
 
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """

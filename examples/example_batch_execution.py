@@ -34,7 +34,7 @@ def create_preprocessing_pipeline(power_scaler):
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    Select(start=-24, stop=0, step=1 )(x=scale_power_statistics)
+    Select(start=-24, stop=0, step=1, name="sampled_data")(x=scale_power_statistics)
     return pipeline
 
 

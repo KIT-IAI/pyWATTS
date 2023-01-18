@@ -40,15 +40,15 @@ class MetricBase(BaseSummary, ABC):
         else:
             self.cuts = cuts
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a dict of parameters used in the Metric.
-
-        :return: Parameters set for the Metric
-        :rtype: Dict[str, object]
-        """
-        return {"offset": self.offset,
-                "cuts": self.cuts}
+#    def get_params(self) -> Dict[str, object]:
+#        """
+#        Returns a dict of parameters used in the Metric.
+#
+ #       :return: Parameters set for the Metric
+  #      :rtype: Dict[str, object]
+   #     """
+    #    return {"offset": self.offset,
+     #           "cuts": self.cuts}
 
     def set_params(self, offset: Optional[int] = None, cuts=Optional[List[Tuple[pd.Timestamp, pd.Timestamp]]]):
         """

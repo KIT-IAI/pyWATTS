@@ -162,16 +162,16 @@ class CalendarExtraction(BaseTransformer):
         elif feature == CalendarFeature.hour_cos:
             return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.hour) / 24))
 
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters of this calendar extraction processing step.
-
-        :return: Json dict containing the parameters.
-        """
-        return {
-            "continent": self.continent,
-            "country": self.country,
-            "features": self.features,
-        }
+    #def get_params(self) -> Dict[str, object]:
+    #    """ Get parameters of this calendar extraction processing step.
+#
+#        :return: Json dict containing the parameters.
+#        """
+ #       return {
+  #          "continent": self.continent,
+   #         "country": self.country,
+    #        "features": self.features,
+     #   }
 
     def set_params(self, continent: Optional[str] = None, country: Optional[str] = None,
                    features: Optional[List[CalendarFeature]] = None):

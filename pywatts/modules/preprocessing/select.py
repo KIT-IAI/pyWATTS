@@ -49,18 +49,18 @@ class Select(BaseTransformer):
             return abs(min(self.start))
         return abs(self.start) if self.start < 0 else 0
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a list of all hyperparameters/ user defined parameters
+    #def get_params(self) -> Dict[str, object]:
+    #    """
+    #    Returns a list of all hyperparameters/ user defined parameters
 
-        :return: Dict with params
-        :rtype: dict
-        """
-        return {
-            "start": self.start,
-            "stop": self.stop,
-            "step": self.step,
-        }
+    #    :return: Dict with params
+    #    :rtype: dict
+    #    """
+    #    return {
+    #        "start": self.start,
+    #        "stop": self.stop,
+    #        "step": self.step,
+    #    }
 
     def set_params(
         self, start: Union[int, List[int]] = None, stop: int = None, step: int = None, **kwargs

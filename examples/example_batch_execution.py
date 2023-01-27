@@ -40,28 +40,6 @@ def create_preprocessing_pipeline(power_scaler):
 
 # This function creates the pipeline which we use for testing.
 # The test pipeline works on batches with one hour
-def create_test_pipeline(regressor_svr):
-    # Create test pipeline which works on a batch size of one hour.
-    pipeline = Pipeline("../results/test_pipeline", name="TestPipeline")
-    periodic_condition = PeriodicCondition(21)
-    detection_condition = RiverDriftDetectionCondition()
-    check_if_midnight = lambda x, _: len(x["historical_input"].indexes["time"]) > 0 and \
-                                     x["historical_input"].indexes["time"][0].hour == 0
-    # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-    regressor_svr_power_statistics = regressor_svr(historical_input=pipeline["historical_input"],
-                                                   target=pipeline["load_power_statistics"],
-                                                   computation_mode=ComputationMode.Refit,
-                                                   callbacks=[LinePlotCallback('SVR')],
-                                                   lag=pd.Timedelta(hours=24),
-                                                   refit_conditions=[periodic_condition, #check_if_midnight,
-                                                                     detection_condition])
-    detection_condition(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
-
-    RollingRMSE(window_size=1, window_size_unit="d")(
-        y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"],
-        callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
-    MASE()(y_hat=regressor_svr_power_statistics, y=pipeline["load_power_statistics"])
-    return pipeline
 
 
 if __name__ == "__main__":
@@ -78,48 +56,52 @@ if __name__ == "__main__":
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaled_power")
 
     # Build a train pipeline. In this pipeline, each step processes all data at once.
-    train_pipeline = Pipeline(path="../results/train")
+    pipeline = Pipeline(path="../results/batch_pipeline")
 
     # Create preprocessing pipeline for the preprocessing steps
     preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
-    preprocessing_pipeline = preprocessing_pipeline(scaler_power=train_pipeline["load_power_statistics"])
+    preprocessing_pipeline = preprocessing_pipeline(scaler_power=pipeline["load_power_statistics"])
 
     target = FunctionModule(lambda x: numpy_to_xarray(
         x.values.reshape((-1,)), x
-    ), name="target")(x=train_pipeline["load_power_statistics"])
+    ), name="target")(x=pipeline["load_power_statistics"])
 
-    # Addd the regressors to the train pipeline
-    regressor_svr(hist_input=preprocessing_pipeline["sampled_data"],
-                  target=target,
-                  callbacks=[LinePlotCallback('SVR')])
+
+    periodic_condition = PeriodicCondition(21)
+    detection_condition = RiverDriftDetectionCondition()
+    check_if_midnight = lambda x, _: len(x["sampled_data"].indexes["time"]) > 0 and \
+                                     x["sampled_data"].indexes["time"][0].hour == 0
+    # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
+    # TODO improve error message if select is not named sampled_data
+    regressor_svr_power_statistics = regressor_svr(historical_input=preprocessing_pipeline["sampled_data"],
+                                                   target=target,
+                                                   computation_mode=ComputationMode.Refit,
+                                                   callbacks=[LinePlotCallback('SVR')],
+                                                   lag=pd.Timedelta(hours=24),
+                                                   refit_conditions=[periodic_condition, #check_if_midnight,
+                                                                     detection_condition])
+
 
     print("Start training")
-    train_pipeline.train(data)
+    pipeline.train(train)
     print("Training finished")
 
-    # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
-    pipeline = Pipeline(path="../results")
+    detection_condition(y_hat=regressor_svr_power_statistics, y=target)
 
-    # Get preprocessing pipeline
-    preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
-    preprocessing_pipeline = preprocessing_pipeline(scaler_power=pipeline["load_power_statistics"])
-
-    # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
-    test_pipeline = create_test_pipeline(regressor_svr)
-    test_pipeline(historical_input=preprocessing_pipeline["sampled_data"],
-                  load_power_statistics=pipeline["load_power_statistics"],
-                  callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
+    RollingRMSE(window_size=1, window_size_unit="d")(
+        y_hat=regressor_svr_power_statistics, y=target,
+        callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
+    MASE()(y_hat=regressor_svr_power_statistics, y=target)
 
     # Now, the pipeline is complete so we can run it and explore the results
     # Start the pipeline
     print("Start testing")
     result = []
-
     for i in range(len(test)):
         print(test.index[i])
         result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False, refit=True))
 
     print("Testing finished")
     summary = pipeline.create_summary()
-    assert pipeline.steps[-1].buffer["RollingRMSE"].shape, (len(test) - 24, 1)
+    assert pipeline.steps["RollingRMSE_5"].buffer["RollingRMSE"].shape, (len(test) - 24, 1)
 

@@ -101,3 +101,5 @@ if __name__ == "__main__":
     #       For more details about pickling see https://docs.python.org/3/library/pickle.html
     pipeline2.test(test)
     print("Finished")
+
+    # TODO Add an insertion that tests if the result is the same after reloading

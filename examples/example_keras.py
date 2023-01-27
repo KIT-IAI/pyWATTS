@@ -9,7 +9,7 @@ from pywatts_pipeline.core.pipeline import Pipeline
 # From pyWATTS the pipeline is imported
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from sklearn.preprocessing import StandardScaler
-from tensorflow.keras import backend as K
+from keras import backend as K
 
 from pywatts.callbacks import LinePlotCallback
 # Import the pyWATTS pipeline and the required modules

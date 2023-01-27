@@ -103,5 +103,5 @@ if __name__ == "__main__":
 
     print("Testing finished")
     summary = pipeline.create_summary()
-    assert pipeline.steps["RollingRMSE"].buffer["RollingRMSE"].shape, (len(test) - 24, 1)
+    assert pipeline.steps["RollingRMSE_5"].buffer["RollingRMSE"].shape, (len(test) - 24, 1)
 

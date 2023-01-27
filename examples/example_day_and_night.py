@@ -60,12 +60,11 @@ if __name__ == "__main__":
         callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
 
     print("Start training")
-    pipeline.train(data)
+    pipeline.train(train)
     print("Training finished")
 
     print("Start testing")
     result = []
-    pipeline._reset()
     for i in range(len(test)):
         result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False))
     print("Testing finished")

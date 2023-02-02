@@ -31,6 +31,7 @@ class PeriodicCondition(BaseCondition):
         self.counter = self.counter % self.num_steps
 
         if self.counter == 0:
-           return True
+            print(f"{self.name}: refit with refit batch {self.refit_batch}")
+            return True
         else:
             return False

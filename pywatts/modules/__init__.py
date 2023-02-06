@@ -21,6 +21,7 @@ from pywatts.modules.preprocessing.linear_interpolation import LinearInterpolate
 from pywatts.modules.preprocessing.missing_value_detection import MissingValueDetector
 from pywatts.modules.preprocessing.resampler import Resampler
 from pywatts.modules.preprocessing.sampler import Sampler
+from pywatts.modules.preprocessing.select import Select
 from pywatts.modules.preprocessing.slicer import Slicer
 from pywatts.modules.wrappers import *
 from pywatts.modules.feature_extraction.statistics_extraction import StatisticExtraction, StatisticFeature

@@ -8,19 +8,17 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
-
-
 # Import the pyWATTS pipeline and the required modules
 from pywatts_pipeline.core.util.computation_mode import ComputationMode
 from pywatts_pipeline.core.pipeline import Pipeline
 from pywatts.callbacks import CSVCallback, LinePlotCallback
-from pywatts.modules import ClockShift, LinearInterpolater, RollingRMSE, SKLearnWrapper
+from pywatts.modules import RollingRMSE, SKLearnWrapper, Select
 
 
 # The condition function. It returns True during daytime.
 # For simplification we say daytime is between 8am and 8pm.
 def is_daytime(x, _):
-    return 8 < x["ClockShift"].indexes["time"][0].hour < 20
+    return 8 < x["lag_features"].indexes["time"][0].hour < 20
 
 
 # This function creates the pipeline which we use for testing.
@@ -32,15 +30,13 @@ def create_test_pipeline(modules):
     pipeline = Pipeline("../results/test_pipeline")
 
     # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-    regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["Lag1"],
-                                                   ClockShift_1=pipeline["Lag2"],
+    regressor_svr_power_statistics = regressor_svr(lag_features=pipeline["lag_features"],
                                                    condition=lambda x, y: not is_daytime(x, y),
                                                    computation_mode=ComputationMode.Transform,
                                                    callbacks=[LinePlotCallback('SVR')])
 
     # Add the linear regressor to the pipeline. This regressor should be called if it is daytime
-    regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["Lag1"],
-                                                           ClockShift_1=pipeline["Lag2"],
+    regressor_lin_reg_power_statistics = regressor_lin_reg(lag_features=pipeline["lag_features"],
                                                            condition=lambda x, y: is_daytime(x, y),
                                                            computation_mode=ComputationMode.Transform,
                                                            callbacks=[LinePlotCallback('LinearRegression')])
@@ -79,19 +75,17 @@ if __name__ == "__main__":
     train_pipeline = Pipeline(path="../results/train")
 
     # Create preprocessing pipeline for the preprocessing steps
-    scale_power_statistics = power_scaler(x=train_pipeline["load_power_statistics"], callbacks=[LinePlotCallback("scaled")])
+    scale_power_statistics = power_scaler(x=train_pipeline["load_power_statistics"],
+                                          callbacks=[LinePlotCallback("scaled")])
 
     # Create lagged time series to later be used in the regression
-    lag1 = ClockShift(lag=1, name="Lag1")(x=scale_power_statistics)
-    lag2 = ClockShift(lag=2, name="Lag2")(x=scale_power_statistics)
+    lag_features = Select(start=-2, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
 
     # Addd the regressors to the train pipeline
-    regressor_lin_reg(Lag1=lag1,
-                      Lag2=lag2,
+    regressor_lin_reg(lag_features=lag_features,
                       target=scale_power_statistics,
                       callbacks=[LinePlotCallback('LinearRegression')])
-    regressor_svr(Lag1=lag1,
-                  Lag2=lag2,
+    regressor_svr(lag_features=lag_features,
                   target=scale_power_statistics,
                   callbacks=[LinePlotCallback('SVR')])
 
@@ -102,18 +96,17 @@ if __name__ == "__main__":
     # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
     pipeline = Pipeline(path="../results", name="test_pipeline")
 
-    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"], computation_mode=ComputationMode.Transform,
+    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"],
+                                          computation_mode=ComputationMode.Transform,
                                           callbacks=[LinePlotCallback("scaled")])
 
     # Create lagged time series to later be used in the regression
-    lag1 = ClockShift(lag=1, name="Lag1")(x=scale_power_statistics)
-    lag2 = ClockShift(lag=2, name="Lag2")(x=scale_power_statistics)
+    lag_features = Select(start=-2, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
 
     # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
     test_pipeline = create_test_pipeline([regressor_lin_reg, regressor_svr])
 
-    test_pipeline(Lag1=lag1,
-                  Lag2=lag2,
+    test_pipeline(lag_features=lag_features,
                   load_power_statistics=scale_power_statistics,
                   callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
 

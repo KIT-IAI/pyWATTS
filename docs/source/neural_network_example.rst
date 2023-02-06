@@ -19,27 +19,20 @@ In general, both are used in the same way. Examples of the usage of both wrapper
 
     def get_keras_model():
         # write the model with the Functional API, Sequential does not support multiple input tensors
-        D_in, H, D_out = 2, 10, 1  # input dimension, hidden dimension, output dimension
-        input_1 = layers.Input(shape=(1,),  name='ClockShift_Lag1')  # layer name must match time series name
-        input_2 = layers.Input(shape=(1,), name='ClockShift_Lag2')  # layer name must match time series name
-        merged = layers.Concatenate(axis=1)([input_1, input_2])
-        hidden = layers.Dense(H,input_dim=D_in, activation='tanh', name='hidden')(merged)
-        output = layers.Dense(D_out, activation='linear', name='target')(hidden)  # layer name must match time series name
-        model = Model(inputs=[input_1, input_2], outputs=output)
+        input_1 = layers.Input(shape=(24,), name='lag_features')  # layer name must match time series name
+        hidden = layers.Dense(10, activation='tanh', name='hidden')(input_1)
+        output = layers.Dense(24, activation='linear', name='target')(hidden)  # layer name must match time series name
+        model = Model(inputs=[input_1], outputs=output)
         return model
+
 
     def get_torch_model():
-        # D_in is input dimension;
-        # H is hidden dimension; D_out is output dimension.
-        D_in, H, D_out = 2, 10, 1
-
         model = torch.nn.Sequential(
-            torch.nn.Linear(D_in, H),
+            torch.nn.Linear(24, 10),
             torch.nn.ReLU(),
-            torch.nn.Linear(H, D_out),
+            torch.nn.Linear(10, 24),
         )
-
-        return model
+    return model
 
 2. You initialize the Keras or pyTorch Wrapper with the predefined neural networks. Additionaly, you can add the compile,
    and fit keyword-arguments of the model as Dict.
@@ -59,13 +52,9 @@ In general, both are used in the same way. Examples of the usage of both wrapper
 
 .. code-block:: python
 
-    keras_wrapper((ClockShift_Lag1=shift_power_statistics,
-         ClockShift_Lag2=shift_power_statistics2,
-         target=scale_power_statistics))
+    keras_wrapper(lag_features=lag_features, target=target)
 
-    torch_wrapper(ClockShift_Lag1=shift_power_statistics,
-         ClockShift_Lag2=shift_power_statistics2,
-         target=scale_power_statistics)
+    torch_wrapper(lag_features=lag_features, target=target)
 
 Neural Network Module
 ---------------------

@@ -45,7 +45,7 @@ In the following, we implement one step ahead forecast, based on the last two va
     from pywatts.core.computation_mode import ComputationMode
     from pywatts.core.pipeline import Pipeline
     from pywatts.callbacks import CSVCallback, LinePlotCallback
-    from pywatts.modules import ClockShift, LinearInterpolater, RmseCalculator, SKLearnWrapper
+    from pywatts.modules import LinearInterpolater, SKLearnWrapper, Select
 
 2. We create a condition function for distinguishing between day time and night time. This
    condition function returns true, if the time is between 8am and 8pm (daytime)
@@ -70,8 +70,7 @@ In the following, we implement one step ahead forecast, based on the last two va
         scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
         # Create lagged time series to later be used in the regression
-        ClockShift(lag=1)(x=scale_power_statistics)
-        ClockShift(lag=2)(x=scale_power_statistics)
+        Select(start=-2, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
         return pipeline
 
 4. For testing, we create a further subpipeline. This pipeline should work online. Consequently, we use the batch argument of the Pipeline constructor for specifying time intervals. This interval determines the temporal length of one batch. Since in our dataset, the data are recorded each hour, each batch consists of one element.
@@ -94,23 +93,20 @@ In the following, we implement one step ahead forecast, based on the last two va
         pipeline = Pipeline("../results/test_pipeline", batch=pd.Timedelta("1h"))
 
         # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-        regressor_svr_power_statistics = regressor_svr(ClockShift=pipeline["ClockShift"],
-                                                       ClockShift_1=pipeline["ClockShift_1"],
+        regressor_svr_power_statistics = regressor_svr(lag_features=pipeline["lag_features"],
                                                        condition=lambda x, y: not is_daytime(x, y),
                                                        computation_mode=ComputationMode.Transform,
                                                        callbacks=[LinePlotCallback('SVR')])
 
         # Add the linear regressor to the pipeline. This regressor should be called if it is daytime
-        regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["ClockShift"],
-                                                               ClockShift_1=pipeline["ClockShift_1"],
+        regressor_lin_reg_power_statistics = regressor_lin_reg(ClockShift=pipeline["lag_features"],
                                                                condition=lambda x, y: is_daytime(x, y),
                                                                computation_mode=ComputationMode.Transform,
                                                                callbacks=[LinePlotCallback('LinearRegression')])
 
         # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-        RmseCalculator()(
-            y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"],
-            callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
+        RMSE()(
+            y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"])
 
         return pipeline
 
@@ -143,12 +139,10 @@ In the following, we implement one step ahead forecast, based on the last two va
     preprocessing_pipeline = preprocessing_pipeline(scaler_power=train_pipeline["load_power_statistics"])
 
     # Addd the regressors to the train pipeline
-    regressor_lin_reg(ClockShift=preprocessing_pipeline["ClockShift"],
-                      ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    regressor_lin_reg(lag_features=preprocessing_pipeline["lag_features"],
                       target=train_pipeline["load_power_statistics"],
                       callbacks=[LinePlotCallback('LinearRegression')])
-    regressor_svr(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    regressor_svr(lag_features=preprocessing_pipeline["lag_features"],
                   target=train_pipeline["load_power_statistics"],
                   callbacks=[LinePlotCallback('SVR')])
 
@@ -170,8 +164,7 @@ In the following, we implement one step ahead forecast, based on the last two va
     # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
     test_pipeline = create_test_pipeline([regressor_lin_reg, regressor_svr])
 
-    test_pipeline(ClockShift=preprocessing_pipeline["ClockShift"],
-                  ClockShift_1=preprocessing_pipeline["ClockShift_1"],
+    test_pipeline(lag_features=preprocessing_pipeline["lag_features"],
                   load_power_statistics=pipeline["load_power_statistics"],
                   callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
 

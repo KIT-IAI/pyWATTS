@@ -1,10 +1,13 @@
+import warnings
 from typing import Dict, List
 
 import pandas as pd
 import xarray as xr
 
 from pywatts_pipeline.core.transformer.base import BaseTransformer
-from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
+from pywatts_pipeline.core.exceptions.wrong_parameter_exception import (
+    WrongParameterException,
+)
 from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes
 import numpy as np
 
@@ -20,9 +23,16 @@ class Sampler(BaseTransformer):
     :param indexes: The indexes which should be shifted through time
     :type indexes: List[str]
 
-     """
+    """
 
-    def __init__(self, sample_size: int, name: str = "SampleModule", indexes: List[str] = None):
+    def __init__(
+        self, sample_size: int, name: str = "SampleModule", indexes: List[str] = None
+    ):
+        warnings.warn(
+            "The sampler is deprecated. Please use the select module with "
+            "for example Select(start=-23, stop=0, step=1) for selecting the past 24 values "
+            "for each step. It will be removed in version 0.5."
+        )
         super().__init__(name)
         if indexes is None:
             indexes = []
@@ -30,7 +40,8 @@ class Sampler(BaseTransformer):
             raise WrongParameterException(
                 "Sample size cannot be less than or equal to zero.",
                 "Please define a sample size greater than zero.",
-                module=self.name)
+                module=self.name,
+            )
         self.sample_size = sample_size
         self.indexes = indexes
 
@@ -65,7 +76,8 @@ class Sampler(BaseTransformer):
                 raise WrongParameterException(
                     "Sample size cannot be less than or equal to zero.",
                     "Please define a sample size greater than zero.",
-                    module=self.name)
+                    module=self.name,
+                )
         if indexes is not None:
             # Do not use if indexes here, since this would be false if indexes is empty.
             self.indexes = indexes
@@ -83,11 +95,17 @@ class Sampler(BaseTransformer):
         if not indexes:
             indexes = _get_time_indexes(x)
         try:
-            r = [x.shift({index: i for index in indexes}) for i in range(self.sample_size - 1, -1, -1)]
+            r = [
+                x.shift({index: i for index in indexes})
+                for i in range(self.sample_size - 1, -1, -1)
+            ]
         except ValueError as exc:
             raise WrongParameterException(
                 f"Not all indexes ({indexes}) are in the indexes of x ({list(x.indexes.keys())}).",
                 "Perhaps you set the wrong indexes with set_params or during the initialization of the Sampler.",
-                module=self.name) from exc
-        result = xr.DataArray(np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords).dropna(indexes[0])
+                module=self.name,
+            ) from exc
+        result = xr.DataArray(
+            np.stack(r, axis=-1), dims=(*x.dims, "horizon"), coords=x.coords
+        ).dropna(indexes[0])
         return result.transpose(_get_time_indexes(x)[0], "horizon", ...)

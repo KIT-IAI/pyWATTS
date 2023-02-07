@@ -40,7 +40,7 @@ class TestMerger(unittest.TestCase):
         self.merger.set_params(method="mean")
         result = self.merger.transform(da)
 
-        expected_result = xr.DataArray([np.nan, np.nan, 4 / 3, 2, 3, 4, 5],
+        expected_result = xr.DataArray([np.nan, np.nan, 1, 2, 3, 4, 5],
                                        dims=["time"], coords={"time": time})
         xr.testing.assert_equal(result, expected_result)
 

@@ -84,7 +84,7 @@ class Merger(BaseTransformer):
         r = []
         for i in range(horizon):
             r.append(np.concatenate(
-                [np.full(fill_value=np.nan, shape=(horizon - 1 - i)),
+                [np.full(fill_value=np.nan, shape=(i)),
                  x.values[:, i],
-                 np.full(fill_value=np.nan, shape=(i,))]))
+                 np.full(fill_value=np.nan, shape=(horizon - 1 - i,))]))
         return np.stack(r)

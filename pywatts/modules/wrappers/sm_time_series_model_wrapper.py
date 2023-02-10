@@ -176,7 +176,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         name = load_information["name"]
         mod = __import__(load_information["sm_module"], fromlist=load_information["sm_class"])
         module = cls(module=getattr(mod, load_information["sm_class"]), name=name, **load_information["params"])
-        module.is_fitted = load_information["is_fitted"]
+        module._is_fitted = load_information["is_fitted"]
         if module.is_fitted:
             module.model = load_pickle(load_information["statsmodel_model"])
         return module

@@ -37,21 +37,6 @@ class SKLearnWrapper(BaseWrapper):
         if hasattr(self.module, 'predict_proba'):
             self.has_predict_proba = True
 
-#    def get_params(self):
-#        """
-#        Return the parameter of the slkearn module
-#        :return:
-#        """
-#        return self.module.get_params()
-
-    def set_params(self, **kwargs):
-        """
-        Set the parameter of the internal sklearn module
-        :param kwargs: The parameter of the internal sklearn module
-        :return:
-        """
-        return self.module.set_params(**kwargs)
-
     def fit(self, **kwargs):
         """
         Fit the sklearn module

@@ -195,7 +195,7 @@ class ProfileNeuralNetwork(BaseEstimator):
                 logging.error("No model found in %s.", load_information['pnn'])
                 raise exception
             pnn_module.pnn = pnn
-            pnn_module.is_fitted = True
+            pnn_module._is_fitted = True
         return pnn_module
 
     @staticmethod

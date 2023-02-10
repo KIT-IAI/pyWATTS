@@ -147,8 +147,7 @@ class KerasWrapper(DlWrapper):
             module = cls((model, aux_models), name=name, **params)
         else:
             module = cls(model, name=name, **params)
-        module.is_fitted = load_information["is_fitted"]
-
+        module._is_fitted = load_information["is_fitted"]
         module.targets = load_information["targets"]
         return module
 

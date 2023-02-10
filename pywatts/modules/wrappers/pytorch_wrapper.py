@@ -170,7 +170,7 @@ class PyTorchWrapper(DlWrapper):
             optimizer = cloudpickle.load(file)
         module = cls(model=model, name=name, fit_kwargs=load_information["params"]["fit_kwargs"],
                      loss_fn=loss_fn, optimizer=optimizer)
-        module.is_fitted = load_information["is_fitted"]
+        module._is_fitted = load_information["is_fitted"]
 
         return module
 

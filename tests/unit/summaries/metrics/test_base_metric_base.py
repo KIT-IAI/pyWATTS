@@ -7,10 +7,10 @@ class BaseTestMetricBase(ABC):
         self.metric = self.get_metric()(name="NAME")
 
     def get_default_params(self):
-        return {'offset': 0, "cuts":[]}
+        return {'offset': 0, "filter_method":None, "cuts":[]}
 
     def get_load_params(self):
-        return {'offset': 24, "cuts":[]}
+        return {'offset': 24,  "filter_method":None, "cuts":[]}
 
     def tearDown(self) -> None:
         self.metric = None
@@ -23,6 +23,7 @@ class BaseTestMetricBase(ABC):
         self.metric.set_params(offset=24, cuts=[("Test", "test")])
         self.assertEqual(self.metric.get_params(),
                          {'offset': 24,
+                          "filter_method": None,
                           "cuts": [("Test", "test")]})
 
 
@@ -32,6 +33,8 @@ class BaseTestMetricBase(ABC):
         fm_mock = MagicMock()
         fm_mock.get_path.return_value = "filter_path"
         filter_mock = MagicMock()
+        expected_params = self.get_default_params()
+        expected_params["filter_method"] = filter_mock
 
         rmse = self.get_metric()(name="NAME", filter_method=filter_mock)
 
@@ -42,7 +45,7 @@ class BaseTestMetricBase(ABC):
 
         cloudpickle_mock.dump.assert_called_once_with(filter_mock, open_mock().__enter__.return_value)
         self.assertEqual(json["filter"], "filter_path")
-        self.assertEqual(json["params"], self.get_default_params())
+        self.assertEqual(json["params"], expected_params)
 
 
     @patch("builtins.open")
@@ -50,7 +53,8 @@ class BaseTestMetricBase(ABC):
     def test_load(self, cloudpickle_mock, open_mock):
         filter_mock = MagicMock()
         cloudpickle_mock.load.return_value = filter_mock
-
+        expected_params = self.get_load_params()
+        expected_params["filter_method"] = filter_mock
         metric = self.get_metric().load(self.load_information)
 
         open_mock.assert_called_once_with("filter_path", "rb")
@@ -58,7 +62,7 @@ class BaseTestMetricBase(ABC):
 
         self.assertEqual(metric.name, "NAME")
         self.assertEqual(metric.filter_method, filter_mock)
-        self.assertEqual(metric.get_params(), self.get_load_params())
+        self.assertEqual(metric.get_params(), expected_params)
 
     @abstractmethod
     def get_metric(self):

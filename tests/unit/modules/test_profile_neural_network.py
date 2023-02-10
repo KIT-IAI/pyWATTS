@@ -116,7 +116,7 @@ class TestPNN(unittest.TestCase):
         fm_mock = MagicMock()
         fm_mock.get_path.return_value = os.path.join("new_path", "to_somewhere", "pnn.h5")
         keras_pnn = MagicMock()
-        self.pnn.is_fitted = True
+        self.pnn._is_fitted = True
         self.pnn.pnn = keras_pnn
 
         json = self.pnn.save(fm_mock)

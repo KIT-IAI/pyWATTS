@@ -21,11 +21,11 @@ class Select(BaseTransformer):
     """
 
     def __init__(
-            self,
-            start: Union[int, List[int]],
-            stop: int = None,
-            step: int = None,
-            name: str = "SampleModule",
+        self,
+        start: Union[int, List[int]],
+        stop: int = None,
+        step: int = None,
+        name: str = "SampleModule",
     ):
         super().__init__(name)
         if self.__check_params(start, stop, step):
@@ -63,7 +63,7 @@ class Select(BaseTransformer):
         }
 
     def set_params(
-            self, start: Union[int, List[int]] = None, stop: int = None, step: int = None, **kwargs
+        self, start: Union[int, List[int]] = None, stop: int = None, step: int = None, **kwargs
     ):
         """
         Set params.

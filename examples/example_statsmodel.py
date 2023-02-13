@@ -35,10 +35,6 @@ if __name__ == "__main__":
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
     scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
-    # Create lagged time series to later be used in the regression
-    lag_features = Select(start=-2, stop=0, step=1, name="lag_features"
-                          )(x=scale_power_statistics)
-
     # Create a statsmodel that uses the lagged values to predict the current value
     regressor_power_statistics = SmTimeSeriesModelWrapper(
         module=ARIMA,
@@ -46,7 +42,6 @@ if __name__ == "__main__":
             "order": (2, 0, 0)
         }
     )(
-        lag_features=lag_features,
         calendar=cal_features,
         target=scale_power_statistics, callbacks=[LinePlotCallback('ARIMA')],
     )

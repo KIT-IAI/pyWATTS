@@ -21,42 +21,6 @@ def is_daytime(x, _):
     return 8 < x["lag_features"].indexes["time"][0].hour < 20
 
 
-# This function creates the pipeline which we use for testing.
-# The test pipeline works on batches with one hour
-def create_test_pipeline(modules):
-    regressor_svr, regressor_lin_reg = modules
-
-    # Create test pipeline which works on a batch size of one hour.
-    pipeline = Pipeline("../results/test_pipeline")
-
-    # Add the svr regressor to the pipeline. This regressor should be called if it is not daytime
-    regressor_svr_power_statistics = regressor_svr(lag_features=pipeline["lag_features"],
-                                                   condition=lambda x, y: not is_daytime(x, y),
-                                                   computation_mode=ComputationMode.Transform,
-                                                   callbacks=[LinePlotCallback('SVR')])
-
-    # Add the linear regressor to the pipeline. This regressor should be called if it is daytime
-    regressor_lin_reg_power_statistics = regressor_lin_reg(lag_features=pipeline["lag_features"],
-                                                           condition=lambda x, y: is_daytime(x, y),
-                                                           computation_mode=ComputationMode.Transform,
-                                                           callbacks=[LinePlotCallback('LinearRegression')])
-
-    # TODO what kind of RMSE has to be used here?
-    #   * Rolling would not work, since the complete RMSE should be calculated for each Time Point
-    #   * Summary do not work, since summaries are only executed once
-    #   Is the current solution useful?
-    #   Possible Solution: window_size=-1 means that the window is from the start until the current point in time.
-    #                      In that case, the online learning has to be built in that way, that module only calculate
-    #                      data for the desired/requested time steps.
-
-    # Calculate the root mean squared error (RMSE) between the linear regression and the true values, save it as csv file
-    RollingRMSE(window_size=1, window_size_unit="d")(
-        y_hat=(regressor_svr_power_statistics, regressor_lin_reg_power_statistics), y=pipeline["load_power_statistics"],
-        callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
-
-    return pipeline
-
-
 if __name__ == "__main__":
     # Read the data via pandas.
     data = pd.read_csv("../data/getting_started_data.csv", parse_dates=["time"], infer_datetime_format=True,
@@ -72,60 +36,49 @@ if __name__ == "__main__":
     power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
 
     # Build a train pipeline. In this pipeline, each step processes all data at once.
-    train_pipeline = Pipeline(path="../results/train")
+    pipeline = Pipeline(path="../results/day_night")
 
     # Create preprocessing pipeline for the preprocessing steps
-    scale_power_statistics = power_scaler(x=train_pipeline["load_power_statistics"],
+    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"],
                                           callbacks=[LinePlotCallback("scaled")])
 
     # Create lagged time series to later be used in the regression
     lag_features = Select(start=-2, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
 
     # Addd the regressors to the train pipeline
-    regressor_lin_reg(lag_features=lag_features,
-                      target=scale_power_statistics,
-                      callbacks=[LinePlotCallback('LinearRegression')])
-    regressor_svr(lag_features=lag_features,
-                  target=scale_power_statistics,
-                  callbacks=[LinePlotCallback('SVR')])
+    lr_reg = regressor_lin_reg(lag_features=lag_features,
+                               target=scale_power_statistics,
+                               condition=lambda x, y: is_daytime(x, y),
+                               callbacks=[LinePlotCallback('LinearRegression')])
+    svr_reg = regressor_svr(lag_features=lag_features,
+                            target=scale_power_statistics,
+                            condition=lambda x, y: not is_daytime(x, y),
+                            callbacks=[LinePlotCallback('SVR')])
+
+    RollingRMSE(window_size=1, window_size_unit="d")(
+        y_hat=(svr_reg, lr_reg), y=pipeline["load_power_statistics"],
+        callbacks=[LinePlotCallback('RMSE'), CSVCallback('RMSE')])
 
     print("Start training")
-    train_pipeline.train(data)
+    pipeline.train(train)
     print("Training finished")
 
-    # Create a second pipeline. Necessary, since this pipeline has additional steps in contrast to the train pipeline.
-    pipeline = Pipeline(path="../results", name="test_pipeline")
-
-    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"],
-                                          computation_mode=ComputationMode.Transform,
-                                          callbacks=[LinePlotCallback("scaled")])
-
-    # Create lagged time series to later be used in the regression
-    lag_features = Select(start=-2, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
-
-    # Get the test pipeline, the arguments are the modules, from the training pipeline, which should be reused
-    test_pipeline = create_test_pipeline([regressor_lin_reg, regressor_svr])
-
-    test_pipeline(lag_features=lag_features,
-                  load_power_statistics=scale_power_statistics,
-                  callbacks=[LinePlotCallback('Pipeline'), CSVCallback('Pipeline')])
-
-    # Now, the pipeline is complete so we can run it and explore the results
-    # Start the pipeline
     print("Start testing")
+    result = []
     for i in range(len(test)):
-        result = pipeline.test(test.iloc[[i]], reset=False, summary=False)
+        result.append(pipeline.test(test.iloc[[i]], reset=False, summary=False))
+    print("Testing finished")
+    summary = pipeline.create_summary()
+    pipeline.to_folder("stored_day_and_night")
+
+    pipeline = Pipeline.from_folder("stored_day_and_night")
+    print("Testing finished")
+    result2 = []
+    for i in range(len(test)):
+        result2.append(pipeline.test(test.iloc[[i]], reset=False, summary=False))
     print("Testing finished")
     summary = pipeline.create_summary()
 
     # TODO add some assertions
-
-    pipeline.to_folder("stored_day_and_night")
-    pipeline = Pipeline.from_folder("stored_day_and_night")
-    print("Testing finished")
-    for i in range(len(test)):
-        result = pipeline.test(test.iloc[[i]], reset=False, summary=False)
-    print("Testing finished")
-    summary = pipeline.create_summary()
 
     print("FINISHED")

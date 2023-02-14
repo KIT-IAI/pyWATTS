@@ -33,25 +33,20 @@ if __name__ == "__main__":
     # Create all modules which are used multiple times.
     regressor_lin_reg = SKLearnWrapper(module=LinearRegression(fit_intercept=True), name="Regression")
     regressor_svr = SKLearnWrapper(module=SVR(), name="Regression")
-    power_scaler = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
 
     # Build a train pipeline. In this pipeline, each step processes all data at once.
     pipeline = Pipeline(path="../results/day_night")
 
-    # Create preprocessing pipeline for the preprocessing steps
-    scale_power_statistics = power_scaler(x=pipeline["load_power_statistics"],
-                                          callbacks=[LinePlotCallback("scaled")])
-
     # Create lagged time series to later be used in the regression
-    lag_features = Select(start=-2, stop=0, step=1, name="lag_features")(x=scale_power_statistics)
+    lag_features = Select(start=-2, stop=0, step=1, name="lag_features")(x=pipeline["load_power_statistics"],)
 
     # Addd the regressors to the train pipeline
     lr_reg = regressor_lin_reg(lag_features=lag_features,
-                               target=scale_power_statistics,
+                               target=pipeline["load_power_statistics"],
                                condition=lambda x, y: is_daytime(x, y),
                                callbacks=[LinePlotCallback('LinearRegression')])
     svr_reg = regressor_svr(lag_features=lag_features,
-                            target=scale_power_statistics,
+                            target=pipeline["load_power_statistics"],
                             condition=lambda x, y: not is_daytime(x, y),
                             callbacks=[LinePlotCallback('SVR')])
 
@@ -77,7 +72,7 @@ if __name__ == "__main__":
     for i in range(len(test)):
         result2.append(pipeline.test(test.iloc[[i]], reset=False, summary=False))
     print("Testing finished")
-    summary = pipeline.create_summary()
+    summary2 = pipeline.create_summary()
 
     # TODO add some assertions
 

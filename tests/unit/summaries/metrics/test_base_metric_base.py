@@ -34,7 +34,7 @@ class BaseTestMetricBase(ABC):
         fm_mock.get_path.return_value = "filter_path"
         filter_mock = MagicMock()
         expected_params = self.get_default_params()
-        expected_params["filter_method"] = filter_mock
+        del expected_params["filter_method"]
 
         rmse = self.get_metric()(name="NAME", filter_method=filter_mock)
 

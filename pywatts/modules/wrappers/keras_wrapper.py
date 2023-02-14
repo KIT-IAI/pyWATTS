@@ -1,9 +1,11 @@
 import logging
+from copy import deepcopy
 from typing import Tuple, Union, Dict
 
 import cloudpickle
 import tensorflow as tf
 import xarray as xr
+from keras.models import clone_model
 
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
@@ -76,6 +78,18 @@ class KerasWrapper(DlWrapper):
             key: numpy_to_xarray(pred, list(kwargs.values())[0]) for key, pred in zip(self.targets, prediction)
         }
         return result
+
+    def clone(self):
+        model = self.model
+        aux_models = self.aux_models
+        self.model = None
+        self.aux_models = None
+        copied_keras_wrapper = deepcopy(self)
+        copied_keras_wrapper.model = clone_model(model)
+        copied_keras_wrapper.aux_models = {k: clone_model(m) for k, m in aux_models.items()}
+        self.model = model
+        self.aux_models = aux_models
+        return copied_keras_wrapper
 
     def save(self, fm: FileManager) -> dict:
         """

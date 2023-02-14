@@ -95,6 +95,7 @@ class MetricBase(BaseSummary, ABC):
 
     def save(self, fm: FileManager) -> Dict:
         json = super().save(fm)
+        del json["params"]["filter_method"]
         if self.filter_method is not None:
             filter_path = fm.get_path(f"{self.name}_filter.pickle")
             with open(filter_path, 'wb') as outfile:

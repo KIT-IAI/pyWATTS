@@ -29,7 +29,7 @@ def get_sequential_model():
 if __name__ == "__main__":
     pytorch_model = get_sequential_model()
 
-    pipeline = Pipeline(path="../results")
+    pipeline = Pipeline(path="../results/pytorch")
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
@@ -42,6 +42,7 @@ if __name__ == "__main__":
     # Create lagged time series to later be used in the regression
     lag_features = Select(start=-23, stop=1, step=1, name="lag_features")(x=scale_power_statistics)
     target = Select(start=1, stop=25, step=1, name="target")(x=scale_power_statistics)
+    target_unscaled = Select(start=1, stop=25, step=1, name="target")(x=imputer_power_statistics)
 
     model = get_sequential_model()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -60,7 +61,7 @@ if __name__ == "__main__":
                                        method="inverse_transform",
                                        callbacks=[LinePlotCallback('forecast')])
 
-    rmse_dl = RMSE()(y_hat=inverse_power_scale, y=target)
+    rmse_dl = RMSE()(y_hat=inverse_power_scale, y=target_unscaled)
 
     # Now, the pipeline is complete
     # so we can load data and train the model

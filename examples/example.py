@@ -21,7 +21,7 @@ from pywatts.summaries import RMSE
 # The main function is where the pipeline is created and run
 if __name__ == "__main__":
     # Create a pipeline
-    pipeline = Pipeline(path="../results")
+    pipeline = Pipeline(path="../results/example")
 
     # Extract dummy calendar features, using holidays from Germany
     # NOTE: CalendarExtraction can't return multiple features.
@@ -45,6 +45,7 @@ if __name__ == "__main__":
     scaler_target = SKLearnWrapper(module=StandardScaler(), name="scaler_power")
     scaled_target = scaler_target(x=imputer_power_statistics)
     target_multiple_output = Select(start=0, stop=24, step=1, name="sampled_data")(x=scaled_target)
+    target = Select(start=0, stop=24, step=1, name="sampled_data")(x=imputer_power_statistics)
 
     # Select features based on F-statistic
     selected_features = SKLearnWrapper(
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
     # Calculate the root mean squared error (RMSE) between the linear regression and the true values
     # save it as csv file
-    rmse = RMSE()(y_hat=inverse_power_scale, y=target_multiple_output)
+    rmse = RMSE()(y_hat=inverse_power_scale, y=target)
 
     # Now, the pipeline is complete, so we can run it and explore the results
     # Start the pipeline

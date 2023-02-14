@@ -141,6 +141,9 @@ class PyTorchWrapper(DlWrapper):
         """
 
         json = super().save(fm)
+        del json["params"]["optimizer"]
+        del json["params"]["model"]
+        del json["params"]["loss_fn"]
         file_path = fm.get_path(f'{self.name}.pt')
         loss_fn_path = fm.get_path(f"loss_{self.name}.pickle")
         with open(loss_fn_path, "wb")as file:

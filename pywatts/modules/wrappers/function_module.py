@@ -31,20 +31,6 @@ class FunctionModule(BaseEstimator):
             self.fit_method = fit_method
         self.transform_method = transform_method
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns an empty dictionary, since this wrappers does not contain any parameters
-
-        :return: Empty dictionary
-        :rtype: dict
-        """
-        return {}
-
-    def set_params(self, *args, **kwargs):
-        """
-        Does nothing:
-        """
-
     def fit(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Call the fit_method if available wrapped by this module on x.
@@ -81,6 +67,7 @@ class FunctionModule(BaseEstimator):
         with open(file_path, 'wb') as outfile:
             cloudpickle.dump(self, file=outfile)
         json_module["pickled_module"] = file_path
+        json_module["params"] = {}
         return json_module
 
     @classmethod

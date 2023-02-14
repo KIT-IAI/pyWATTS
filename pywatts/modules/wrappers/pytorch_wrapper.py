@@ -173,25 +173,3 @@ class PyTorchWrapper(DlWrapper):
         module._is_fitted = load_information["is_fitted"]
 
         return module
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameters of deep learning frameworks.
-        :return: A dict containing the fit keyword arguments and the compile keyword arguments
-        """
-        return {
-            "fit_kwargs": self.fit_kwargs
-        }
-
-    def set_params(self, fit_kwargs=None, loss_fn=None, optimizer=None):
-        """
-        Set the parameters of the deep learning wrappers
-        :param fit_kwargs: keyword arguments for the fit method.
-        :param compile_kwargs: keyword arguments for the compile methods.
-        """
-        if fit_kwargs:
-            self.fit_kwargs = fit_kwargs
-        if loss_fn:
-            self.loss_fn = loss_fn
-        if optimizer:
-            self.optimizer = optimizer

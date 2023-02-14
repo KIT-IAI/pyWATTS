@@ -52,21 +52,7 @@ class RollingBase(BaseTransformer, ABC):
         self.closed = closed
         self.cal = _init_calendar(self.continent, self.country)
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get the parameters of the rolling mean module as dict
-        """
-        return {
-            "window_size": self.window_size,
-            "window_size_unit": self.window_size_unit,
-            "group_by": self.group_by,
-            "country": self.country,
-            "continent": self.continent,
-        }
-
-    def set_params(self, window_size: Optional[int] = None, window_size_unit: Optional[str] = None,
-                   group_by: Optional[RollingGroupBy] = None, continent: Optional[str] = None,
-                   country: Optional[str] = None, closed: Optional[str] = None):
+    def set_params(self, **kwargs):
         """
         Set parameters of the rolling mean
         :param window_size: Window size for which to calculate the mean
@@ -83,18 +69,7 @@ class RollingBase(BaseTransformer, ABC):
         :param closed: If there array is closed left or right
         :type closed: str
         """
-        if window_size:
-            self.window_size = window_size
-        if window_size_unit:
-            self.window_size_unit = window_size_unit
-        if group_by:
-            self.group_by = group_by
-        if closed:
-            self.closed = closed
-        if continent:
-            self.continent = continent
-        if country:
-            self.country = country
+        super(RollingBase, self).set_params(**kwargs)
         self.cal = _init_calendar(self.continent, self.country)
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:

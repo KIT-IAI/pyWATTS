@@ -88,6 +88,7 @@ class KerasWrapper(DlWrapper):
                 "module": self.__module__}
 
         params = self.get_params()
+        del params["model"]
         params_path = fm.get_path(f"{self.name}_params.pickle")
         with open(params_path, "wb") as outfile:
             cloudpickle.dump(params, outfile)
@@ -150,30 +151,3 @@ class KerasWrapper(DlWrapper):
         module._is_fitted = load_information["is_fitted"]
         module.targets = load_information["targets"]
         return module
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameters of deep learning frameworks.
-        :return: A dict containing the fit keyword arguments and the compile keyword arguments
-        """
-        return {
-            "fit_kwargs": self.fit_kwargs,
-            "compile_kwargs": self.compile_kwargs,
-            "custom_objects": self.custom_objects
-        }
-
-    def set_params(self, fit_kwargs=None, compile_kwargs=None, custom_objects=None):
-        """
-        Set the parameters of the deep learning wrappers
-        :param fit_kwargs: keyword arguments for the fit method.
-        :param compile_kwargs: keyword arguments for the compile methods.
-        :param custom_objects: This dict contains all custom objects needed by the keras model. Note,
-                               users that uses such customs objects (e.g. Custom Loss) need to specify this to enable
-                               the loading of the stored Keras model.
-        """
-        if fit_kwargs:
-            self.fit_kwargs = fit_kwargs
-        if compile_kwargs:
-            self.compile_kwargs = compile_kwargs
-        if custom_objects:
-            self.custom_objects = custom_objects

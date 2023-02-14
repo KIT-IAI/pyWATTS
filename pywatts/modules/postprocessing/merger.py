@@ -40,16 +40,6 @@ class Merger(BaseTransformer):
                                           "Try one of the following strings: 'mean' 'median",
                                           self)
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get parameters for the Merger module.
-        :return: Parameters as dict.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "method" : self.method
-        }
-
     def set_params(self, method: Union[str, int] = None):
         """
         Set parameters for the Merger module.

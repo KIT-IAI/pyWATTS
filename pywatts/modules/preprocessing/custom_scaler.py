@@ -27,17 +27,7 @@ class CustomScaler(BaseTransformer):
         self.multiplier = multiplier
         self.bias = bias
 
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters for the CustomScaler object.
-        :return: Parameters as dict object.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "multiplier": self.multiplier,
-            "bias": self.bias
-        }
-
-    def set_params(self, multiplier: float = None, bias: float = None):
+    def set_params(self, multiplier: float = None, **kwargs):
         """ Set or change CustomScaler object parameters.
         :param multiplier: Value that is multiplied to every value in the time series.
         :type multiplier: float, optional
@@ -47,8 +37,7 @@ class CustomScaler(BaseTransformer):
         if multiplier is not None:
             self.validate_multiplier(multiplier)
             self.multiplier = multiplier
-        if bias is not None:
-            self.bias = bias
+        super(CustomScaler, self).set_params(**kwargs)
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Apply the scaling to xarray dataset.

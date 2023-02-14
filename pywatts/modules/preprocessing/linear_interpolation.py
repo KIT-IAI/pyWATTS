@@ -28,36 +28,6 @@ class LinearInterpolater(BaseTransformer):
         self.dim = dim
         self.fill_value = fill_value
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a list of parameters used for the linear interpolation
-
-        :return: Parameters set for the linear interpolation
-        :rtype: Dict
-        """
-        return {"method": self.method,
-                "dim": self.dim,
-                "fill_value": self.fill_value}
-
-    def set_params(self, method: str = None, dim: str = None, fill_value: str = None):
-        """
-        Sets the parameters for the linear interpolation
-
-        :param method: The method used for interpolation (e.g. linear)
-        :type method: str
-        :param dim: The dimension used
-        :type dim: str
-        :param fill_value: Handling of missing values (see
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html)
-        :type fill_value: str
-        """
-        if method is not None:
-            self.method = method
-        if dim is not None:
-            self.dim = dim
-        if fill_value is not None:
-            self.fill_value = fill_value
-
     def transform(self, x=xr.DataArray) -> xr.DataArray:
         """
         Transforms the input

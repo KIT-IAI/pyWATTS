@@ -18,6 +18,7 @@ class TestRollingMean(unittest.TestCase):
             self.rolling_mean.get_params(),
             {
                 "window_size": 3,
+                "closed":"left",
                 "alpha":None,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
@@ -31,6 +32,7 @@ class TestRollingMean(unittest.TestCase):
             self.rolling_mean.get_params(),
             {
                 "window_size": 3,
+                "closed":"left",
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
@@ -44,6 +46,7 @@ class TestRollingMean(unittest.TestCase):
             {
                 "window_size": 5,
                 "window_size_unit": "d",
+                "closed":"left",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe",

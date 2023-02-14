@@ -66,28 +66,3 @@ class StatisticExtraction(BaseTransformer):
             data.append(self._extract(feature, x))
         return xr.DataArray(np.array(data).swapaxes(0, 1).reshape(len(x), len(self.features)), coords=[getattr(x, time), self.features],
                             dims=[time, "stat_features"])
-
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters of this calendar extraction processing step.
-
-        :return: Json dict containing the parameters.
-        """
-        return {
-            "dim": self.dim,
-            "features": self.features
-        }
-
-    def set_params(self, dim=None, features=None):
-        """ Set parameters of the statistic extraction module.
-
-        :param features: The features that should be extracted. The following features exist: min, max, std, and mean.
-                         (Default: List[min, max, std, mean)
-        :type features: Optional[List[StatisticFeature]]
-        :param dim: The dimension on which the statistics should be extracted
-        :type dim: str
-        """
-
-        if dim:
-            self.dim = dim
-        if features:
-            self.features = features

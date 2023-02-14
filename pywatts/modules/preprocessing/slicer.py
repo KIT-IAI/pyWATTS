@@ -24,30 +24,6 @@ class Slicer(BaseTransformer):
         self.start = start
         self.end = end
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Return dict of module parameters.
-
-        :return: Dict of module parameters.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "start": self.start,
-            "end": self.end,
-        }
-
-    def set_params(self, start: Optional[int] = None, end: Optional[int] = None):
-        """
-        Set module parameters.
-
-        :param start: Start index of the slicing operation, defaults to None
-        :type start: int, optional
-        :param end: End index of the slicing operation, defaults to None
-        :type end: int, optional
-        """
-        self.start = start
-        self.end = end
-
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Perform the slicing operation on the input array.

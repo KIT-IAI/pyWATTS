@@ -122,20 +122,23 @@ class TestKerasWrapper(unittest.TestCase):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},
                           'fit_kwargs': {'42': 24},
-                          'custom_objects' : {}
+                          'custom_objects' : {},
+                          'model' : self.keras_mock
                           })
 
     def test_set_params(self):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},
                           'fit_kwargs': {'42': 24},
+                          'model':self.keras_mock,
                           'custom_objects': {}})
         self.keras_wrapper.set_params(fit_kwargs={"loss": "mse"},
                                       compile_kwargs={"optimizer": "Adam"})
         self.assertEqual(self.keras_wrapper.get_params(),
                          {"fit_kwargs": {"loss": "mse"},
                           "compile_kwargs": {"optimizer": "Adam"},
-                          "custom_objects": {}})
+                          "custom_objects": {},
+                          'model':self.keras_mock})
 
     @patch("pywatts.modules.wrappers.keras_wrapper.cloudpickle")
     @patch("builtins.open")
@@ -154,7 +157,9 @@ class TestKerasWrapper(unittest.TestCase):
 
         open_mock.assert_has_calls([call("params_path", "wb"), call("custom_path", "wb")], any_order=True)
 
-        pickle_mock.dump.assert_has_calls([call(self.keras_wrapper.get_params(), file_mock),
+        params = self.keras_wrapper.get_params()
+        del params["model"]
+        pickle_mock.dump.assert_has_calls([call(params, file_mock),
                                       call(self.keras_wrapper.custom_objects, file_mock)])
         fm_mock.get_path.has_calls(call(os.path.join("to_somewhere", "KerasWrapper.h5")),
                                    any_order=True)
@@ -201,5 +206,6 @@ class TestKerasWrapper(unittest.TestCase):
                                  "batch_size": 512,
                                  "epochs": 1
                              },
-                             "custom_objects": {}
+                             "custom_objects": {},
+                             "model":load_model_mock()
                          })

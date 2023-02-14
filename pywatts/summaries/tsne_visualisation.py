@@ -31,38 +31,6 @@ class TSNESummary(BaseSummary):
         self.max_points = max_points
         self.all_in_one_plot = all_in_one_plot
 
-    def get_params(self) -> Dict[str, object]:
-        """"
-        Get the params of the TSNE Summary
-        :return: A dict containing all parameters of the TSNE Summary
-
-        :rtype: Dict
-        """
-        return {
-            "tsne_params": self.tsne_params,
-            "max_points": self.max_points,
-            "all_in_one_plot": self.all_in_one_plot
-        }
-
-    def set_params(self, max_points=None, all_in_one_plot=None, tsne_params=None):
-        """
-        Set the params of the TSNE Summary
-        :param max_point: The maximum number of points per data that should be plotted
-        :type max_point: int
-        :param all_in_one_plot: Flag indicating if all input data set should be visualised in the same plot. If not the
-                                column GT is visualised like all other in separate plots.
-        :type all_in_one_plot: Boolean
-        :param tsne_params: Params for the t-SNE visualisation (see sklearn
-                            at `sklearn https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html`_).
-        :type tsne_params: Dict
-        """
-        if max_points is not None:
-            self.max_points = max_points
-        if all_in_one_plot is not None:
-            self.all_in_one_plot = all_in_one_plot
-        if tsne_params is not None:
-            self.tsne_params = tsne_params
-
     def transform(self, file_manager, gt: xr.DataArray, **kwargs: xr.DataArray):
         """
         Calculates the TSNE and visualises it. kwargs that end with _masked are masks for the other input. For example,

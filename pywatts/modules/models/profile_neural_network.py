@@ -44,38 +44,6 @@ class ProfileNeuralNetwork(BaseEstimator):
         self.batch_size = batch_size
         self.validation_split = validation_split
 
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameter for this object as dict.
-
-        :return: Object parameters as json dict
-        """
-        return {
-            "epochs": self.epochs,
-            "offset": self.offset,
-            "batch_size": self.batch_size,
-            "validation_split": self.validation_split
-        }
-
-    def set_params(self, epochs=None, offset=None, batch_size=None, validation_split=None):
-        """
-        :param epochs: The number of epochs the model should be trained.
-        :type epochs: int
-        :param offset: The number of samples at the beginning of the dataset that should be **not** considered for training.
-        :type offset: int
-        :param batch_size: The batch size which should be used for training
-        :type batch_size: int
-        :param validation_split: The share of data which should be used for validation
-        :type validation_split: float
-        """
-        if batch_size:
-            self.batch_size = batch_size
-        if epochs:
-            self.epochs = epochs
-        if offset:
-            self.offset = offset
-        if validation_split:
-            self.validation_split = validation_split
-
     def transform(self, **kwargs) -> xr.DataArray:
         """
         Forecast the electrical load for the given input. Note that historical_input, trend, and profile have to be

@@ -35,15 +35,3 @@ class ConfusionMatrix(BaseSummary):
             cm = confusion_matrix(gt, value.astype(int))
             summary.set_kv(key, cm)
         return summary
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get all parameters of the Confusion Matrix Summary
-        """
-        return {}
-
-    def set_params(self):
-        """
-        Set all parameters of the Confusion Matrix Summary
-        """
-        pass

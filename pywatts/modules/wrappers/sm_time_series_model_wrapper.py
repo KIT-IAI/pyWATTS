@@ -28,7 +28,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
     :type predict_kwargs: dict
     """
 
-    def __init__(self, module: Type[TimeSeriesModel], name: str = None, module_kwargs=None,
+    def __init__(self, module: Type[TimeSeriesModel], name=None, module_kwargs=None,
                  fit_kwargs=None, predict_kwargs=None, use_exog=True):
         if name is None:
             name = module.__name__
@@ -44,41 +44,6 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         self.fit_kwargs = fit_kwargs
         self.predict_kwargs = predict_kwargs
         self.use_exog = use_exog
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameters of the statsmodels module.
-
-        :return: A dict containing the module keyword arguments, the fit keyword arguments, the predict keyword
-        arguments and the fitted model parameters
-        :rtype: Dict
-        """
-        return {
-            "module_kwargs": self.module_kwargs,
-            "fit_kwargs": self.fit_kwargs,
-            "predict_kwargs": self.predict_kwargs,
-            "use_exog": self.use_exog
-        }
-
-    def set_params(self, module_kwargs=None, fit_kwargs=None, predict_kwargs=None, use_exog=None):
-        """
-        Set the parameters of the statsmodels wrappers
-
-        :param module_kwargs: keyword arguments for the statsmodel module.
-        :type module_kwargs: Dict
-        :param fit_kwargs: keyword arguments for the fit method.
-        :type fit_kwargs: Dict
-        :param predict_kwargs: keyword arguments for the predict method.
-        :type predict_kwargs: Dict
-        """
-        if module_kwargs:
-            self.module_kwargs = module_kwargs
-        if fit_kwargs:
-            self.fit_kwargs = fit_kwargs
-        if predict_kwargs:
-            self.predict_kwargs = predict_kwargs
-        if use_exog is not None:
-            self.use_exog = use_exog
 
     def fit(self, **kwargs: xr.DataArray):
         """
@@ -148,6 +113,7 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
         :rtype: Dict
         """
         json = super().save(fm)
+        del json["params"]["module"]
         if self.is_fitted:
             model_file_path = fm.get_path(f"{self.name}_fitted_model.pickle")
             self.model.save(model_file_path)

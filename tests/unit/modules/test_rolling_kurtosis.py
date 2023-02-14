@@ -18,6 +18,7 @@ class TestRollingKurtosis(unittest.TestCase):
         self.assertEqual(
             self.rolling_kurtosis.get_params(),
             {
+                "closed":"left",
                 "window_size": 3,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
@@ -30,6 +31,7 @@ class TestRollingKurtosis(unittest.TestCase):
         self.assertEqual(
             self.rolling_kurtosis.get_params(),
             {
+                "closed":"left",
                 "window_size": 3,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
@@ -41,6 +43,7 @@ class TestRollingKurtosis(unittest.TestCase):
         self.assertEqual(
             self.rolling_kurtosis.get_params(),
             {
+                "closed":"left",
                 "window_size": 5,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,

@@ -49,26 +49,6 @@ class SyntheticConcecptDriftInsertion(BaseTransformer):
         super().__init__(name)
         self.drift_information = drift_information
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get parameters of the SyntheticConceptDriftGeneration module
-        :return: Dict containing all parameters.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "drift_information": self.drift_information
-        }
-
-    def set_params(self, drift_information: List[DriftInformation] = None):
-        """
-        Set parameters of the SyntheticConcecptDriftGeneration module
-        :param drift_information: A list of drift information. Each drift information specifies the position, the kind,
-         and the length of a concept drift.
-        :type drift_information: List[DriftInformation]
-        """
-        if drift_information is not None:
-            self.drift_information = drift_information
-
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         This method inserts the concept drift in the input time series.

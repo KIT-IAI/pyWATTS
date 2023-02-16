@@ -13,7 +13,7 @@ from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBas
 
 
 class TestF1Score(BaseTestMetricBase, unittest.TestCase):
-    load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'F1',
+    load_information = {'params': {'offset': 24, 'name': 'NAME'}, 'name': 'NAME', 'class': 'F1',
                         'module': 'pywatts.summaries.f1_score_summary', 'filter': 'filter_path'}
 
     def get_metric(self):

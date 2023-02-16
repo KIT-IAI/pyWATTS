@@ -185,7 +185,7 @@ class TestKerasWrapper(unittest.TestCase):
         load_model_mock.return_value = new_keras_mock
         pickle_mock.load.side_effect = [{"compile_kwargs": {"loss": "mse", "metrics": ["mse"], "optimizer": "Adam"},
                                          "fit_kwargs": {"batch_size": 512, "epochs": 1},
-                                         "custom_objects": {}, },
+                                          "name": "SimpleAE","custom_objects": {}},
                                         "custom_object"]
         new_keras_wrapper = KerasWrapper.load(stored_model)
         calls_open = [call(filepath=os.path.join("pipe1", "SimpleAE_4decoder.h5"), custom_objects="custom_object"),

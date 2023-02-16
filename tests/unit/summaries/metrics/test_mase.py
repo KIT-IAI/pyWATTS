@@ -12,7 +12,7 @@ from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBas
 
 
 class TestMase(BaseTestMetricBase, unittest.TestCase):
-    load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'MASE',
+    load_information = {'params': {'offset': 24, 'name': 'NAME'}, 'name': 'NAME', 'class': 'MASE',
                         'module': 'pywatts.summaries.mase_summary', 'filter': 'filter_path'}
 
 

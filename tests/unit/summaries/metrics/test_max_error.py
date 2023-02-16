@@ -12,7 +12,7 @@ from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBas
 
 
 class TestMaxErr(BaseTestMetricBase, unittest.TestCase):
-    load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'MayErr',
+    load_information = {'params': {'offset': 24, 'name': 'NAME'}, 'name': 'NAME', 'class': 'MayErr',
                         'module': 'pywatts.summaries.max_summary', 'filter': 'filter_path'}
 
     def get_metric(self):

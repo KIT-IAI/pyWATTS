@@ -94,7 +94,6 @@ class SyntheticConcecptDriftInsertion(BaseTransformer):
 
     @classmethod
     def load(cls, load_information: Dict):
-        name = load_information["name"]
         with open(load_information[f"drift_information"], 'rb') as pickle_file:
             drift_information = cloudpickle.load(pickle_file)
-        return cls(name=name, drift_information=drift_information)
+        return cls(drift_information=drift_information)

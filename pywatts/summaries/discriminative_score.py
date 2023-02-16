@@ -148,7 +148,6 @@ class DiscriminativeScore(BaseSummary):
         :param load_information:  The parameters which should be used for restoring the summary.
         :return: A DiscriminativeScore Summary.
         """
-        name = load_information["name"]
         params = load_information["params"]
         fit_kwargs_path = load_information["fit_kwargs"]
         with open(fit_kwargs_path, "rb") as infile:
@@ -157,5 +156,5 @@ class DiscriminativeScore(BaseSummary):
         with open(model_path, "rb") as infile:
             get_model = cloudpickle.load(infile)
 
-        module = cls(get_model=get_model, fit_kwargs=fit_kwargs, name=name, **params)
+        module = cls(get_model=get_model, fit_kwargs=fit_kwargs, **params)
         return module

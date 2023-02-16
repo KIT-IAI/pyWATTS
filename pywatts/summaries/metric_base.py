@@ -106,12 +106,11 @@ class MetricBase(BaseSummary, ABC):
     @classmethod
     def load(cls, load_information: Dict):
         params = load_information["params"]
-        name = load_information["name"]
         filter_method = None
         if "filter" in load_information:
             with open(load_information["filter"], 'rb') as pickle_file:
                 filter_method = cloudpickle.load(pickle_file)
-        return cls(name=name, filter_method=filter_method, **params)
+        return cls(filter_method=filter_method, **params)
 
     @abstractmethod
     def _apply_metric(self, p, t):

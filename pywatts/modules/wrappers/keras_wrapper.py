@@ -137,7 +137,6 @@ class KerasWrapper(DlWrapper):
         (Note: This models should be taken from the pipeline json file)
         :return: A wrapped keras model.
         """
-        name = load_information["name"]
         params_path = load_information["params"]
         with open(params_path, "rb") as infile:
             params = cloudpickle.load(infile)
@@ -159,9 +158,9 @@ class KerasWrapper(DlWrapper):
                 except Exception as exception:
                     logging.error("No model found in path %s", path)
                     raise exception
-            module = cls((model, aux_models), name=name, **params)
+            module = cls((model, aux_models), **params)
         else:
-            module = cls(model, name=name, **params)
+            module = cls(model, **params)
         module._is_fitted = load_information["is_fitted"]
         module.targets = load_information["targets"]
         return module

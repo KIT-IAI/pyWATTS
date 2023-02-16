@@ -165,13 +165,12 @@ class PyTorchWrapper(DlWrapper):
         :return: The restored wrappers
         :rtype: PyTorchWrapper
         """
-        name = load_information["name"]
         model = torch.load(load_information["pytorch_module"])
         with open(load_information["loss_fn"], "rb") as file:
             loss_fn = cloudpickle.load(file)
         with open(load_information["optimizer"], "rb") as file:
             optimizer = cloudpickle.load(file)
-        module = cls(model=model, name=name, fit_kwargs=load_information["params"]["fit_kwargs"],
+        module = cls(model=model, fit_kwargs=load_information["params"]["fit_kwargs"],
                      loss_fn=loss_fn, optimizer=optimizer)
         module._is_fitted = load_information["is_fitted"]
 

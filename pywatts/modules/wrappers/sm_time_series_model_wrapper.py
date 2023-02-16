@@ -139,9 +139,8 @@ class SmTimeSeriesModelWrapper(BaseWrapper):
             Consequently, load only modules you trust.
             For more details about pickling see https://docs.python.org/3/library/pickle.html
         """
-        name = load_information["name"]
         mod = __import__(load_information["sm_module"], fromlist=load_information["sm_class"])
-        module = cls(module=getattr(mod, load_information["sm_class"]), name=name, **load_information["params"])
+        module = cls(module=getattr(mod, load_information["sm_class"]), **load_information["params"])
         module._is_fitted = load_information["is_fitted"]
         if module.is_fitted:
             module.model = load_pickle(load_information["statsmodel_model"])

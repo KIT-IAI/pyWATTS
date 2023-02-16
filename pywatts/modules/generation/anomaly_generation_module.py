@@ -45,7 +45,7 @@ class AnomalyGeneration(BaseTransformer):
         self.label = label
         self.seed = seed
 
-    def set_params(self, anomaly: Optional[str] = None, **kwargs):
+    def set_params(self, **kwargs):
         """
         Set parameters of the anomaly generation module.
 
@@ -63,7 +63,8 @@ class AnomalyGeneration(BaseTransformer):
         :param seed: Seed to be used by the random generator.
         :type seed: Optional[int]
         """
-        if anomaly is not None:
+        if "anomaly" in kwargs:
+            anomaly = kwargs.pop("anomaly")
             self._check_anomaly_type(anomaly)
             self.anomaly = anomaly
         super(AnomalyGeneration, self).set_params(**kwargs)

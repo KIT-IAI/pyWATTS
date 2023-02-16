@@ -25,7 +25,7 @@ class Select(BaseTransformer):
         start: Union[int, List[int]],
         stop: int = None,
         step: int = None,
-        name: str = "SampleModule",
+        name: str = "Select",
     ):
         super().__init__(name)
         if self.__check_params(start, stop, step):
@@ -49,19 +49,6 @@ class Select(BaseTransformer):
             return abs(min(self.start))
         return abs(self.start) if self.start < 0 else 0
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a list of all hyperparameters/ user defined parameters
-
-        :return: Dict with params
-        :rtype: dict
-        """
-        return {
-            "start": self.start,
-            "stop": self.stop,
-            "step": self.step,
-        }
-
     def set_params(
         self, start: Union[int, List[int]] = None, stop: int = None, step: int = None, **kwargs
     ):
@@ -77,13 +64,13 @@ class Select(BaseTransformer):
         :param step: The offset for shifting the time series
         :type step: int
         """
-        if self.__check_params(start, stop, step):
-            if start:
-                self.start = start
-            if stop:
-                self.stop = stop
-            if step:
-                self.step = step
+        if start:
+            self.start = start
+        if stop:
+            self.stop = stop
+        if step:
+            self.step = step
+        self.__check_params(self.start, self.stop, self.step)
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """

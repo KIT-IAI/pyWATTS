@@ -25,25 +25,11 @@ class FunctionModule(BaseEstimator):
                  name: str = "FunctionModule"):
         super().__init__(name)
         if fit_method is None:
-            self.is_fitted = True
+            self._is_fitted = True
             self.fit_method = fit_method
         else:
             self.fit_method = fit_method
         self.transform_method = transform_method
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns an empty dictionary, since this wrappers does not contain any parameters
-
-        :return: Empty dictionary
-        :rtype: dict
-        """
-        return {}
-
-    def set_params(self, *args, **kwargs):
-        """
-        Does nothing:
-        """
 
     def fit(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
@@ -54,7 +40,7 @@ class FunctionModule(BaseEstimator):
         """
         if self.fit_method is not None:
             self.fit_method(**kwargs)
-            self.is_fitted = True
+            self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
@@ -81,6 +67,7 @@ class FunctionModule(BaseEstimator):
         with open(file_path, 'wb') as outfile:
             cloudpickle.dump(self, file=outfile)
         json_module["pickled_module"] = file_path
+        json_module["params"] = {}
         return json_module
 
     @classmethod

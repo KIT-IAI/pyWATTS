@@ -42,49 +42,6 @@ class Differentiate(BaseTransformer):
         self.pad = pad
         self.pad_args = pad_args
 
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters for Differentiate object.
-
-        :return: Parameters as dict object.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "target_index": self.target_index,
-            "n": self.n,
-            "axis": self.axis,
-            "pad": self.pad,
-            "pad_args": self.pad_args
-        }
-
-    def set_params(self, target_index: Optional[Union[str, List[str]]] = None,
-                   n: Optional[Union[int, List[int]]] = None, axis: Optional[int] = None,
-                   pad: Optional[bool] = None, pad_args: Optional[Dict[str, object]] = None):
-        """ Set or change Differentiate object parameters.
-
-        :param target_index: Targed index or indizes for the xarray input
-                             to calculate difference for.
-        :type target_index: Optional[Union[str, List[str]]], optional
-        :param n: N-th order difference specification (default 1).
-                  Could also be an array if multiple differences should be calculated.
-        :type n: Optional[Union[int, List[int]]], optional
-        :param axis: Axis to calculate the difference of (default -1 [last axis]).
-        :type axis: Optional[int], optional
-        :param pad: Enable or disable padding (default disabled).
-        :type pad: Optional[bool], optional
-        :param pad_args: Padding arguments for np.pad method (default zero leading padding).
-        :type pad_args: Optional[Dict[str, object]], optional
-        """
-        if target_index is not None:
-            self.target_index = target_index
-        if n is not None:
-            self.n = n
-        if axis is not None:
-            self.axis = axis
-        if pad is not None:
-            self.pad = pad
-        if pad_args is not None:
-            self.pad_args = pad_args
-
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """ Add n-th order differentiate to xarray dataset.
 

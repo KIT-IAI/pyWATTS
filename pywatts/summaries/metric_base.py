@@ -35,33 +35,10 @@ class MetricBase(BaseSummary, ABC):
         super().__init__(name if name is not None else self.__class__.__name__)
         self.offset = offset
         self.filter_method = filter_method
+        self.cuts = []
         if cuts is None:
             self.cuts = []
         else:
-            self.cuts = cuts
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a dict of parameters used in the Metric.
-
-        :return: Parameters set for the Metric
-        :rtype: Dict[str, object]
-        """
-        return {"offset": self.offset,
-                "cuts": self.cuts}
-
-    def set_params(self, offset: Optional[int] = None, cuts=Optional[List[Tuple[pd.Timestamp, pd.Timestamp]]]):
-        """
-        Set parameters of the Metric.
-
-        :param offset: Offset, which determines the number of ignored values in the beginning for calculating the Metric.
-        :type offset: int
-        :param cuts: The cutouts on which the metric should be additionally calculated.
-        :type cuts: List[Tuple[pd.Timestamp, pd.Timestamp]]
-        """
-        if offset:
-            self.offset = offset
-        if cuts is not None:
             self.cuts = cuts
 
     def transform(self, file_manager: FileManager, y: xr.DataArray, **kwargs: xr.DataArray) -> SummaryObjectList:
@@ -118,6 +95,7 @@ class MetricBase(BaseSummary, ABC):
 
     def save(self, fm: FileManager) -> Dict:
         json = super().save(fm)
+        del json["params"]["filter_method"]
         if self.filter_method is not None:
             filter_path = fm.get_path(f"{self.name}_filter.pickle")
             with open(filter_path, 'wb') as outfile:
@@ -128,12 +106,11 @@ class MetricBase(BaseSummary, ABC):
     @classmethod
     def load(cls, load_information: Dict):
         params = load_information["params"]
-        name = load_information["name"]
         filter_method = None
         if "filter" in load_information:
             with open(load_information["filter"], 'rb') as pickle_file:
                 filter_method = cloudpickle.load(pickle_file)
-        return cls(name=name, filter_method=filter_method, **params)
+        return cls(filter_method=filter_method, **params)
 
     @abstractmethod
     def _apply_metric(self, p, t):

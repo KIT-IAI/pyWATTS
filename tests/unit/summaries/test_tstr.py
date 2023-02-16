@@ -21,14 +21,15 @@ class TestTSTRSummary(TestCase):
         self.assertEqual(
             self.tstr.get_params(),
             {"repetitions": 42, "get_model": self.get_model_mock, "train_test_split": 0.66, "task": TSTRTask.Regression,
-             "metrics": ["rmse", "mae"], "fit_kwargs": {"epochs": 100, "validation_split": 0.2}, "n_targets": 1}
+             "metrics": ["rmse", "mae"],
+             "name":"TSTR","fit_kwargs": {"epochs": 100, "validation_split": 0.2}, "n_targets": 1}
         )
         self.tstr.set_params(n_targets=42, get_model=new_model, train_test_split=0.8, fit_kwargs={}, repetitions=1,
                              task=TSTRTask.Classification, metrics=["accuracy"])
         self.assertEqual(
             self.tstr.get_params(),
             {"repetitions": 1, "get_model": new_model, "train_test_split": 0.8,
-             "fit_kwargs": {}, "n_targets": 42, "metrics": ["accuracy"], "task": TSTRTask.Classification}
+             "fit_kwargs": {},"name":"TSTR", "n_targets": 42, "metrics": ["accuracy"], "task": TSTRTask.Classification}
         )
 
     def test_transform(self):

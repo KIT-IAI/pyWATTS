@@ -12,12 +12,14 @@ class TestStatisticExtraction(unittest.TestCase):
         statistic_extraction = StatisticExtraction()
         self.assertEqual(
             {"dim": "horizon",
+             "name":"statistics",
              "features": [StatisticFeature.min, StatisticFeature.max, StatisticFeature.std, StatisticFeature.mean]},
             statistic_extraction.get_params()
         )
         statistic_extraction.set_params(dim=2, features=[StatisticFeature.min])
         self.assertEqual(
             {"dim": 2,
+             "name": "statistics",
              "features": [StatisticFeature.min]},
             statistic_extraction.get_params()
         )

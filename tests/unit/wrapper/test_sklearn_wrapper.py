@@ -20,14 +20,15 @@ class TestSklearnWrapper(unittest.TestCase):
     def test_get_params(self):
         scaler = StandardScaler()
         wrapper = SKLearnWrapper(module=scaler)
-        self.assertEqual(wrapper.get_params(), scaler.get_params())
+        self.assertEqual(wrapper.get_params(deep=True), {"module":scaler, "module__copy": True,
+                                                         "name":"StandardScaler","module__with_mean":True, "module__with_std": True})
 
     def test_set_params(self):
         scaler = StandardScaler()
         wrapper = SKLearnWrapper(module=scaler)
-        self.assertEqual(scaler.get_params()["with_mean"], True)
-        wrapper.set_params(with_mean=False, )
-        self.assertEqual(scaler.get_params()["with_mean"], False)
+        self.assertEqual(wrapper.get_params(deep=True)["module__with_mean"], True)
+        wrapper.set_params(module__with_mean=False)
+        self.assertEqual(wrapper.get_params(deep=True)["module__with_mean"], False)
 
     def test_fit_TransformerMixin(self):
         scaler = StandardScaler()

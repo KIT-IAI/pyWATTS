@@ -162,19 +162,7 @@ class CalendarExtraction(BaseTransformer):
         elif feature == CalendarFeature.hour_cos:
             return timeseries.map(lambda element: np.cos(np.pi * 2 * (element.hour) / 24))
 
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters of this calendar extraction processing step.
-
-        :return: Json dict containing the parameters.
-        """
-        return {
-            "continent": self.continent,
-            "country": self.country,
-            "features": self.features,
-        }
-
-    def set_params(self, continent: Optional[str] = None, country: Optional[str] = None,
-                   features: Optional[List[CalendarFeature]] = None):
+    def set_params(self, **kwargs):
         """ Set parameters of the calendar extraction processing step.
 
         :param continent: Continent where the country or region is located
@@ -186,13 +174,7 @@ class CalendarExtraction(BaseTransformer):
         :type features: List[str]
         :raises AttributeError: If 'continent' and/or 'country' is invalid.
         """
-
-        if continent is not None:
-            self.continent = continent
-        if country is not None:
-            self.country = country
-        if features is not None:
-            self.features: List[CalendarFeature] = features
+        super().set_params(**kwargs)
         try:
             self.calendar = _init_calendar(self.continent, self.country)
         except UtilException as exc:

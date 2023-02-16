@@ -18,6 +18,7 @@ class TestTrendExtraction(unittest.TestCase):
 
         self.assertEqual({
             "period": 2,
+            "name":"trend_extractor",
             "length": 3,
             "indexes": []
         }, params)
@@ -27,6 +28,7 @@ class TestTrendExtraction(unittest.TestCase):
                          {
                              "period": 2,
                              "length": 3,
+                             "name": "trend_extractor",
                              "indexes": []
                          })
         self.trend_extractor.set_params(indexes=["Foo"], period=12, length=5)
@@ -34,6 +36,7 @@ class TestTrendExtraction(unittest.TestCase):
                          {
                              "period": 12,
                              "length": 5,
+                             "name": "trend_extractor",
                              "indexes": ["Foo"]
                          })
 

@@ -19,7 +19,7 @@ class TestTSNESummary(TestCase):
     def test_get_params(self):
         self.assertEqual(
             self.confusion_matrix.get_params(),
-            {}
+            {"name":"Confusion Matrix"}
         )
 
     def test_transform_all(self):

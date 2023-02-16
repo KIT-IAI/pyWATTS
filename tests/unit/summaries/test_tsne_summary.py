@@ -18,12 +18,12 @@ class TestTSNESummary(TestCase):
     def test_get_set_params(self):
         self.assertEqual(
             self.tsne.get_params(),
-            {"max_points": 100, "tsne_params": {}, "all_in_one_plot": True}
+            {"max_points": 100, "name":"TSNE","tsne_params": {}, "all_in_one_plot": True}
         )
         self.tsne.set_params(max_points=42, all_in_one_plot=False, tsne_params="BLUB")
         self.assertEqual(
             self.tsne.get_params(),
-            {"max_points": 42, "tsne_params": "BLUB", "all_in_one_plot": False}
+            {"max_points": 42, "tsne_params": "BLUB", "name":"TSNE","all_in_one_plot": False}
         )
 
     @patch("pywatts.summaries.tsne_visualisation.TSNE")

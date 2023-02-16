@@ -63,9 +63,9 @@ class TrainSyntheticTestReal(BaseSummary):
         else:
             self.fit_kwargs = fit_kwargs
         if get_model is None:
-            self._get_model = self._get_regressor if task == TSTRTask.Regression else self._get_classifier
+            self.get_model = self._get_regressor if task == TSTRTask.Regression else self._get_classifier
         else:
-            self._get_model = get_model
+            self.get_model = get_model
 
     @staticmethod
     def _get_regressor(horizon, pred_horizon):
@@ -98,59 +98,6 @@ class TrainSyntheticTestReal(BaseSummary):
         model = keras.Model(input, output)
         model.compile(loss="binary-crossentropy")
         return model
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get the params of the TSTR Module
-        
-        :return: Dict containing all parameters
-        """
-
-        return {
-            "repetitions": self.repetitions,
-            "train_test_split": self.train_test_split,
-            "task": self.task,
-            "metrics": self.metrics,
-            "fit_kwargs": self.fit_kwargs,
-            "get_model": self._get_model,
-            "n_targets": self.n_targets,
-        }
-
-    def set_params(self, train_test_split=None, repetitions=None, task=None, metrics=None,
-                   fit_kwargs=None, get_model=None, n_targets=None):
-        """
-        Set the params of the TSTR Module.
-        
-        :param train_test_split: The share of data that should be used for training.
-        :type train_test_split: float
-        :param repetitions: The number of repetitions a model should be trained and evaluated on each data set.
-        :type repetitions: int
-        :param fit_kwargs: Key Word arguments for fitting the model.
-        :type fit_kwargs: Dict
-        :param get_model: A function that returns a model that implements a fit and a predict method.
-        :type get_model: Callable
-        :param n_targets: The number of classes for the classifaction task or the horizon for the regression task.
-        :type n_targets: int
-        :param task: Specifies if the TSTR should solve a regression task or a classification task
-        :type task: TSTRTask
-        :param metrics: A list of strings specifying metrics. Currently implemented are 'mae', 'rmse' 'mape' 'accuracy',
-                        and 'f1'
-        :type metrics: List[str]
-        """
-        if repetitions is not None:
-            self.repetitions = repetitions
-        if train_test_split is not None:
-            self.train_test_split = train_test_split
-        if task is not None:
-            self.task = task
-        if metrics is not None:
-            self.metrics = metrics
-        if fit_kwargs is not None:
-            self.fit_kwargs = fit_kwargs
-        if get_model is not None:
-            self._get_model = get_model
-        if n_targets is not None:
-            self.n_targets = n_targets
 
     @staticmethod
     def _rmse(y_pred, y_true):
@@ -295,7 +242,7 @@ class TrainSyntheticTestReal(BaseSummary):
         for i in range(self.repetitions):
             is_nan = True
             while (is_nan):
-                model = self._get_model(train_x.shape[1], n_targets)
+                model = self.get_model(train_x.shape[1], n_targets)
                 model.fit(train_x, train_y, **self.fit_kwargs)
                 result = model.predict(test_x)
                 is_nan = np.any(np.isnan(result))
@@ -324,11 +271,11 @@ class TrainSyntheticTestReal(BaseSummary):
                 "module": self.__module__}
         model_path = fm.get_path(f"{self.name}_get_model.pickle")
         with open(model_path, "wb") as outfile:
-            cloudpickle.dump(self._get_model, outfile)
+            cloudpickle.dump(self.get_model, outfile)
 
         fit_kwargs_path = fm.get_path(f"{self.name}_fit_kwargs.pickle")
         with open(fit_kwargs_path, "wb") as outfile:
-            cloudpickle.dump(self._get_model, outfile)
+            cloudpickle.dump(self.get_model, outfile)
         json["params"] = {
             "repetitions": self.repetitions,
             "train_test_split": self.train_test_split,
@@ -348,7 +295,6 @@ class TrainSyntheticTestReal(BaseSummary):
         :param load_information:  The parameters which should be used for restoring the summary.
         :return: A TSTR Summary.
         """
-        name = load_information["name"]
         params = load_information["params"]
         fit_kwargs_path = load_information["fit_kwargs"]
         with open(fit_kwargs_path, "rb") as infile:
@@ -357,5 +303,5 @@ class TrainSyntheticTestReal(BaseSummary):
         with open(model_path, "rb") as infile:
             get_model = cloudpickle.load(infile)
 
-        module = cls(get_model=get_model, fit_kwargs=fit_kwargs, name=name, **params)
+        module = cls(get_model=get_model, fit_kwargs=fit_kwargs, **params)
         return module

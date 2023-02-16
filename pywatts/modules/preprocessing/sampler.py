@@ -48,18 +48,6 @@ class Sampler(BaseTransformer):
     def get_min_data(self):
         return self.sample_size
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a list of all hyperparameters/ user defined parameters
-
-        :return: Dict with params
-        :rtype: dict
-        """
-        return {
-            "sample_size": self.sample_size,
-            "indexes": self.indexes,
-        }
-
     def set_params(self, sample_size: int = None, indexes: List[str] = None):
         """
         Set params.

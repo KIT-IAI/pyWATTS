@@ -19,12 +19,14 @@ class TestMerger(unittest.TestCase):
     def test_get_set_params(self):
         self.assertEqual(
             self.merger.get_params(),
-            {"method": "mean"}
+            {"method": "mean",
+            'name': 'merger'}
         )
         self.merger.set_params(method=-5)
         self.assertEqual(
             self.merger.get_params(),
-            {"method": -5}
+            {"method": -5,
+            'name': 'merger'}
         )
 
     def test_set_params_invalid_params(self):
@@ -103,9 +105,9 @@ class TestMerger(unittest.TestCase):
         merger = Merger(method=10)
         json = merger.save(fm=MagicMock())
 
-        statistic_extraction_reloaded = Merger.load(json)
+        merger_reloaded = Merger.load(json)
 
         self.assertEqual(
             merger.get_params(),
-            statistic_extraction_reloaded.get_params()
+            merger_reloaded.get_params()
         )

@@ -20,6 +20,7 @@ class TestCustomScaler(unittest.TestCase):
             {
                 "multiplier": 1.0,
                 "bias": 0.0,
+                'name': 'CustomScaler'
             }
         )
 
@@ -29,6 +30,7 @@ class TestCustomScaler(unittest.TestCase):
             {
                 "multiplier": 1.0,
                 "bias": 0.0,
+                'name': 'CustomScaler'
             }
         )
         self.custom_scaler.set_params(multiplier=2.7, bias=1.2)
@@ -37,6 +39,7 @@ class TestCustomScaler(unittest.TestCase):
             {
                 "multiplier": 2.7,
                 "bias": 1.2,
+                'name': 'CustomScaler'
             }
         )
 
@@ -53,7 +56,7 @@ class TestCustomScaler(unittest.TestCase):
 
     def test_transform_multiplier(self):
         time = pd.date_range('2002-01-01', freq='24H', periods=7)
-        self.custom_scaler.set_params(multiplier=2.0, bias=None)
+        self.custom_scaler.set_params(multiplier=2.0)
         da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
 
         result = self.custom_scaler.transform(da)
@@ -87,7 +90,7 @@ class TestCustomScaler(unittest.TestCase):
 
     def test_inverse_transform_multiplier(self):
         time = pd.date_range('2002-01-01', freq='24H', periods=7)
-        self.custom_scaler.set_params(multiplier=2.0, bias=None)
+        self.custom_scaler.set_params(multiplier=2.0)
         da = xr.DataArray([2, 3, 4, 5, 6, 7, 8], dims=["time"], coords={'time': time})
 
         da = self.custom_scaler.transform(da)

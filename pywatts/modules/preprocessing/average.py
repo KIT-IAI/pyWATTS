@@ -23,23 +23,6 @@ class Average(BaseTransformer):
 
         self.weights = weights
 
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters for the Average object.
-        :return: Parameters as dict object.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "weights": self.weights
-        }
-
-    def set_params(self, weights: List[float] = None):
-        """ Set or change Average object parameters.
-        :param weights: List of individual weights of each given time series for weighted averaging.
-        :type weights: list, optional
-        """
-        if weights:
-            self.weights = weights
-
     def transform(self, **kwargs) -> xr.DataArray:
         """ Aggregate the given time data_array by simple or weighted averaging.
         :return: xarray DataArray aggregated by simple or weighted averaging.

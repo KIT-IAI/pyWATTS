@@ -1,9 +1,11 @@
 import logging
+from copy import deepcopy
 from typing import Dict
 
 import tensorflow
 import numpy as np
 import xarray as xr
+from keras.models import clone_model
 from pywatts_pipeline.core.transformer.base import BaseEstimator
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
@@ -39,42 +41,11 @@ class ProfileNeuralNetwork(BaseEstimator):
 
     def __init__(self, name: str = "PNN", epochs=50, offset=0, batch_size=128, validation_split=0.2):
         super().__init__(name)
+        self.pnn = None
         self.epochs = epochs
         self.offset = offset
         self.batch_size = batch_size
         self.validation_split = validation_split
-
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameter for this object as dict.
-
-        :return: Object parameters as json dict
-        """
-        return {
-            "epochs": self.epochs,
-            "offset": self.offset,
-            "batch_size": self.batch_size,
-            "validation_split": self.validation_split
-        }
-
-    def set_params(self, epochs=None, offset=None, batch_size=None, validation_split=None):
-        """
-        :param epochs: The number of epochs the model should be trained.
-        :type epochs: int
-        :param offset: The number of samples at the beginning of the dataset that should be **not** considered for training.
-        :type offset: int
-        :param batch_size: The batch size which should be used for training
-        :type batch_size: int
-        :param validation_split: The share of data which should be used for validation
-        :type validation_split: float
-        """
-        if batch_size:
-            self.batch_size = batch_size
-        if epochs:
-            self.epochs = epochs
-        if offset:
-            self.offset = offset
-        if validation_split:
-            self.validation_split = validation_split
 
     def transform(self, **kwargs) -> xr.DataArray:
         """
@@ -143,7 +114,7 @@ class ProfileNeuralNetwork(BaseEstimator):
             "dummy_input": dummy_input
         }, target.values[self.offset:])
         self.pnn.fit(input, t, epochs=self.epochs, batch_size=self.batch_size, validation_split=self.validation_split)
-        self.is_fitted = True
+        self._is_fitted = True
 
     def _get_inputs(self, kwargs, offset):
         """
@@ -177,6 +148,14 @@ class ProfileNeuralNetwork(BaseEstimator):
             })
         return json
 
+    def clone(self):
+        pnn = self.pnn
+        self.pnn = None
+        copied_keras_wrapper = deepcopy(self)
+        copied_keras_wrapper.pnn = clone_model(pnn) if pnn is not None else None
+        self.pnn = pnn
+        return copied_keras_wrapper
+
     @classmethod
     def load(cls, load_information) -> BaseEstimator:
         """
@@ -185,7 +164,7 @@ class ProfileNeuralNetwork(BaseEstimator):
         :param params:  The paramters which should be used for restoring the PNN.
         :return: A wrapped keras model.
         """
-        pnn_module = ProfileNeuralNetwork(name=load_information["name"], **load_information["params"])
+        pnn_module = ProfileNeuralNetwork(**load_information["params"])
         if load_information["is_fitted"]:
             try:
                 pnn = keras.models.load_model(filepath=load_information["pnn"],
@@ -195,7 +174,7 @@ class ProfileNeuralNetwork(BaseEstimator):
                 logging.error("No model found in %s.", load_information['pnn'])
                 raise exception
             pnn_module.pnn = pnn
-            pnn_module.is_fitted = True
+            pnn_module._is_fitted = True
         return pnn_module
 
     @staticmethod

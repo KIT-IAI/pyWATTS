@@ -12,7 +12,7 @@ from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBas
 
 class TestRMSE(BaseTestMetricBase, unittest.TestCase):
 
-    load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'RMSE',
+    load_information = {'params': {'offset': 24, 'name': 'NAME'}, 'name': 'NAME', 'class': 'RMSE',
                             'module': 'pywatts.summaries.rmse_summary', 'filter': 'filter_path'}
 
     def get_metric(self):

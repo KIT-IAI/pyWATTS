@@ -55,37 +55,7 @@ class Ensemble(BaseEstimator):
         self.weights_ = None
         self.loss_metric = loss_metric
         self.k_best = k_best
-        self.is_fitted = False
-
-    def get_params(self) -> Dict[str, object]:
-        """ Get parameters for the Ensemble object.
-        :return: Parameters as dict object.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "weights": self.weights,
-            "k_best": self.k_best,
-            "loss_metric": self.loss_metric,
-        }
-
-    def set_params(self, weights: Union[str, list] = None, loss_metric: LossMetric = None,
-                   k_best: Union[str, int] = None):
-        """ Set or change Ensemble object parameters.
-        :param weights: List of individual weights of the given forecasts for weighted averaging. Passing "auto"
-        estimates the weights depending on the given loss values.
-        :type weights: list, optional
-        :param loss_metric: Specifies the loss metric for automated optimal weight estimation.
-        :type loss_metric: LossMetric, optional
-        :param k_best: Drop poor forecasts in the automated weight estimation. Passing "auto" drops poor forecasts based
-        on the given loss values by applying the 1.5*IQR rule.
-        :type k_best: str or int, optional
-        """
-        if weights is not None:
-            self.weights = weights
-        if loss_metric is not None:
-            self.loss_metric = loss_metric
-        if k_best is not None:
-            self.k_best = k_best
+        self._is_fitted = False
 
     def fit(self, **kwargs):
 
@@ -120,7 +90,7 @@ class Ensemble(BaseEstimator):
         if self.weights_:
             self.weights_ = [weight / sum(self.weights_) for weight in self.weights_]
 
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs) -> xr.DataArray:
         """ Ensemble the given time series by simple or weighted averaging.

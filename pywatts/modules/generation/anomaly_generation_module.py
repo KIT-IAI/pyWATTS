@@ -45,25 +45,7 @@ class AnomalyGeneration(BaseTransformer):
         self.label = label
         self.seed = seed
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get parameters of the anomaly generation module as Dict.
-
-        :return: Dict containing all parameters.
-        :rtype: Dict[str, object]
-        """
-        return {
-            "count": self.count,
-            "anomaly": self.anomaly,
-            "anomaly_params": self.anomaly_params,
-            "length_params": self.length_params,
-            "seed": self.seed,
-        }
-
-    def set_params(self, count: Optional[Union[int, float]] = None,
-                   anomaly: Optional[str] = None, anomaly_params: Optional[Dict] = None,
-                   length_params: Optional[Dict] = None, label: Optional[str] = None,
-                   seed: Optional[int] = None):
+    def set_params(self, **kwargs):
         """
         Set parameters of the anomaly generation module.
 
@@ -81,20 +63,11 @@ class AnomalyGeneration(BaseTransformer):
         :param seed: Seed to be used by the random generator.
         :type seed: Optional[int]
         """
-        if count is not None:
-            self.count = count
-        if anomaly is not None:
+        if "anomaly" in kwargs:
+            anomaly = kwargs.pop("anomaly")
             self._check_anomaly_type(anomaly)
             self.anomaly = anomaly
-        if anomaly_params is not None:
-            self.anomaly_params = anomaly_params
-        if length_params is not None:
-            self.length_params = length_params
-        if label is not None:
-            self.label = label
-        if seed is not None:
-            self.seed = seed
-
+        super(AnomalyGeneration, self).set_params(**kwargs)
     def _check_anomaly_type(self, anomaly: str):
         """
         Check whether selected anomaly type exists as method '_anomaly_NAME()'
@@ -103,7 +76,7 @@ class AnomalyGeneration(BaseTransformer):
         :type anomaly: str
         :raises WrongParameterException: If method for anomaly type does not exist.
         """
-        attributes = [func for func in dir(self) if callable(getattr(self, func))]
+        attributes = [func for func in filter(lambda x: x.startswith("_anomaly_"), dir(self)) if callable(getattr(self, func))]
         anomalies = [
             attr.replace("_anomaly_", "")
             for attr in attributes
@@ -364,7 +337,7 @@ class AnomalyGeneration(BaseTransformer):
             target[idx:idx + length - 1] = 0
         return target
 
-    def transform(self, x: xr.DataArray, labels=None) -> Dict[str, xr.DataArray]:
+    def transform(self, x: xr.DataArray, **kwargs) -> Dict[str, xr.DataArray]:
         """
         Finally insert anomalies using the given parameters.
 
@@ -375,6 +348,7 @@ class AnomalyGeneration(BaseTransformer):
         :return: Transformed array.
         :rtype: Dict[str, xr.DataArray]
         """
+        labels = kwargs["labels"] if "labels" in kwargs else None
         np.random.seed(self.seed)
         indices, lengths, labels = self._get_anomaly_positions(x, labels, **self.length_params)
 

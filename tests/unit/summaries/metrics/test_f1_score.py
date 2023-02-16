@@ -13,8 +13,8 @@ from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBas
 
 
 class TestF1Score(BaseTestMetricBase, unittest.TestCase):
-    load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'RMSE',
-                        'module': 'pywatts.summaries.mae_summary', 'filter': 'filter_path'}
+    load_information = {'params': {'offset': 24, 'name': 'NAME'}, 'name': 'NAME', 'class': 'F1',
+                        'module': 'pywatts.summaries.f1_score_summary', 'filter': 'filter_path'}
 
     def get_metric(self):
         return F1Score
@@ -118,11 +118,13 @@ class TestF1Score(BaseTestMetricBase, unittest.TestCase):
         self.metric.set_params(offset=24, cuts=[("Test", "test")], average="BLUB")
         self.assertEqual(self.metric.get_params(),
                          {'offset': 24,
+                          "filter_method":None,
                           "average" : "BLUB",
+                          "name":"NAME",
                           "cuts": [("Test", "test")]})
 
     def get_default_params(self):
-        return {'offset': 0, "cuts":[], "average":"micro"}
+        return {'offset': 0, "cuts":[], "average":"micro", "filter_method": None, "name":"NAME"}
 
     def get_load_params(self):
-        return {'offset': 24, "cuts":[], "average":"micro"}
+        return {'offset': 24, "cuts":[], "average":"micro", "filter_method": None, "name":"NAME"}

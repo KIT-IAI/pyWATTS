@@ -18,12 +18,12 @@ class TestRollingRMSE(unittest.TestCase):
         self.rolling_rmse = None
 
     def test_get_params(self):
-        self.assertEqual(self.rolling_rmse.get_params(), {'window_size': 24, 'window_size_unit': "d"})
+        self.assertEqual(self.rolling_rmse.get_params(), {"name":"RollingRMSE", 'window_size': 24, 'window_size_unit': "d"})
 
     def test_set_params(self):
         self.rolling_rmse.set_params(window_size=2, window_size_unit="m")
         self.assertEqual(self.rolling_rmse.get_params(),
-                         {"window_size": 2, "window_size_unit": "m"})
+                         {"window_size": 2, "name": "RollingRMSE", "window_size_unit": "m"})
 
     def test_transform(self):
         self.rolling_rmse.set_params(window_size=2, window_size_unit="h")

@@ -27,4 +27,4 @@ class TestChangeDirection(unittest.TestCase):
         xr.testing.assert_equal(result, expected_result)
 
     def test_get_params(self):
-        self.assertEqual({}, self.change_direction.get_params())
+        self.assertEqual({'name': 'change_direction'}, self.change_direction.get_params())

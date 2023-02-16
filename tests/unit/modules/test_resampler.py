@@ -46,10 +46,11 @@ class TestResampler(unittest.TestCase):
             "time_index": "[TARGET_INDEX]",
             "target_time": "[TARGET_TIME]",
             "method": "[METHOD]",
+            "name": "Resampler",
             "method_args": {"arg1": 0},
         }
         resampler = Resampler(**params)
-        self.assertTrue(params == resampler.get_params())
+        self.assertEqual(params, resampler.get_params())
 
         # define new params and try to set them
         new_params = {

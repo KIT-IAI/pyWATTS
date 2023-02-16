@@ -37,31 +37,6 @@ class ClockShift(BaseTransformer):
         self.lag = lag
         self.indexes = indexes
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a list of all defined parameters
-
-        :return: List of parameters
-        :rtype: Dict
-        """
-        return {"lag": self.lag, "indexes": self.indexes}
-
-    def set_params(self, lag: int = None, indexes: List[str] = None):
-        """
-        Sets parameters for clock shifting
-
-        :param lag: The offset for shifting the time series. Please note: The relative time of the shift is determined
-        by the current temporal resolution of the arrays in the pipeline.
-        :type lag: int
-        :param indexes: The list of indexes that determine the dimension in which the time should be shifted. If the
-        list is None or empty, the time is shifted in all temporal dimensions.
-        :type indexes: List
-        """
-        if lag:
-            self.lag = lag
-        if indexes is not None:
-            # Do not use if indexes here, since this would be false if indexes is empty.
-            self.indexes = indexes
 
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """

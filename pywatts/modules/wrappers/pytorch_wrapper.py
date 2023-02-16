@@ -102,7 +102,7 @@ class PyTorchWrapper(DlWrapper):
             scheduler.step()
 
         self.model.to("cpu")
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
@@ -141,6 +141,9 @@ class PyTorchWrapper(DlWrapper):
         """
 
         json = super().save(fm)
+        del json["params"]["optimizer"]
+        del json["params"]["model"]
+        del json["params"]["loss_fn"]
         file_path = fm.get_path(f'{self.name}.pt')
         loss_fn_path = fm.get_path(f"loss_{self.name}.pickle")
         with open(loss_fn_path, "wb")as file:
@@ -162,36 +165,13 @@ class PyTorchWrapper(DlWrapper):
         :return: The restored wrappers
         :rtype: PyTorchWrapper
         """
-        name = load_information["name"]
         model = torch.load(load_information["pytorch_module"])
         with open(load_information["loss_fn"], "rb") as file:
             loss_fn = cloudpickle.load(file)
         with open(load_information["optimizer"], "rb") as file:
             optimizer = cloudpickle.load(file)
-        module = cls(model=model, name=name, fit_kwargs=load_information["params"]["fit_kwargs"],
+        module = cls(model=model, fit_kwargs=load_information["params"]["fit_kwargs"],
                      loss_fn=loss_fn, optimizer=optimizer)
-        module.is_fitted = load_information["is_fitted"]
+        module._is_fitted = load_information["is_fitted"]
 
         return module
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameters of deep learning frameworks.
-        :return: A dict containing the fit keyword arguments and the compile keyword arguments
-        """
-        return {
-            "fit_kwargs": self.fit_kwargs
-        }
-
-    def set_params(self, fit_kwargs=None, loss_fn=None, optimizer=None):
-        """
-        Set the parameters of the deep learning wrappers
-        :param fit_kwargs: keyword arguments for the fit method.
-        :param compile_kwargs: keyword arguments for the compile methods.
-        """
-        if fit_kwargs:
-            self.fit_kwargs = fit_kwargs
-        if loss_fn:
-            self.loss_fn = loss_fn
-        if optimizer:
-            self.optimizer = optimizer

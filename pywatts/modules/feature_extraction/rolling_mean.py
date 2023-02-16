@@ -46,15 +46,6 @@ class RollingMean(RollingBase):
         else:
             return df.rolling(f"{self.window_size}{self.window_size_unit}", closed=self.closed).mean()
 
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get the parameters of the rolling mean module as dict
-        """
-        params = super(RollingMean, self).get_params()
-        params["alpha"] = self.alpha
-        return params
-
     def set_params(self, alpha: Optional[float] = None, **kwargs):
         """
         Set parameters of the rolling mean

@@ -33,6 +33,7 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
 
     def setUp(self) -> None:
         self.statsmodels_mock = MagicMock()
+        self.statsmodels_mock.__name__ = "Statsmodel"
         self.statsmodels_wrapper = SmTimeSeriesModelWrapper(name="wrappers", module=self.statsmodels_mock,
                                                             module_kwargs={"lags": [1, 2]},
                                                             fit_kwargs={}, predict_kwargs={})
@@ -49,7 +50,9 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
     def test_get_params(self):
         self.assertEqual(self.statsmodels_wrapper.get_params(),
                          {'fit_kwargs': {},
+                          'module':self.statsmodels_mock,
                           'module_kwargs': {'lags': [1, 2]},
+                          "name":"wrappers",
                           'predict_kwargs': {},
                           'use_exog':True})
 
@@ -58,7 +61,9 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                          {
                              'fit_kwargs': {},
                              'predict_kwargs': {},
+                             'module':self.statsmodels_mock,
                              'module_kwargs': {'lags': [1, 2]},
+                             "name": "wrappers",
                              'use_exog': True
                          })
         self.statsmodels_wrapper.set_params(
@@ -70,7 +75,9 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                          {
                              "fit_kwargs": {"cov_type": "nonrobust"},
                              "predict_kwargs": {"dynamic": True},
+                             "name": "wrappers",
                              'module_kwargs': {"scale": 2.0},
+                             'module':self.statsmodels_mock,
                              "use_exog": False,
                          })
 
@@ -159,6 +166,7 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                                 'name': 'ARIMA',
                                 'params': {'fit_kwargs': {},
                                            'module_kwargs': {'lags': [1, 2]},
+                                           "name": "ARIMA",
                                            'predict_kwargs': {},
                                            'use_exog':True},
                                 'sm_class': 'ARIMA',
@@ -173,11 +181,13 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                              "module_kwargs": {
                                  "lags": [1, 4]
                              },
+                             "module": ARIMA,
                              "fit_kwargs": {
                                  "cov_type": "nonrobust"
                              },
                              "predict_kwargs": {
                                  "dynamic": True
                              },
+                             "name": "ARIMA",
                              "use_exog" : False
                          })

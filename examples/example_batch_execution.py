@@ -24,17 +24,15 @@ from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
 from pywatts.summaries import MASE
 
 
-def create_preprocessing_pipeline(power_scaler):
+def create_preprocessing_pipeline():
     pipeline = Pipeline(path="../results/preprocessing")
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
                                                   name="imputed_power")(x=pipeline["scaler_power"])
-    # Scale the data using a standard SKLearn scaler
-    scale_power_statistics = power_scaler(x=imputer_power_statistics)
 
     # Create lagged time series to later be used in the regression
-    Select(start=-24, stop=0, step=1, name="sampled_data")(x=scale_power_statistics)
+    Select(start=-24, stop=0, step=1, name="sampled_data")(x=imputer_power_statistics)
     return pipeline
 
 
@@ -58,13 +56,14 @@ if __name__ == "__main__":
     # Build a train pipeline. In this pipeline, each step processes all data at once.
     pipeline = Pipeline(path="../results/batch_pipeline")
 
+    scaled_power = power_scaler(x=pipeline["load_power_statistics"])
     # Create preprocessing pipeline for the preprocessing steps
-    preprocessing_pipeline = create_preprocessing_pipeline(power_scaler)
-    preprocessing_pipeline = preprocessing_pipeline(scaler_power=pipeline["load_power_statistics"])
+    preprocessing_pipeline = create_preprocessing_pipeline()
+    preprocessing_pipeline = preprocessing_pipeline(scaler_power=scaled_power)
 
     target = FunctionModule(lambda x: numpy_to_xarray(
         x.values.reshape((-1,)), x
-    ), name="target")(x=pipeline["load_power_statistics"])
+    ), name="target")(x=scaled_power)
 
 
     periodic_condition = PeriodicCondition(21)
@@ -80,6 +79,11 @@ if __name__ == "__main__":
                                                    lag=pd.Timedelta(hours=24),
                                                    refit_conditions=[periodic_condition, #check_if_midnight,
                                                                      detection_condition])
+
+    unscaled_forecast = power_scaler(
+        x=regressor_svr_power_statistics, computation_mode=ComputationMode.Transform,
+        method="inverse_transform", callbacks=[LinePlotCallback("rescale")]
+    )
 
 
     print("Start training")

@@ -35,7 +35,7 @@ def get_keras_model():
 if __name__ == "__main__":
     keras_model = get_keras_model()
 
-    pipeline = Pipeline(path="../results")
+    pipeline = Pipeline(path="../results/keras_model")
 
     # Deal with missing values through linear interpolation
     imputer_power_statistics = LinearInterpolater(method="nearest", dim="time",
@@ -49,6 +49,7 @@ if __name__ == "__main__":
     # sampler_module -> 2D-Zeitreihe
     lag_features = Select(start=-23, stop=1, step=1, name="lag_features")(x=scale_power_statistics)
     target = Select(start=1, stop=25, step=1, name="target")(x=scale_power_statistics)
+    target_unscaled = Select(start=1, stop=25, step=1, name="target")(x=imputer_power_statistics)
 
     keras_wrapper = KerasWrapper(keras_model,
                                  custom_objects={"<lambda>": lambda x, y: K.sqrt(K.mean(K.square(x - y)))},
@@ -64,7 +65,7 @@ if __name__ == "__main__":
                                           method="inverse_transform",
                                           callbacks=[LinePlotCallback("prediction")])
 
-    rmse_dl = RMSE()(keras_model=inverse_power_scale_dl, y=target)
+    rmse_dl = RMSE()(keras_model=inverse_power_scale_dl, y=target_unscaled)
 
     # Now, the pipeline is complete
     # so we can load data and train the model
@@ -76,7 +77,8 @@ if __name__ == "__main__":
 
     pipeline.train(data[:6000])
     pipeline.test(data[6000:])
-    pipeline.to_folder("../results/pipe_keras")
+    pipeline.to_folder("pipe_keras")
 
-    pipeline = Pipeline.from_folder("../results/pipe_keras")
+    pipeline = Pipeline.from_folder("pipe_keras")
     pipeline.test(data[6000:])
+    print("Finished")

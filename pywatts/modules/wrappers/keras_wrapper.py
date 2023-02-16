@@ -1,9 +1,11 @@
 import logging
+from copy import deepcopy
 from typing import Tuple, Union, Dict
 
 import cloudpickle
 import tensorflow as tf
 import xarray as xr
+from keras.models import clone_model
 
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
@@ -60,7 +62,7 @@ class KerasWrapper(DlWrapper):
             self.model.compile(**self.compile_kwargs)
             self.compiled = True
         self.model.fit(x=x, y=y, **self.fit_kwargs)
-        self.is_fitted = True
+        self._is_fitted = True
 
     def transform(self, **kwargs: xr.DataArray) -> xr.DataArray:
         """
@@ -77,6 +79,18 @@ class KerasWrapper(DlWrapper):
         }
         return result
 
+    def clone(self):
+        model = self.model
+        aux_models = self.aux_models
+        self.model = None
+        self.aux_models = None
+        copied_keras_wrapper = deepcopy(self)
+        copied_keras_wrapper.model = clone_model(model)
+        copied_keras_wrapper.aux_models = {k: clone_model(m) for k, m in aux_models.items()}
+        self.model = model
+        self.aux_models = aux_models
+        return copied_keras_wrapper
+
     def save(self, fm: FileManager) -> dict:
         """
         Stores the keras model at the given path
@@ -88,6 +102,7 @@ class KerasWrapper(DlWrapper):
                 "module": self.__module__}
 
         params = self.get_params()
+        del params["model"]
         params_path = fm.get_path(f"{self.name}_params.pickle")
         with open(params_path, "wb") as outfile:
             cloudpickle.dump(params, outfile)
@@ -122,7 +137,6 @@ class KerasWrapper(DlWrapper):
         (Note: This models should be taken from the pipeline json file)
         :return: A wrapped keras model.
         """
-        name = load_information["name"]
         params_path = load_information["params"]
         with open(params_path, "rb") as infile:
             params = cloudpickle.load(infile)
@@ -144,37 +158,9 @@ class KerasWrapper(DlWrapper):
                 except Exception as exception:
                     logging.error("No model found in path %s", path)
                     raise exception
-            module = cls((model, aux_models), name=name, **params)
+            module = cls((model, aux_models), **params)
         else:
-            module = cls(model, name=name, **params)
-        module.is_fitted = load_information["is_fitted"]
-
+            module = cls(model, **params)
+        module._is_fitted = load_information["is_fitted"]
         module.targets = load_information["targets"]
         return module
-
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameters of deep learning frameworks.
-        :return: A dict containing the fit keyword arguments and the compile keyword arguments
-        """
-        return {
-            "fit_kwargs": self.fit_kwargs,
-            "compile_kwargs": self.compile_kwargs,
-            "custom_objects": self.custom_objects
-        }
-
-    def set_params(self, fit_kwargs=None, compile_kwargs=None, custom_objects=None):
-        """
-        Set the parameters of the deep learning wrappers
-        :param fit_kwargs: keyword arguments for the fit method.
-        :param compile_kwargs: keyword arguments for the compile methods.
-        :param custom_objects: This dict contains all custom objects needed by the keras model. Note,
-                               users that uses such customs objects (e.g. Custom Loss) need to specify this to enable
-                               the loading of the stored Keras model.
-        """
-        if fit_kwargs:
-            self.fit_kwargs = fit_kwargs
-        if compile_kwargs:
-            self.compile_kwargs = compile_kwargs
-        if custom_objects:
-            self.custom_objects = custom_objects

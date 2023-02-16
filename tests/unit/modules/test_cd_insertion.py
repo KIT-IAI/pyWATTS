@@ -41,13 +41,14 @@ class TestCDInsertion(unittest.TestCase):
     def test_set_get_params(self):
         self.assertEqual(
             self.cd_insertion.get_params(),
-            {"drift_information": [self.drift_information]}
+            {"drift_information": [self.drift_information],
+            'name': 'Concept Drift Generation'}
         )
         drift_information = MagicMock()
         self.cd_insertion.set_params(drift_information=[drift_information])
         self.assertEqual(
             self.cd_insertion.get_params(),
-            {"drift_information": [drift_information]}
+            {"drift_information": [drift_information],'name': 'Concept Drift Generation'}
         )
 
     def test_add_one_cd(self):

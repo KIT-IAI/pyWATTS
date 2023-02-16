@@ -12,11 +12,25 @@ from tests.unit.summaries.metrics.test_base_metric_base import BaseTestMetricBas
 
 
 class TestMase(BaseTestMetricBase, unittest.TestCase):
-    load_information = {'params': {'offset': 24}, 'name': 'NAME', 'class': 'RMSE',
-                        'module': 'pywatts.summaries.mae_summary', 'filter': 'filter_path'}
+    load_information = {'params': {'offset': 24, 'name': 'NAME'}, 'name': 'NAME', 'class': 'MASE',
+                        'module': 'pywatts.summaries.mase_summary', 'filter': 'filter_path'}
+
 
     def get_metric(self):
         return MASE
+
+    def get_default_params(self):
+        return {'offset': 0, "cuts": [], "name":"NAME","filter_method": None, "lag": 1}
+
+    def test_set_params(self):
+        self.metric.set_params(offset=24, cuts=[("Test", "test")])
+        self.assertEqual(self.metric.get_params(),
+                         {'offset': 24, "name":"NAME",
+                          "filter_method": None,
+                          "lag":1,
+                          "cuts": [("Test", "test")]})
+    def get_load_params(self):
+        return {'offset': 24, "cuts": [], "filter_method": None, "lag": 1, "name": "NAME",}
 
     def test_transform_with_filter(self):
         filter_mock = MagicMock()

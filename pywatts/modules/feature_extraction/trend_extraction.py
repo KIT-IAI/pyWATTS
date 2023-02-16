@@ -36,37 +36,6 @@ class TrendExtraction(BaseTransformer):
         if indexes is None:
             self.indexes = []
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Get all parameters of the trend extraction
-
-        :return: Dict with params
-        :rtype: Dict[str, object]
-        """
-        return {
-            "period": self.period,
-            "length": self.length,
-            "indexes": self.indexes,
-        }
-
-    def set_params(self, period=None, length=None, indexes: List[str] = None):
-        """
-        Set the parameters
-
-        :param period: Length of one period
-        :type period: int
-        :param length: Number of periods which should be extracted
-        :type length: int
-        :param indexes: Time index
-        :type indexes: List[str]
-        """
-        if period:
-            self.period = period
-        if length:
-            self.length = length
-        if indexes is not None:
-            self.indexes = indexes
-
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Extract trend values

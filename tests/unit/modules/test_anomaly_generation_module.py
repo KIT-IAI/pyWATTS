@@ -8,7 +8,7 @@ from pywatts.modules.generation.anomaly_generation_module import AnomalyGenerati
 from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 
 
-class TestResampler(unittest.TestCase):
+class TestAnomalyGeneration(unittest.TestCase):
 
     def setUp(self):
         self.constant_load = np.ones(10)
@@ -39,6 +39,8 @@ class TestResampler(unittest.TestCase):
             "anomaly_params": {},
             "length_params": {},
             "seed": 0,
+            'name': 'AnomalyGeneration',
+            "label": None,
         }
         module = AnomalyGeneration(**params)
         self.assertEqual(module.get_params(), params)
@@ -49,6 +51,8 @@ class TestResampler(unittest.TestCase):
             "anomaly_params": {"param": 1},
             "length_params": {"param": 1},
             "seed": 1,
+            'name': 'AnomalyGeneration',
+            "label":None,
         }
         old_params = params.copy()
         for key in new_params.keys():

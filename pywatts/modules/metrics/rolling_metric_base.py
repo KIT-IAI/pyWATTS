@@ -24,34 +24,6 @@ class RollingMetricBase(BaseTransformer, ABC):
         self.window_size_unit = window_size_unit
         self.window_size = window_size
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a dict of parameters used in the RollingMetric.
-
-        :return: Parameters set for the RollingMetric
-        :rtype: Dict[str, object]
-        """
-        return {
-            "window_size_unit": self.window_size_unit,
-            "window_size": self.window_size
-        }
-
-    def set_params(self, window_size=None, window_size_unit=None):
-        """
-        Set the parameter for the RollingMetric.
-
-        :param window_size: Determine the window size if a rolling metric should be calculated.
-                            Ignored if rolling is set to False. Default 24
-        :type window_size: int
-        :param window_size_unit: Determine the unit of the window size. Default Day (d)"
-        :type window_size_unit: str
-
-        """
-        if window_size is not None:
-            self.window_size = window_size
-        if window_size_unit is not None:
-            self.window_size_unit = window_size_unit
-
     def transform(self, y: xr.DataArray, **kwargs: xr.DataArray) -> xr.DataArray:
         """
         Calculates the MAE based on the predefined target and predictions variables.

@@ -19,6 +19,8 @@ class TestRollingVariance(unittest.TestCase):
             {
                 "window_size": 3,
                 "window_size_unit": "d",
+                "closed":"left",
+                'name': 'RollingVariance',
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe"
@@ -30,7 +32,9 @@ class TestRollingVariance(unittest.TestCase):
             self.rolling_variance.get_params(),
             {
                 "window_size": 3,
+                'name': 'RollingVariance',
                 "window_size_unit": "d",
+                "closed":"left",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe"
@@ -43,7 +47,9 @@ class TestRollingVariance(unittest.TestCase):
                 "window_size": 5,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
+                'name': 'RollingVariance',
                 "country": "Germany",
+                "closed":"left",
                 "continent": "Europe"
             }
         )

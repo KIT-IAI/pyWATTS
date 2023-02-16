@@ -56,43 +56,6 @@ class DiscriminativeScore(BaseSummary):
         else:
             self.get_model = self._get_model
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns the parameter of the discriminative score as a Dict.
-
-        :returns: A Dcit containing all parameters of the discriminative score.
-        :rytpe: Dict
-        """
-
-        return {
-            "fit_kwargs": self.fit_kwargs,
-            "repetitions": self.repetitions,
-            "get_model": self.get_model,
-            "test_size": self.test_size,
-        }
-
-    def set_params(self, fit_kwargs=None, repetitions=None, get_model=None, test_size=None):
-        """
-        Set the parameters of the discriminative score.
-
-        :param fit_kwargs: Kwargs that are passed to the classifier if fit is called.
-        :type fit_kwargs: Dict
-        :param repititions: The number of repeititions the discriminative score should be calculated.
-        :type repititions: int
-        :param get_model: A function that returns a classifier. Default: A simple FC network.
-        :type get_model: Callable
-        :param test_size: The share of data that is used for testing
-        :type test_size: float
-        """
-        if fit_kwargs is not None:
-            self.fit_kwargs = fit_kwargs
-        if repetitions is not None:
-            self.repetitions = repetitions
-        if get_model is not None:
-            self.get_model = get_model
-        if test_size is not None:
-            self.test_size = test_size
-
     def transform(self, file_manager: FileManager, gt: xr.DataArray = None, **kwargs) -> SummaryObjectTable:
         """
         Calculates the discriminative score.
@@ -185,7 +148,6 @@ class DiscriminativeScore(BaseSummary):
         :param load_information:  The parameters which should be used for restoring the summary.
         :return: A DiscriminativeScore Summary.
         """
-        name = load_information["name"]
         params = load_information["params"]
         fit_kwargs_path = load_information["fit_kwargs"]
         with open(fit_kwargs_path, "rb") as infile:
@@ -194,5 +156,5 @@ class DiscriminativeScore(BaseSummary):
         with open(model_path, "rb") as infile:
             get_model = cloudpickle.load(infile)
 
-        module = cls(get_model=get_model, fit_kwargs=fit_kwargs, name=name, **params)
+        module = cls(get_model=get_model, fit_kwargs=fit_kwargs, **params)
         return module

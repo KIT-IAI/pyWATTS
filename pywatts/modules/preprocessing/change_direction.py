@@ -19,20 +19,6 @@ class ChangeDirection(BaseTransformer):
     def __init__(self, name="change_direction"):
         super().__init__(name)
 
-    def get_params(self) -> Dict[str, object]:
-        """
-        Returns a list of all parameters (note that this module has no parameters)
-
-        :return: List of parameters
-        :rtype: Dict
-        """
-        return {}
-
-    def set_params(self):
-        """
-        Sets the parameters (note that this module has no parameters)
-        """
-
     def transform(self, x: xr.DataArray) -> xr.DataArray:
         """
         Transforms the time series in a time series that indicates whether the next value is higher, lower, or the same

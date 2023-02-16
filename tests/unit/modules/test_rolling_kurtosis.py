@@ -20,6 +20,7 @@ class TestRollingKurtosis(unittest.TestCase):
             {
                 "closed":"left",
                 "window_size": 3,
+                'name': 'RollingKurtosis',
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
@@ -32,6 +33,7 @@ class TestRollingKurtosis(unittest.TestCase):
             self.rolling_kurtosis.get_params(),
             {
                 "closed":"left",
+                'name': 'RollingKurtosis',
                 "window_size": 3,
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
@@ -45,6 +47,7 @@ class TestRollingKurtosis(unittest.TestCase):
             {
                 "closed":"left",
                 "window_size": 5,
+                'name': 'RollingKurtosis',
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",

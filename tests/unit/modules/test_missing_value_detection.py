@@ -16,11 +16,7 @@ class TestMissingValueDetector(unittest.TestCase):
 
     def test_get_params(self):
         params = self.missing_value_detector.get_params()
-        self.assertEqual(bool(params),False)
-
-    def test_set_params(self):
-        self.missing_value_detector.set_params()
-
+        self.assertEqual(params, {"name":"missingValueDetector"})
 
     def test_transform(self):
         time = pd.to_datetime(['2015-06-03 00:00:00', '2015-06-03 01:00:00',

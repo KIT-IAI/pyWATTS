@@ -19,7 +19,8 @@ class TestLinearInterpolater(unittest.TestCase):
                          {
                              "method": "linear",
                              "dim": "time",
-                             "fill_value": "extrapolate"
+                             "fill_value": "extrapolate",
+                             'name': 'LinearInterpolater'
                          })
 
     def test_set_params(self):
@@ -27,14 +28,16 @@ class TestLinearInterpolater(unittest.TestCase):
                          {
                              "method": "linear",
                              "dim": "time",
-                             "fill_value": "extrapolate"
+                             "fill_value": "extrapolate",
+                             'name': 'LinearInterpolater'
                          })
         self.linear_interpolater.set_params(method="index", dim="location", fill_value="inside")
         self.assertEqual(self.linear_interpolater.get_params(),
                          {
                              "method": "index",
                              "dim": "location",
-                             "fill_value": "inside"
+                             "fill_value": "inside",
+                             'name': 'LinearInterpolater'
                          })
         self.linear_interpolater.set_params(method="linear", dim="time", fill_value="extrapolate")
 

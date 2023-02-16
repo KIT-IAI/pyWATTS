@@ -336,7 +336,7 @@ class AnomalyGeneration(BaseTransformer):
             target[idx:idx + length - 1] = 0
         return target
 
-    def transform(self, x: xr.DataArray, labels=None) -> Dict[str, xr.DataArray]:
+    def transform(self, x: xr.DataArray, **kwargs) -> Dict[str, xr.DataArray]:
         """
         Finally insert anomalies using the given parameters.
 
@@ -347,6 +347,7 @@ class AnomalyGeneration(BaseTransformer):
         :return: Transformed array.
         :rtype: Dict[str, xr.DataArray]
         """
+        labels = kwargs["labels"] if "labels" in kwargs else None
         np.random.seed(self.seed)
         indices, lengths, labels = self._get_anomaly_positions(x, labels, **self.length_params)
 

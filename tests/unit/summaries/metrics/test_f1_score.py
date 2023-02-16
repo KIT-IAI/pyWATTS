@@ -120,10 +120,11 @@ class TestF1Score(BaseTestMetricBase, unittest.TestCase):
                          {'offset': 24,
                           "filter_method":None,
                           "average" : "BLUB",
+                          "name":"NAME",
                           "cuts": [("Test", "test")]})
 
     def get_default_params(self):
-        return {'offset': 0, "cuts":[], "average":"micro", "filter_method": None}
+        return {'offset': 0, "cuts":[], "average":"micro", "filter_method": None, "name":"NAME"}
 
     def get_load_params(self):
-        return {'offset': 24, "cuts":[], "average":"micro", "filter_method": None}
+        return {'offset': 24, "cuts":[], "average":"micro", "filter_method": None, "name":"NAME"}

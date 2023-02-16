@@ -25,7 +25,7 @@ class Select(BaseTransformer):
         start: Union[int, List[int]],
         stop: int = None,
         step: int = None,
-        name: str = "SampleModule",
+        name: str = "Select",
     ):
         super().__init__(name)
         if self.__check_params(start, stop, step):

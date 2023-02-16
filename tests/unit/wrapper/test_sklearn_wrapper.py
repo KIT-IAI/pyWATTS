@@ -21,7 +21,7 @@ class TestSklearnWrapper(unittest.TestCase):
         scaler = StandardScaler()
         wrapper = SKLearnWrapper(module=scaler)
         self.assertEqual(wrapper.get_params(deep=True), {"module":scaler, "module__copy": True,
-                                                         "module__with_mean":True, "module__with_std": True})
+                                                         "name":"StandardScaler","module__with_mean":True, "module__with_std": True})
 
     def test_set_params(self):
         scaler = StandardScaler()

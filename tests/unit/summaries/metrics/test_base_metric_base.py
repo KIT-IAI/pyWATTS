@@ -7,10 +7,10 @@ class BaseTestMetricBase(ABC):
         self.metric = self.get_metric()(name="NAME")
 
     def get_default_params(self):
-        return {'offset': 0, "filter_method":None, "cuts":[]}
+        return {'offset': 0, "filter_method":None, "cuts":[], "name":"NAME"}
 
     def get_load_params(self):
-        return {'offset': 24,  "filter_method":None, "cuts":[]}
+        return {'offset': 24,  "filter_method":None, "cuts":[], "name":"NAME"}
 
     def tearDown(self) -> None:
         self.metric = None
@@ -23,6 +23,7 @@ class BaseTestMetricBase(ABC):
         self.metric.set_params(offset=24, cuts=[("Test", "test")])
         self.assertEqual(self.metric.get_params(),
                          {'offset': 24,
+                           "name": "NAME",
                           "filter_method": None,
                           "cuts": [("Test", "test")]})
 

@@ -79,6 +79,12 @@ class RollingBase(BaseTransformer, ABC):
         :return: The xarray dataset with date features added.
         """
 
+        if len(x.values.shape) > 1:
+            x_new = numpy_to_xarray(x.values.reshape((-1,)), x)
+            if len(x) != len(x_new):
+                raise WrongParameterException("For rolling statistics the input time series needs to be univariate")
+            x = x_new
+
         df = x.to_dataframe("name")
 
         if self.group_by == RollingGroupBy.No:

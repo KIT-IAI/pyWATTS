@@ -28,6 +28,7 @@ class TestSlicer(unittest.TestCase):
         # also set new parameters via set_params and check get_params
         init_params = {
             "start": None,
+            "name":"Slicer",
             "end": 2
         }
         obj = Slicer(**init_params)
@@ -35,14 +36,17 @@ class TestSlicer(unittest.TestCase):
 
         test_params = [
             {
+                "name": "Slicer",
                 "start": 1,
                 "end": 2
             },
             {
+                "name": "Slicer",
                 "start": 1,
                 "end": None
             },
             {
+                "name": "Slicer",
                 "start": None,
                 "end": None
             },

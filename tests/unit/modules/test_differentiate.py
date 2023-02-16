@@ -8,7 +8,7 @@ from pywatts.modules import Differentiate
 from pywatts_pipeline.core.exceptions.wrong_parameter_exception import WrongParameterException
 
 
-class TestResampler(unittest.TestCase):
+class TestDifferentiate(unittest.TestCase):
     def setUp(self):
         self.start_time = "2000-01-01"
         self.number_of_households = 10
@@ -49,7 +49,8 @@ class TestResampler(unittest.TestCase):
             "n": 1,
             "axis": 2,
             "pad": False,
-            "pad_args": {}
+            "pad_args": {},
+            'name': 'Differentiate'
         }
         obj = Differentiate(**params)
         self.assertEqual(obj.get_params(), params)
@@ -58,7 +59,8 @@ class TestResampler(unittest.TestCase):
             "n": [1, 2, 3],
             "axis": -1,
             "pad": True,
-            "pad_args": {"mode": "empty"}
+            "pad_args": {"mode": "empty"},
+            'name': 'Differentiate'
         }
         obj.set_params(**new_params)
         self.assertEqual(obj.get_params(), new_params)

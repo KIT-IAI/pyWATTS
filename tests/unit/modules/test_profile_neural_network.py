@@ -103,14 +103,17 @@ class TestPNN(unittest.TestCase):
         self.assertEqual(result, result_mock)
 
     def test_get_params(self):
-        self.assertEqual(self.pnn.get_params(), {'batch_size': 128, 'epochs': 50, "offset": 0, "validation_split": 0.2})
+        self.assertEqual(self.pnn.get_params(),
+                         {'batch_size': 128,'name': 'PNN', 'epochs': 50, "offset": 0, "validation_split": 0.2})
 
     def test_set_params(self):
-        self.assertEqual(self.pnn.get_params(), {'batch_size': 128, 'epochs': 50, "offset": 0, "validation_split": 0.2})
+        self.assertEqual(self.pnn.get_params(),
+                         {'batch_size': 128, 'name': 'PNN','epochs': 50, "offset": 0, "validation_split": 0.2})
 
         self.pnn.set_params(validation_split=0.5, epochs=10, offset=5, batch_size=42)
 
-        self.assertEqual(self.pnn.get_params(), {'batch_size': 42, 'epochs': 10, "offset": 5, "validation_split": 0.5})
+        self.assertEqual(self.pnn.get_params(),
+                         {'name': 'PNN','batch_size': 42, 'epochs': 10, "offset": 5, "validation_split": 0.5})
 
     def test_save_if_fitted(self):
         fm_mock = MagicMock()
@@ -130,7 +133,7 @@ class TestPNN(unittest.TestCase):
             'pnn': os.path.join("new_path", "to_somewhere", "pnn.h5"),
             'module': 'pywatts.modules.models.profile_neural_network',
             'name': 'PNN',
-            'params': {'epochs': 50, "offset": 0, "validation_split": 0.2, "batch_size": 128}}, json)
+            'params': {'epochs': 50, 'name': 'PNN',"offset": 0, "validation_split": 0.2, "batch_size": 128}}, json)
 
     def test_save_if_not_fitted(self):
         fm_mock = MagicMock()
@@ -143,7 +146,7 @@ class TestPNN(unittest.TestCase):
             'is_fitted': False,
             'module': 'pywatts.modules.models.profile_neural_network',
             'name': 'PNN',
-            'params': {'epochs': 50, "offset": 0, "validation_split": 0.2, "batch_size": 128}}, json)
+            'params': {'epochs': 50, "offset": 0, 'name': 'PNN', "validation_split": 0.2, "batch_size": 128}}, json)
 
     @patch('pywatts.modules.models.profile_neural_network.keras.models.load_model')
     def test_load_if_fitted(self, load_model_mock):
@@ -155,6 +158,7 @@ class TestPNN(unittest.TestCase):
                                          'name': 'PNN',
                                          'params': {'batch_size': 128,
                                                     'epochs': 50,
+                                                    'name': 'PNN',
                                                     'offset': 0,
                                                     'validation_split': 0.2},
                                          'pnn': os.path.join('new_path','to_somewhere','pnn.h5')})
@@ -168,6 +172,7 @@ class TestPNN(unittest.TestCase):
         self.assertEqual(pnn.get_params(),
                          {'batch_size': 128,
                           'epochs': 50,
+                          "name":"PNN",
                           'offset': 0,
                           'validation_split': 0.2})
 
@@ -179,11 +184,13 @@ class TestPNN(unittest.TestCase):
                                          'params': {'batch_size': 128,
                                                     'epochs': 50,
                                                     'offset': 0,
+                                                    'name': 'PNN',
                                                     'validation_split': 0.2}})
 
         load_model_mock.assert_not_called()
         self.assertEqual(pnn.get_params(),
                          {'batch_size': 128,
                           'epochs': 50,
+                          "name":"PNN",
                           'offset': 0,
                           'validation_split': 0.2})

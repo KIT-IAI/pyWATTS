@@ -39,6 +39,7 @@ class TestAnomalyGeneration(unittest.TestCase):
             "anomaly_params": {},
             "length_params": {},
             "seed": 0,
+            'name': 'AnomalyGeneration',
             "label": None,
         }
         module = AnomalyGeneration(**params)
@@ -50,6 +51,7 @@ class TestAnomalyGeneration(unittest.TestCase):
             "anomaly_params": {"param": 1},
             "length_params": {"param": 1},
             "seed": 1,
+            'name': 'AnomalyGeneration',
             "label":None,
         }
         old_params = params.copy()

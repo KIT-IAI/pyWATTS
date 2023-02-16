@@ -52,6 +52,7 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                          {'fit_kwargs': {},
                           'module':self.statsmodels_mock,
                           'module_kwargs': {'lags': [1, 2]},
+                          "name":"wrappers",
                           'predict_kwargs': {},
                           'use_exog':True})
 
@@ -62,6 +63,7 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                              'predict_kwargs': {},
                              'module':self.statsmodels_mock,
                              'module_kwargs': {'lags': [1, 2]},
+                             "name": "wrappers",
                              'use_exog': True
                          })
         self.statsmodels_wrapper.set_params(
@@ -73,6 +75,7 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                          {
                              "fit_kwargs": {"cov_type": "nonrobust"},
                              "predict_kwargs": {"dynamic": True},
+                             "name": "wrappers",
                              'module_kwargs': {"scale": 2.0},
                              'module':self.statsmodels_mock,
                              "use_exog": False,
@@ -163,6 +166,7 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                                 'name': 'ARIMA',
                                 'params': {'fit_kwargs': {},
                                            'module_kwargs': {'lags': [1, 2]},
+                                           "name": "ARIMA",
                                            'predict_kwargs': {},
                                            'use_exog':True},
                                 'sm_class': 'ARIMA',
@@ -184,5 +188,6 @@ class TestSmTimeSeriesModelWrapper(unittest.TestCase):
                              "predict_kwargs": {
                                  "dynamic": True
                              },
+                             "name": "ARIMA",
                              "use_exog" : False
                          })

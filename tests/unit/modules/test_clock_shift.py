@@ -19,7 +19,8 @@ class TestClockShift(unittest.TestCase):
 
         self.assertEqual({
             "lag": 2,
-            "indexes": None
+            "indexes": None,
+            'name': 'ClockShift'
         }, params)
 
     def test_set_params(self):
@@ -27,7 +28,8 @@ class TestClockShift(unittest.TestCase):
 
         self.assertEqual({
             "lag": 2,
-            "indexes": None
+            "indexes": None,
+            'name': 'ClockShift'
         }, params)
 
         self.clock_shift.set_params(indexes=["time"], lag=24)
@@ -35,7 +37,8 @@ class TestClockShift(unittest.TestCase):
 
         self.assertEqual({
             "lag": 24,
-            "indexes": ["time"]
+            "indexes": ["time"],
+            'name': 'ClockShift'
         }, params)
 
     def test_transform(self):

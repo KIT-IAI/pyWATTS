@@ -32,7 +32,8 @@ class TestCalendarExtraction(unittest.TestCase):
         params = {
             "features": [CalendarFeature.year],
             "continent": continent,
-            "country": country
+            "country": country,
+            'name': 'CalendarExtraction'
         }
         calendar_extraction = CalendarExtraction(**params)
         self.assertEqual(params, calendar_extraction.get_params())
@@ -41,7 +42,8 @@ class TestCalendarExtraction(unittest.TestCase):
         new_params = {
             "features": CalendarFeature.day,
             "continent": "ASIA",
-            "country": "China"
+            "country": "China",
+            'name': 'CalendarExtraction'
         }
         calendar_extraction.set_params(**new_params)
         self.assertEqual(new_params, calendar_extraction.get_params())

@@ -19,6 +19,7 @@ class TestSelect(unittest.TestCase):
 
         self.assertEqual(params,
                          {
+                             "name":"Select",
                              "start": 1,
                              "stop": 4,
                              "step": 1,
@@ -28,12 +29,14 @@ class TestSelect(unittest.TestCase):
         self.assertEqual(self.select.get_params(),
                          {
                              "start": 1,
+                             "name":"Select",
                              "stop": 4,
                              "step": 1,
                          })
         self.select.set_params(start=3, stop=20, step=12)
         self.assertEqual(self.select.get_params(),
                          {
+                             "name":"Select",
                              "start": 3,
                              "stop": 20,
                              "step": 12,

@@ -21,12 +21,13 @@ class TestDiscriminativeScore(TestCase):
         self.assertEqual(
             self.discriminative_score.get_params(),
             {"repetitions": 42, "get_model": self.get_model_mock, "test_size": 0.3,
+             "name":"DiscriminativeScore",
              "fit_kwargs": {"epochs": 10, "validation_split": 0.2}}
         )
         self.discriminative_score.set_params(get_model=new_model, test_size=0.8, fit_kwargs={}, repetitions=1)
         self.assertEqual(
             self.discriminative_score.get_params(),
-            {"repetitions": 1, "get_model": new_model, "test_size": 0.8, "fit_kwargs": {}}
+            {"repetitions": 1,"name":"DiscriminativeScore", "get_model": new_model, "test_size": 0.8, "fit_kwargs": {}}
         )
 
     def test_transform(self):

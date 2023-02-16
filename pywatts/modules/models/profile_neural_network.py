@@ -1,9 +1,11 @@
 import logging
+from copy import deepcopy
 from typing import Dict
 
 import tensorflow
 import numpy as np
 import xarray as xr
+from keras.models import clone_model
 from pywatts_pipeline.core.transformer.base import BaseEstimator
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
@@ -39,6 +41,7 @@ class ProfileNeuralNetwork(BaseEstimator):
 
     def __init__(self, name: str = "PNN", epochs=50, offset=0, batch_size=128, validation_split=0.2):
         super().__init__(name)
+        self.pnn = None
         self.epochs = epochs
         self.offset = offset
         self.batch_size = batch_size
@@ -145,6 +148,14 @@ class ProfileNeuralNetwork(BaseEstimator):
             })
         return json
 
+    def clone(self):
+        pnn = self.pnn
+        self.pnn = None
+        copied_keras_wrapper = deepcopy(self)
+        copied_keras_wrapper.pnn = clone_model(pnn) if pnn is not None else None
+        self.pnn = pnn
+        return copied_keras_wrapper
+
     @classmethod
     def load(cls, load_information) -> BaseEstimator:
         """
@@ -153,7 +164,7 @@ class ProfileNeuralNetwork(BaseEstimator):
         :param params:  The paramters which should be used for restoring the PNN.
         :return: A wrapped keras model.
         """
-        pnn_module = ProfileNeuralNetwork(name=load_information["name"], **load_information["params"])
+        pnn_module = ProfileNeuralNetwork(**load_information["params"])
         if load_information["is_fitted"]:
             try:
                 pnn = keras.models.load_model(filepath=load_information["pnn"],

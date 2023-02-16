@@ -20,6 +20,7 @@ class TestRollingMean(unittest.TestCase):
                 "window_size": 3,
                 "closed":"left",
                 "alpha":None,
+                'name': 'RollingMean',
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
@@ -31,6 +32,7 @@ class TestRollingMean(unittest.TestCase):
         self.assertEqual(
             self.rolling_mean.get_params(),
             {
+                'name': 'RollingMean',
                 "window_size": 3,
                 "closed":"left",
                 "window_size_unit": "d",
@@ -46,6 +48,7 @@ class TestRollingMean(unittest.TestCase):
             {
                 "window_size": 5,
                 "window_size_unit": "d",
+                'name': 'RollingMean',
                 "closed":"left",
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",

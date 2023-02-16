@@ -18,12 +18,12 @@ class TestRollingMAE(unittest.TestCase):
         self.rolling_mae = None
 
     def test_get_params(self):
-        self.assertEqual(self.rolling_mae.get_params(), {'window_size': 24, 'window_size_unit': "d"})
+        self.assertEqual(self.rolling_mae.get_params(), {'name': 'RollingMAE', 'window_size': 24, 'window_size_unit': "d"})
 
     def test_set_params(self):
         self.rolling_mae.set_params(window_size=2, window_size_unit="m")
         self.assertEqual(self.rolling_mae.get_params(),
-                         {"window_size": 2, "window_size_unit": "m"})
+                         {'name': 'RollingMAE', "window_size": 2, "window_size_unit": "m"})
 
     def test_transform(self):
         self.rolling_mae.set_params(window_size=2, window_size_unit="h")

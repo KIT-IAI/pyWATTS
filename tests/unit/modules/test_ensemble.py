@@ -20,7 +20,8 @@ class TestEnsemble(unittest.TestCase):
                          {
                              "weights": None,
                              "k_best": None,
-                             "loss_metric": Ensemble.LossMetric.RMSE
+                             "loss_metric": Ensemble.LossMetric.RMSE,
+                             'name': 'Ensemble'
                          })
 
     def test_set_params(self):
@@ -28,14 +29,16 @@ class TestEnsemble(unittest.TestCase):
                          {
                              "weights": None,
                              "k_best": None,
-                             "loss_metric": Ensemble.LossMetric.RMSE
+                             "loss_metric": Ensemble.LossMetric.RMSE,
+                             'name': 'Ensemble'
                          })
         self.ensemble.set_params(weights=[0, 1, 2], k_best=5, loss_metric=Ensemble.LossMetric.MAE)
         self.assertEqual(self.ensemble.get_params(),
                          {
                              "weights": [0, 1, 2],
                              "k_best": 5,
-                             "loss_metric": Ensemble.LossMetric.MAE
+                             "loss_metric": Ensemble.LossMetric.MAE,
+                             'name': 'Ensemble'
                          })
 
     def test_transform_averaging(self):

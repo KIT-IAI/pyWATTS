@@ -18,6 +18,7 @@ class TestRollingSkewness(unittest.TestCase):
             self.rolling_skewness.get_params(),
             {
                 "window_size": 3,
+                'name': 'RollingSkewness',
                 "closed":"left",
                 "window_size_unit": "d",
                 "group_by": RollingGroupBy.No,
@@ -33,6 +34,7 @@ class TestRollingSkewness(unittest.TestCase):
                 "window_size": 3,
                 "closed":"left",
                 "window_size_unit": "d",
+                'name': 'RollingSkewness',
                 "group_by": RollingGroupBy.No,
                 "country": "Germany",
                 "continent": "Europe"
@@ -42,6 +44,7 @@ class TestRollingSkewness(unittest.TestCase):
         self.assertEqual(
             self.rolling_skewness.get_params(),
             {
+                'name': 'RollingSkewness',
                 "window_size": 5,
                 "closed":"left",
                 "window_size_unit": "d",

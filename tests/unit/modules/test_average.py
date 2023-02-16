@@ -18,6 +18,7 @@ class TestAverage(unittest.TestCase):
             self.averager.get_params(),
             {
                 "weights": None,
+                'name': 'Average',
             }
         )
 
@@ -26,6 +27,7 @@ class TestAverage(unittest.TestCase):
             self.averager.get_params(),
             {
                 "weights": None,
+                'name': 'Average'
             }
         )
         self.averager.set_params(weights=[1, 2, 3])
@@ -33,6 +35,7 @@ class TestAverage(unittest.TestCase):
             self.averager.get_params(),
             {
                 "weights": [1, 2, 3],
+                'name': 'Average'
             }
         )
 

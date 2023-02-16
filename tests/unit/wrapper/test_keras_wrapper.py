@@ -122,6 +122,7 @@ class TestKerasWrapper(unittest.TestCase):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},
                           'fit_kwargs': {'42': 24},
+                          "name":"KerasWrapper",
                           'custom_objects' : {},
                           'model' : self.keras_mock
                           })
@@ -130,6 +131,7 @@ class TestKerasWrapper(unittest.TestCase):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {'compile_kwargs': {'test': 'arg1'},
                           'fit_kwargs': {'42': 24},
+                          "name": "KerasWrapper",
                           'model':self.keras_mock,
                           'custom_objects': {}})
         self.keras_wrapper.set_params(fit_kwargs={"loss": "mse"},
@@ -137,6 +139,7 @@ class TestKerasWrapper(unittest.TestCase):
         self.assertEqual(self.keras_wrapper.get_params(),
                          {"fit_kwargs": {"loss": "mse"},
                           "compile_kwargs": {"optimizer": "Adam"},
+                          "name": "KerasWrapper",
                           "custom_objects": {},
                           'model':self.keras_mock})
 
@@ -206,6 +209,7 @@ class TestKerasWrapper(unittest.TestCase):
                                  "batch_size": 512,
                                  "epochs": 1
                              },
+                             "name": "SimpleAE",
                              "custom_objects": {},
                              "model":load_model_mock()
                          })

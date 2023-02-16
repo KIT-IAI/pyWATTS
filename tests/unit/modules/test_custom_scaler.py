@@ -20,6 +20,7 @@ class TestCustomScaler(unittest.TestCase):
             {
                 "multiplier": 1.0,
                 "bias": 0.0,
+                'name': 'CustomScaler'
             }
         )
 
@@ -29,6 +30,7 @@ class TestCustomScaler(unittest.TestCase):
             {
                 "multiplier": 1.0,
                 "bias": 0.0,
+                'name': 'CustomScaler'
             }
         )
         self.custom_scaler.set_params(multiplier=2.7, bias=1.2)
@@ -37,6 +39,7 @@ class TestCustomScaler(unittest.TestCase):
             {
                 "multiplier": 2.7,
                 "bias": 1.2,
+                'name': 'CustomScaler'
             }
         )
 

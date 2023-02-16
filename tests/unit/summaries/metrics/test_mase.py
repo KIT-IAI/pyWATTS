@@ -20,17 +20,17 @@ class TestMase(BaseTestMetricBase, unittest.TestCase):
         return MASE
 
     def get_default_params(self):
-        return {'offset': 0, "cuts": [], "filter_method": None, "lag": 1}
+        return {'offset': 0, "cuts": [], "name":"NAME","filter_method": None, "lag": 1}
 
     def test_set_params(self):
         self.metric.set_params(offset=24, cuts=[("Test", "test")])
         self.assertEqual(self.metric.get_params(),
-                         {'offset': 24,
+                         {'offset': 24, "name":"NAME",
                           "filter_method": None,
                           "lag":1,
                           "cuts": [("Test", "test")]})
     def get_load_params(self):
-        return {'offset': 24, "cuts": [], "filter_method": None, "lag": 1}
+        return {'offset': 24, "cuts": [], "filter_method": None, "lag": 1, "name": "NAME",}
 
     def test_transform_with_filter(self):
         filter_mock = MagicMock()

@@ -76,7 +76,7 @@ class AnomalyGeneration(BaseTransformer):
         :type anomaly: str
         :raises WrongParameterException: If method for anomaly type does not exist.
         """
-        attributes = [func for func in dir(self) if callable(getattr(self, func))]
+        attributes = [func for func in filter(lambda x: x.startswith("_anomaly_"), dir(self)) if callable(getattr(self, func))]
         anomalies = [
             attr.replace("_anomaly_", "")
             for attr in attributes

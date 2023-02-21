@@ -19,6 +19,8 @@ from pywatts.modules.preprocessing.custom_scaler import CustomScaler
 from pywatts.modules.preprocessing.differentiate import Differentiate
 from pywatts.modules.preprocessing.linear_interpolation import LinearInterpolater
 from pywatts.modules.preprocessing.missing_value_detection import MissingValueDetector
+from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
+from pywatts.modules.postprocessing.condition import Condition
 from pywatts.modules.preprocessing.resampler import Resampler
 from pywatts.modules.preprocessing.sampler import Sampler
 from pywatts.modules.preprocessing.select import Select

@@ -4,6 +4,14 @@ pywatts.modules.postprocessing package
 Submodules
 ----------
 
+pywatts.modules.postprocessing.condition module
+-----------------------------------------------
+
+.. automodule:: pywatts.modules.postprocessing.condition
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pywatts.modules.postprocessing.ensemble module
 ----------------------------------------------
 

@@ -13,6 +13,7 @@
 * Add F1Score Summary ([#234](https://github.com/KIT-IAI/pyWATTS/issues/234))
 * Add a discriminative score summary ([#238](https://github.com/KIT-IAI/pyWATTS/issues/238))
 * Add NPY Callback ([#247](https://github.com/KIT-IAI/pyWATTS/issues/247))
+* Add Condition module ([#169])(https://github.com/KIT-IAI/pyWATTS/issues/169)
 
 ### Changed
 * Make the inputs of the PNN more flexible ([#228](https://github.com/KIT-IAI/pyWATTS/issues/228))

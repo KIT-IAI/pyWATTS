@@ -1,5 +1,14 @@
 import setuptools
 
+dev = ["pytest",
+       "sphinx>=4",
+       "pylint",
+       "pytest-cov"
+       ]
+soft_dependencies = [
+    "river"
+]
+
 setuptools.setup(
     name="pywatts",
     version="0.3.0",
@@ -8,14 +17,10 @@ setuptools.setup(
     install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
                       "tensorflow>=2 ; platform_system!='Darwin'",
                       "pywatts-pipeline@git+https://github.com/KIT-IAI/pywatts-pipeline/@main",
-                      'workalendar',  'statsmodels', 'tabulate', 'river<0.11', 'tikzplotlib'],
+                      'workalendar', 'statsmodels', 'tabulate', 'tikzplotlib'],
     extras_require={
-        'dev': [
-            "pytest",
-            "sphinx>=4",
-            "pylint",
-            "pytest-cov"
-        ]
+        'dev': dev,
+        'all': dev + soft_dependencies
     },
     author="pyWATTS-TEAM",
     author_email="pywatts-team@iai.kit.edu",

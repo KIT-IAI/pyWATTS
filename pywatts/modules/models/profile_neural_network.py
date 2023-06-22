@@ -2,17 +2,12 @@ import logging
 from copy import deepcopy
 from typing import Dict
 
-import tensorflow
 import numpy as np
 import xarray as xr
 from keras.models import clone_model
 from pywatts_pipeline.core.transformer.base import BaseEstimator
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts_pipeline.utils._xarray_time_series_utils import numpy_to_xarray
-
-from tensorflow.keras import layers
-from tensorflow.keras import activations, optimizers, initializers
-from tensorflow import keras
 
 
 class ProfileNeuralNetwork(BaseEstimator):
@@ -46,6 +41,13 @@ class ProfileNeuralNetwork(BaseEstimator):
         self.offset = offset
         self.batch_size = batch_size
         self.validation_split = validation_split
+        try:
+            import tensorflow
+            from tensorflow.keras import layers
+            from tensorflow.keras import activations, optimizers, initializers
+            from tensorflow import keras
+        except ModuleNotFoundError:
+            raise Exception("To use the ProfileNeuralNetwork you need to install tensorflow.")
 
     def transform(self, **kwargs) -> xr.DataArray:
         """

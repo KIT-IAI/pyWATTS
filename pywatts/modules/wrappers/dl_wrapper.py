@@ -4,7 +4,6 @@
 from abc import ABC
 
 import xarray as xr
-
 from pywatts.modules.wrappers.base_wrapper import BaseWrapper
 
 

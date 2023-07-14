@@ -1,3 +1,4 @@
+import warnings
 from pywatts.summaries.mae_summary import MAE
 from pywatts.summaries.mape_summary import MAPE
 from pywatts.summaries.mase_summary import MASE
@@ -6,4 +7,8 @@ from pywatts.summaries.min_summary import MinErr
 from pywatts.summaries.rmse_summary import RMSE
 from pywatts.summaries.f1_summary import F1Score
 from pywatts.summaries.tsne_visualisation import TSNESummary
-from pywatts.summaries.discriminative_score import DiscriminativeScore
+try:
+    from pywatts.summaries.discriminative_score import DiscriminativeScore
+except ModuleNotFoundError:
+    warnings.warn("To evaluate the DiscriminativeScore you need to install tensorflow.")
+

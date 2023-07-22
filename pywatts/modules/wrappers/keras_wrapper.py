@@ -3,10 +3,9 @@ from copy import deepcopy
 from typing import Tuple, Union, Dict
 
 import cloudpickle
-import tensorflow as tf
 import xarray as xr
+import tensorflow as tf
 from keras.models import clone_model
-
 from pywatts_pipeline.core.util.filemanager import FileManager
 from pywatts.utils._split_kwargs import split_kwargs
 from pywatts_pipeline.utils._xarray_time_series_utils import _get_time_indexes, xarray_to_numpy, numpy_to_xarray

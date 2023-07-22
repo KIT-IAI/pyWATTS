@@ -6,7 +6,8 @@ dev = ["pytest",
        "pytest-cov"
        ]
 soft_dependencies = [
-    "river"
+    "river",
+    "tensorflow>=2 ; platform_system!='Darwin'"
 ]
 
 setuptools.setup(
@@ -14,8 +15,7 @@ setuptools.setup(
     version="0.3.0",
     packages=setuptools.find_packages(),
 
-    install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas', 'matplotlib',
-                      "tensorflow>=2 ; platform_system!='Darwin'",
+    install_requires=['scikit-learn >= 1.0', 'cloudpickle', 'holidays', 'xarray>=0.19', 'numpy', 'pandas<2.0', 'matplotlib',
                       "pywatts-pipeline@git+https://github.com/KIT-IAI/pywatts-pipeline/@main",
                       'workalendar', 'statsmodels', 'tabulate', 'tikzplotlib'],
     extras_require={

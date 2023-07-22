@@ -8,28 +8,27 @@ Automation and Applied Informatics at the Karlsruhe Institute of Technology.
 
 For more information on pyWATTS you can visit https://www.iai.kit.edu/english/1266_4162.php
 
-Authors
+Active Contributors
 -------
 The following people are currently involved in pyWATTS' core development and maintenance:
 
-* Andreas Bartschat
 * Benedikt Heidrich
-* Nicole Ludwig
 * Stefan Meisenbacher
 * Oliver Neumann
 * Kaleb Phipps
-* Marian Turowski
 
 Please do not contact the authors directly to ask for assistance or report issues. Instead, please send an e-mail to us:
 pywatts-team@iai.kit.edu
 
 See also: :ref:`contribution`.
 
-Former authors
+Former Contributors
 --------------
 The following people have been active contributors in the past, but are no longer active in the project:
 
-* No one so far :-)
+* Andreas Bartschat
+* Nicole Ludwig
+* Marian Turowski
 
 Citing pyWATTS
 --------------

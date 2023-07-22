@@ -1,3 +1,4 @@
+import warnings
 from pywatts.modules.feature_extraction.calendar_extraction import CalendarExtraction, CalendarFeature
 from pywatts.modules.feature_extraction.rolling_base import RollingGroupBy
 from pywatts.modules.feature_extraction.rolling_kurtosis import RollingKurtosis
@@ -10,7 +11,10 @@ from pywatts.modules.generation.energy_anomaly_generation_module import EnergyAn
 from pywatts.modules.generation.power_anomaly_generation_module import PowerAnomalyGeneration
 from pywatts.modules.metrics.rolling_mae import RollingMAE
 from pywatts.modules.metrics.rolling_rmse import RollingRMSE
-from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
+try:
+    from pywatts.modules.models.profile_neural_network import ProfileNeuralNetwork
+except ModuleNotFoundError:
+    warnings.warn("To use the ProfileNeuralNetwork you need to install tensorflow.")
 from pywatts.modules.postprocessing.ensemble import Ensemble
 from pywatts.modules.preprocessing.average import Average
 from pywatts.modules.preprocessing.change_direction import ChangeDirection

@@ -18,10 +18,12 @@ class TestRiverCDCondition(unittest.TestCase):
 
         drift_detector_mock = MagicMock()
         drift_detector_mock.change_detected = False
+        drift_detector_mock.drift_detected = False
         detection_condition = RiverDriftDetectionCondition(drift_detection=drift_detector_mock)
 
         self.assertFalse(detection_condition.evaluate(y=y, y_hat=y_hat))
         drift_detector_mock.change_detected = True
+
         y_hat = xr.DataArray([3, 4, 5, 6], dims=['time'], coords={"time": time})
 
         self.assertTrue(detection_condition.evaluate(y=y, y_hat=y_hat))

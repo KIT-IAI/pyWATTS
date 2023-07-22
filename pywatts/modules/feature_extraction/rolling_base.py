@@ -15,6 +15,7 @@ class RollingGroupBy(IntEnum):
     No = 1
     WorkdayWeekend = 2
     WorkdayWeekendAndHoliday = 3
+    HourOnly = 4
 
 
 class RollingBase(BaseTransformer, ABC):
@@ -51,6 +52,7 @@ class RollingBase(BaseTransformer, ABC):
         self.continent = continent
         self.closed = closed
         self.cal = _init_calendar(self.continent, self.country)
+        self.should_align = False
 
     def set_params(self, **kwargs):
         """
@@ -72,7 +74,7 @@ class RollingBase(BaseTransformer, ABC):
         super(RollingBase, self).set_params(**kwargs)
         self.cal = _init_calendar(self.continent, self.country)
 
-    def transform(self, x: xr.DataArray) -> xr.DataArray:
+    def transform(self, x: xr.DataArray, **kwargs) -> xr.DataArray:
         """ Calculates a rolling mean
 
         :param x: Xarray dataset containing a timeseries specified by the object's 'time_index'
@@ -86,6 +88,11 @@ class RollingBase(BaseTransformer, ABC):
             x = x_new
 
         df = x.to_dataframe("name")
+        reference = x
+        if "index" in kwargs:
+            indexes = pd.DataFrame(index=kwargs["index"].to_dataframe("name").index)
+            df = df.join(indexes, how="outer")
+            reference = kwargs["index"]
 
         if self.group_by == RollingGroupBy.No:
             rolling = self._get_rolling(df)
@@ -97,6 +104,9 @@ class RollingBase(BaseTransformer, ABC):
             mask = df.index.map(lambda element: element.minute + element.hour * 60 + 1440 if self.cal.is_holiday(
                 element) or element.weekday() >= 5 else element.minute + element.hour * 60).values
             rolling = self._get_rolling(df.groupby(mask)).reset_index(0).drop("level_0", axis=1).sort_index()
+        elif self.group_by == RollingGroupBy.HourOnly:
+            mask = df.index.map(lambda element: element.minute + element.hour * 60).values
+            rolling = self._get_rolling(df.groupby(mask)).reset_index(0).drop("level_0", axis=1).sort_index()
         else:
             raise WrongParameterException(
                 "GroupBy has to be RollingGroupBy.No, RollingGroupBy.WorkdayWeekend, "
@@ -106,7 +116,7 @@ class RollingBase(BaseTransformer, ABC):
                 module=self.__class__)
 
         rolling.fillna(inplace=True, value=0)
-        return numpy_to_xarray(rolling.values.reshape((len(rolling),)), x)
+        return numpy_to_xarray(rolling.values.reshape((len(rolling),)), reference)
 
     @abstractmethod
     def _get_rolling(self, df):

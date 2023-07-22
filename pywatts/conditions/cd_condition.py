@@ -40,5 +40,9 @@ class RiverDriftDetectionCondition(BaseCondition):
             if hasattr(self.drift_detection, "reset"):
                 self.drift_detection.reset()
             return True
+        elif hasattr(self.drift_detection, "drift_detected") and self.drift_detection.drift_detected:
+            if hasattr(self.drift_detection, "reset"):
+                self.drift_detection.reset()
+            return True
         else:
             return False

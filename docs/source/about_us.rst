@@ -1,34 +1,29 @@
 About us
 ========
 
+Note that pyWATTS is no longer actively maintained
+
+
 History
 -------
 This project was started in 2019 by the Research Group "Machine Learning for Time Series and Images" of the Institute for
 Automation and Applied Informatics at the Karlsruhe Institute of Technology.
 
-For more information on pyWATTS you can visit https://www.iai.kit.edu/english/1266_4162.php
+pyWATTS is no longer actively maintained, however the main graph pipeline functionality of pyWATTS has been
+integrated into the open source python pacakge [sktime](https://www.sktime.net/en/stable/).**
 
-Active Contributors
--------
-The following people are currently involved in pyWATTS' core development and maintenance:
+Contributors
+--------------
+The following people actively contributed to pyWATTS during its development and use:
 
 * Benedikt Heidrich
-* Stefan Meisenbacher
+* Andreas Bartschat
+* Marian Turowski
 * Oliver Neumann
 * Kaleb Phipps
-
-Please do not contact the authors directly to ask for assistance or report issues. Instead, please send an e-mail to us:
-pywatts-team@iai.kit.edu
-
-See also: :ref:`contribution`.
-
-Former Contributors
---------------
-The following people have been active contributors in the past, but are no longer active in the project:
-
-* Andreas Bartschat
+* Stefan Meisenbacher
 * Nicole Ludwig
-* Marian Turowski
+
 
 Citing pyWATTS
 --------------

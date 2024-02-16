@@ -4,7 +4,7 @@ Getting Started
 ===============
 
 Note that pyWATTS is no longer actively maintained, however the main graph pipeline functionality of pyWATTS has been
-integrated into the open source python pacakge [sktime](https://www.sktime.net/en/stable/).**
+integrated into the open source python package [sktime](https://www.sktime.net/en/stable/).**
 
 Further Information
 *******************

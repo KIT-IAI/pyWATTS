@@ -10,7 +10,7 @@ This project was started in 2019 by the Research Group "Machine Learning for Tim
 Automation and Applied Informatics at the Karlsruhe Institute of Technology.
 
 pyWATTS is no longer actively maintained, however the main graph pipeline functionality of pyWATTS has been
-integrated into the open source python pacakge [sktime](https://www.sktime.net/en/stable/).**
+integrated into the open source python package [sktime](https://www.sktime.net/en/stable/). For more information on the history of pyWATTS you can visit [the IAI homepage](https://www.iai.kit.edu/english/1266_4162.php).
 
 Contributors
 --------------

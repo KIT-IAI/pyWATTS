@@ -3,7 +3,11 @@
 Getting Started
 ===============
 
+Note that pyWATTS is no longer actively maintained, however the main graph pipeline functionality of pyWATTS has been
+integrated into the open source python package [sktime](https://www.sktime.net/en/stable/).**
 
+Further Information
+*******************
 The purpose of this guide is to introduce some of the main features of `pyWATTS`.
 It assumes a basic knowledge of data science and machine learning principles.
 

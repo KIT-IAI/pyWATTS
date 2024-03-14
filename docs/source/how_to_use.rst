@@ -3,6 +3,9 @@
 How to use?
 ===========
 
+Note that pyWATTS is no longer actively maintained, however the main graph pipeline functionality of pyWATTS has been
+integrated into the open source python package [sktime](https://www.sktime.net/en/stable/).**
+
 Where should pyWATTS be used?
 -----------------------------
 pyWATTS is not a machine learning framework or library. Instead, pyWATTS' aim is to support users in performing data analysis tasks and hereby to avoid a script nightmare.

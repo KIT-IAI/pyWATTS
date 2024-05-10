@@ -2,6 +2,14 @@
 Welcome to the pyWATTS documentation!
 =====================================
 
+Please note that pyWATTS is no longer actively maintained. The graph pipeline functionality of pyWATTS has now been integrated into the open source python package sktime!
+
+We would like to thank everybody who has helped develop, test, and use pyWATTS in the last few years.
+
+
+Legacy Information
+------------------
+
 The goals of pyWATTS (Python Workflow Automation Tool for Time-Series) are
 
 * to support researchers in conducting automated time series experiments independent of the execution environment and

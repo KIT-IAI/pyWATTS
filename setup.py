@@ -23,7 +23,6 @@ setuptools.setup(
         'all': dev + soft_dependencies
     },
     author="pyWATTS-TEAM",
-    author_email="pywatts-team@iai.kit.edu",
     license="MIT",
     classifiers=[
         "Development Status :: 3 - Alpha",
